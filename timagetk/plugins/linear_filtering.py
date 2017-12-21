@@ -16,6 +16,8 @@
 This module contains a generic implementation of several linear filtering algorithms.
 """
 
+import warnings
+
 try:
     from timagetk.algorithms import linearfilter
     from timagetk.components import SpatialImage
