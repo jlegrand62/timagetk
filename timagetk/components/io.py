@@ -21,7 +21,6 @@ from __future__ import division
 
 import os
 
-import numpy as np
 import scipy.ndimage as nd
 
 try:
@@ -30,8 +29,6 @@ except ImportError:
     raise ImportError('Unable to import SpatialImage')
 
 __all__ = ["imread", "imsave", "apply_mask"]
-
-POSS_EXT = ['.inr', '.inr.gz', '.inr.zip', '.tiff', '.tif']
 
 
 def imread(img_file):
@@ -57,40 +54,39 @@ def imread(img_file):
     True
     """
     # Check file exists:
-    try:
-        os.path.exists(img_file)
-    except:
-        raise IOError("This file does not exists: {}".format(img_file))
-
-    # Get file ext:
+    if not os.path.exists(img_file):
+        print('This file does not exist : '), img_file
+        return
+    # Get file extension:
+    poss_ext = ['.inr', '.inr.gz', '.inr.zip', '.tiff', '.tif']
     (filepath, filename) = os.path.split(img_file)
     (shortname, ext) = os.path.splitext(filename)
+    # Check for possible compression of the file:
     if (ext == '.gz') or (ext == '.zip'):
         zip_ext = ext
         (shortname, ext) = os.path.splitext(shortname)
         ext += zip_ext
-    try:
-        assert ext in POSS_EXT
-    except AssertionError:
-        raise NotImplementedError(
-            "Unknown file ext '{}', should be in {}.".format(ext, POSS_EXT))
-
-    if (ext == '.inr' or ext == '.inr.gz' or ext == '.inr.zip'):
-        try:
-            from timagetk.components.inr_image import read_inr_image
-        except ImportError:
-            raise ImportError('Unable to import .inr functionalities')
-        sp_img = read_inr_image(img_file)
-    elif (ext == '.tiff' or ext == '.tif'):
-        try:
-            from timagetk.components.tiff_image import read_tiff_image
-        except ImportError:
-            raise ImportError('Unable to import .tiff functionalities')
-        sp_img = read_tiff_image(img_file)
+    # Check file extension is known:
+    if ext in poss_ext:
+        if (ext == '.inr' or ext == '.inr.gz' or ext == '.inr.zip'):
+            try:
+                from timagetk.components.inr_image import read_inr_image
+            except ImportError:
+                raise ImportError('Unable to import .inr functionalities')
+            sp_img = read_inr_image(img_file)
+        elif (ext == '.tiff' or ext == '.tif'):
+            try:
+                from timagetk.components.tiff_image import read_tiff_image
+            except ImportError:
+                raise ImportError('Unable to import .tiff functionalities')
+            sp_img = read_tiff_image(img_file)
+        else:
+            pass
+        return sp_img
     else:
-        pass
-
-    return sp_img
+        print("Unknown file extension '{}'".format(ext))
+        print('Extensions can be either :'), poss_ext
+        return
 
 
 def imsave(img_file, sp_img):
@@ -112,46 +108,32 @@ def imsave(img_file, sp_img):
     >>> save_path = data_path('test_output.tif')
     >>> imsave(save_path, sp_image)
     """
-    # - Assert sp_img is a SpatialImage instance:
-    try:
-        assert isinstance(sp_img, SpatialImage)
-    except AssertionError:
-        raise TypeError("Parameter 'sp_img' is not a SpatialImage!")
-    # - Assert SpatialImage is 2D or 3D:
-    try:
-        assert sp_img.get_dim() in [2, 3]
-    except AssertionError:
-        raise ValueError("Parameter 'sp_img' should have a dimensionality of 2 or 3, not '{}'.".format(sp_img.get_dim()))
-    # - Get file extension and check its validity:
+    poss_ext = ['.inr', '.inr.gz', '.inr.zip', '.tiff', '.tif']
+    if not isinstance(sp_img, SpatialImage) and sp_img.get_dim() in [2, 3]:
+        print('sp_img is not a SpatialImage')
+        return
+    # Get file path and name:
     (filepath, filename) = os.path.split(img_file)
     (shortname, ext) = os.path.splitext(filename)
+    # Check for possible compression of the file:
     if (ext == '.gz') or (ext == '.zip'):
         zip_ext = ext
         (shortname, ext) = os.path.splitext(shortname)
         ext += zip_ext
-    try:
-        assert ext in POSS_EXT
-    except AssertionError:
-        raise NotImplementedError(
-            "Unknown file ext '{}', should be in {}.".format(
-                ext, POSS_EXT))
-
-    if (ext == '.inr' or ext == '.inr.gz' or ext == '.inr.zip'):
-        try:
-            from timagetk.components.inr_image import write_inr_image
-        except ImportError:
-            raise ImportError('Unable to import .inr functionalities')
-        write_inr_image(img_file, sp_img)
-    elif (ext == '.tiff' or ext == '.tif'):
-        try:
-            from timagetk.components.tiff_image import write_tiff_image
-        except ImportError:
-            raise ImportError('Unable to import .tiff functionalities')
-        write_tiff_image(img_file, sp_img)
-    else:
-        pass
-
-    return 
+    # Check file extension is known:
+    if ext in poss_ext:
+        if (ext == '.inr' or ext == '.inr.gz' or ext == '.inr.zip'):
+            try:
+                from timagetk.components.inr_image import write_inr_image
+            except ImportError:
+                raise ImportError('Unable to import .inr functionalities')
+            write_inr_image(img_file, sp_img)
+        elif (ext == '.tiff' or ext == '.tif'):
+            try:
+                from timagetk.components.tiff_image import write_tiff_image
+            except ImportError:
+                raise ImportError('Unable to import .tiff functionalities')
+            write_tiff_image(img_file, sp_img)
 
 
 def apply_mask(img, mask_filename, masking_value=0, crop_mask=False):
@@ -182,8 +164,7 @@ def apply_mask(img, mask_filename, masking_value=0, crop_mask=False):
         from pillow import Image
     except ImportError:
         from PIL import Image
-
-    xsh, ysh, zsh = img.get_shape()
+    xsh, ysh, zsh = im.get_shape()
     # Read the mask file:
     mask_im = Image.open(mask_filename)
     # Detect non-masked values positions
