@@ -135,14 +135,18 @@ def basic_metadata(obj, metadata_dict=None):
     except KeyError:
         metadata_dict['shape'] = obj.shape
     except AssertionError:
+        print "WARNING: Metadata 'shape' () do not match the array shape ()".format(
+            metadata_dict['shape'], obj.shape),
         metadata_dict['shape'] = obj.shape
-        print "WARNING: Metadata 'shape' did not match the object shape, it has been updated!"
+        print ", it has been updated!"
+
     try:
         assert metadata_dict['dim'] == obj.ndim
     except KeyError:
         metadata_dict['dim'] = obj.ndim
     except AssertionError:
-        raise ValueError("Metadata 'dim' does not match the object dim!")
+        raise ValueError("Metadata 'dim' does not match the array dim!")
+
     try:
         assert np.alltrue(metadata_dict['origin'] == obj.origin)
     except KeyError:
@@ -150,19 +154,25 @@ def basic_metadata(obj, metadata_dict=None):
     except AssertionError:
         raise ValueError(
             "Metadata 'origin' does not match the object origin!")
+
     try:
         assert np.alltrue(metadata_dict['extent'] == obj.extent)
     except KeyError:
         metadata_dict['extent'] = obj.extent
     except AssertionError:
         raise ValueError(
-            "Metadata 'extent' does not match the object extent!")
+            "Metadata 'extent' does not match the array extent!")
+
     try:
         assert metadata_dict['type'] == str(obj.dtype)
     except KeyError:
         metadata_dict['type'] = str(obj.dtype)
     except AssertionError:
-        raise ValueError("Metadata 'type' does not match the object type!")
+        print "WARNING: Metadata 'type' () do not match the array dtype ()".format(
+            metadata_dict['type'], obj.dtype),
+        metadata_dict['dtype'] = str(obj.dtype)
+        print ", it has been updated!"
+
     # Next lines compute min, max and mean values of the array every time we
     # call SpatialImage, even when reading the file from disk! This slow down
     # the process!
@@ -200,7 +210,7 @@ class SpatialImage(np.ndarray):
         :param str dtype: image type, optional. Default: dtype=input_array.dtype
 
         :param dict metadata_dict: image metadata, optional. Default: metadata_dict={}
-
+0
         Returns
         -------
         :return: ``SpatialImage`` instance -- image and metadata
@@ -249,7 +259,9 @@ class SpatialImage(np.ndarray):
             try:
                 assert dtype in POSS_TYPES
             except AssertionError:
-                raise ValueError("Unknown 'dtype' value '{}', available types are: {}".format(dtype, POSS_TYPES))
+                raise ValueError(
+                    "Unknown 'dtype' value '{}', available types are: {}".format(
+                        dtype, POSS_TYPES))
             else:
                 if isinstance(dtype, np.dtype):
                     dtype = str(dtype)
@@ -316,7 +328,7 @@ class SpatialImage(np.ndarray):
         metadata_dict['extent'] = ext
         obj.extent = ext
 
-        # -- Save the metadata:
+        # - Save/update the metadata:
         obj.metadata = basic_metadata(obj, metadata_dict)
 
         # - Backward compatibility with 'openalea.image' `SpatiaImage`:
@@ -344,7 +356,9 @@ class SpatialImage(np.ndarray):
             return
 
     def __str__(self):
-        return "SpatialImage instance, metadata: {}".format(self.get_metadata())
+        print "SpatialImage object with following metadata:"
+        print  self.get_metadata()
+        return
 
     def is_isometric(self):
         """
@@ -1090,6 +1104,7 @@ class SpatialImage(np.ndarray):
         """
         if (self.get_dim() == 3) and (1 in self.get_shape()):
             voxelsize, shape, array = self.get_voxelsize(), self.get_shape(), self.get_array()
+            ori, md = self.get_origin(), self.get_metadata()
             if shape[0] == 1:
                 new_arr = np.squeeze(array, axis=(0,))
                 new_vox = [voxelsize[1], voxelsize[2]]
@@ -1099,7 +1114,8 @@ class SpatialImage(np.ndarray):
             elif shape[2] == 1:
                 new_arr = np.squeeze(array, axis=(2,))
                 new_vox = [voxelsize[0], voxelsize[1]]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox)
+            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
+                                      origin=ori, metadata_dict=md)
             return out_sp_img
         else:
             print('sp_img can not be reshaped')
@@ -1111,13 +1127,47 @@ class SpatialImage(np.ndarray):
         """
         if (self.get_dim() == 2):
             voxelsize, shape, array = self.get_voxelsize(), self.get_shape(), self.get_array()
+            ori, md = self.get_origin(), self.get_metadata()
             new_arr = np.reshape(array, (shape[0], shape[1], 1))
             new_vox = [voxelsize[0], voxelsize[1], 1.0]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox)
+            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
+                                      origin=ori, metadata_dict=md)
             return out_sp_img
         else:
             print('sp_img is not a 2D SpatialImage')
             return
+
+    def get_available_types(self):
+        """
+        Print the availables bits type dictionary.
+        """
+        return DEF_TYPE
+
+    def is_available_types(self, dtype):
+        """
+        Print the availables bits type dictionary.
+        """
+        return dtype in DEF_TYPE.keys()
+
+    def bits_convert(self, dtype):
+        """
+        Convert the array to a diferent bit depth.
+
+        Parameters
+        ----------
+        dtype : int|str
+            in both case should be a key in dictionary of availables types
+
+        Returns
+        -------
+        img : SpatialImage
+            the converted SpatialImage
+        """
+        vxs = self.get_voxelsize()
+        ori = self.get_origin()
+        md = self.get_metadata()
+        return SpatialImage(self.get_array().astype(DEF_TYPE[dtype]),
+                            voxelsize=vxs, origin=ori, metadata_dict=md)
 
     def revert_axis(self, axis='z'):
         """
