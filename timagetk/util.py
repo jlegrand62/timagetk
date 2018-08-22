@@ -13,6 +13,7 @@
 # ------------------------------------------------------------------------------
 
 import os
+import time
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -96,7 +97,8 @@ def _input_img_check(input_image, real=False):
     return
 
 
-def _general_kwargs(param=False, verbose=False, time=False, debug=False, **kwargs):
+def _general_kwargs(param=False, verbose=False, time=False, debug=False,
+                    **kwargs):
     """
     Keyword argument parser for VT general parameters.
 
@@ -145,7 +147,7 @@ OMP_TYPE = ['default', 'static', 'dynamic-one', 'dynamic', 'guided']
 
 
 def _parallel_kwargs(parallel=True, parallel_type=DEFAULT_PARALLEL, n_job=None,
-                   omp_scheduling=None, **kwargs):
+                     omp_scheduling=None, **kwargs):
     """
     Keyword argument parser for VT parallelism parameters.
 
@@ -183,3 +185,79 @@ def _parallel_kwargs(parallel=True, parallel_type=DEFAULT_PARALLEL, n_job=None,
         str_param += ' -no-parallel'
 
     return str_param
+
+
+def min_percent_step(N, default_step=5):
+    """
+    Compute the minimu step to apply when printing percentage of progress
+    Parameters
+    ----------
+    N : int
+        number of element over which to increment
+    default_step : int
+        default increment
+
+    Returns
+    -------
+    minimum_step : int
+        the minimum step to use
+    """
+    return max(default_step, 100 / N)
+
+
+def percent_progress(progress, n, N, step=None):
+    """
+    Print a percentage of progress of n over N.
+
+    Parameters
+    ----------
+    progress : int
+        progress state
+    n : int
+        iteration number
+    N : int
+        max iteration number
+    step : int
+        progress step to apply for printing
+
+    Returns
+    -------
+    percentage of progress print if any
+    """
+    if step is None:
+        step = min_percent_step(N)
+
+    if n == 0:
+        print "0%...",
+    if n * 100 / float(N) >= progress + step:
+        print "{}%...".format(progress + step),
+        progress += step
+    if n + 1 == N:
+        print "100%"
+
+    return progress
+
+
+def elapsed_time(start, stop=None, round_to=3):
+    """
+    Return a rounded elapsed time float.
+
+    Parameters
+    ----------
+    start : float
+        start time
+    stop : float, optional
+        stop time, if None, get it now
+    round : int, optional
+        number of decimals to returns
+
+    Returns
+    -------
+    float
+        rounded elapsed time
+    """
+    if stop is None:
+        stop = time.time()
+    t = round(stop - start, round_to)
+    print "done in {}s".format(t)
+    return
