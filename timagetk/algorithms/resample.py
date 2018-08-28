@@ -46,7 +46,7 @@ def resample(image, voxelsize, option='gray'):
     """
     dim = image.get_dim()
     try:
-        assert image.get_voxelsize() != []
+        assert image.voxelsize != []
     except AssertionError:
         raise ValueError("Input image has an EMPTY voxelsize attribute!")
     try:
@@ -54,14 +54,14 @@ def resample(image, voxelsize, option='gray'):
     except AssertionError:
         raise ValueError("Parameter 'voxelsize' length ({}) does not match the dimension of the image ({}).".format(len(voxelsize), dim))
 
-    extent = image.get_extent()
+    extent = image.extent
     new_shape = [int(round(extent[ind] / voxelsize[ind])) for ind in range(dim)]
     # - Initialise a template image:
     tmp_img = np.zeros((new_shape[0], new_shape[1], new_shape[2]),
                        dtype=image.dtype)
     tmp_img = SpatialImage(tmp_img, voxelsize=voxelsize,
-                           origin=image.get_origin(),
-                           metadata_dict=image.get_metadata())
+                           origin=image.origin,
+                           metadata_dict=image.metadata)
 
     if option == 'gray':
         param_str_2 = '-resize -interpolation linear'
@@ -72,7 +72,7 @@ def resample(image, voxelsize, option='gray'):
     out_img = apply_trsf(image, trsf=None, template_img=tmp_img,
                          param_str_2=param_str_2)
 
-    if 1 in out_img.get_shape():
+    if 1 in out_img.shape:
         out_img = out_img.to_2D()
 
     return out_img
@@ -196,7 +196,7 @@ def isometric_resampling(input_im, method='min', option='gray', dry_run=False):
 
     """
     POSS_METHODS = ['min', 'max']
-    voxelsize = input_im.get_voxelsize()
+    voxelsize = input_im.voxelsize
     try:
         assert voxelsize != []
     except AssertionError:
@@ -218,7 +218,7 @@ def isometric_resampling(input_im, method='min', option='gray', dry_run=False):
 
     if dry_run:
         vxs = np.repeat(vxs, len(voxelsize)).tolist()
-        extent = input_im.get_extent()
+        extent = input_im.extent
         dim = input_im.get_dim()
         size = [int(round(extent[ind] / vxs[ind])) for ind in range(dim)]
         return size, vxs
@@ -266,7 +266,7 @@ def subsample(image, factor=[2, 2, 1], option='gray'):
         image = image.to_3D()
         factor.append(1)
 
-    shape, extent = image.get_shape(), image.get_extent()
+    shape, extent = image.shape, image.extent
     # new_shape = [int(np.ceil(shape[ind] / factor[ind])) for ind in
     #              range(image.get_dim())]
     # Smaller approximation error with round than np.ceil ?!
@@ -277,8 +277,8 @@ def subsample(image, factor=[2, 2, 1], option='gray'):
     tmp_img = np.zeros((new_shape[0], new_shape[1], new_shape[2]),
                        dtype=image.dtype)
     tmp_img = SpatialImage(tmp_img, voxelsize=new_vox,
-                           origin=image.get_origin(),
-                           metadata_dict=image.get_metadata())
+                           origin=image.origin,
+                           metadata_dict=image.metadata)
 
     if option == 'gray':
         param_str_2 = '-resize -interpolation linear'
@@ -287,7 +287,7 @@ def subsample(image, factor=[2, 2, 1], option='gray'):
 
     out_img = apply_trsf(image, trsf=None,
                          template_img=tmp_img, param_str_2=param_str_2)
-    if 1 in out_img.get_shape():
+    if 1 in out_img.shape:
         out_img = out_img.to_2D()
 
     return out_img

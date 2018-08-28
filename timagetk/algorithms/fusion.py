@@ -83,10 +83,10 @@ def fusion(list_images, iterations=None, man_trsf_list=None,
     # --- end check
     if conds_init and 1 not in conds_list_img and 1 not in conds_list_trsf:
 
-        vox_list = [sp_img.get_voxelsize() for sp_img in list_images]
+        vox_list = [sp_img.voxelsize for sp_img in list_images]
         vox_list = [i for i in
                     itertools.chain.from_iterable(vox_list)]  # voxel list
-        ext_list = [sp_img.get_extent() for sp_img in list_images]
+        ext_list = [sp_img.extent for sp_img in list_images]
         ext_list = [i for i in
                     itertools.chain.from_iterable(ext_list)]  # extent list
 

@@ -224,7 +224,7 @@ def apply_mask(img, mask_filename, masking_value=0, crop_mask=False):
     except ImportError:
         from PIL import Image
 
-    xsh, ysh, zsh = img.get_shape()
+    xsh, ysh, zsh = img.shape
     # Read the mask file:
     mask_im = Image.open(mask_filename)
     # Detect non-masked values positions

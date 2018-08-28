@@ -189,7 +189,7 @@ def write_inr_image(inr_file, sp_img):
     elif (ext == '.inr'):
         f = open(inr_file, 'wb')
 
-    metadata = sp_img.get_metadata()
+    metadata = sp_img.metadata
     info = {}
     info['XDIM'], info['YDIM'] = metadata['shape'][0], \
                                  metadata['shape'][1]
@@ -204,7 +204,7 @@ def write_inr_image(inr_file, sp_img):
     info['#GEOMETRY'] = 'CARTESIAN'
     info['CPU'] = 'decm'
     info['VDIM'] = '1'
-    img_typ = str(sp_img.get_type())
+    img_typ = str(sp_img.type)
 
     if (img_typ[0:4] == 'uint'):
         info['TYPE'] = 'unsigned fixed'

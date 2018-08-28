@@ -38,8 +38,8 @@ class TestIO(unittest.TestCase):
         sp_img_tiff = imread(img_path_tiff)
         # Dictionary are different since metadata are handled differently:
         # TODO: check those differences and create a better test
-        # md_inr = sp_img_inr.get_metadata()
-        # md_tif = sp_img_tiff.get_metadata()
+        # md_inr = sp_img_inr.metadata
+        # md_tif = sp_img_tiff.metadata
         # print md_inr
         # print md_tif
         # self.assertDictEqual(md_inr, md_tif)
@@ -59,7 +59,7 @@ class TestIO(unittest.TestCase):
         sp_img_mha = imread(img_path_mha)
         # Dictionary are different since metadata are handled differently:
         # TODO: check those differences and create a better test
-        # self.assertDictEqual(sp_img_inr.get_metadata(), sp_img_mha.get_metadata())
+        # self.assertDictEqual(sp_img_inr.metadata, sp_img_mha.metadata)
         np.testing.assert_array_equal(sp_img_inr, sp_img_mha)
 
 
@@ -74,8 +74,8 @@ class TestIO(unittest.TestCase):
         sp_img_inr_cp = imread(img_path_inr)
         np.testing.assert_array_equal(sp_img_inr, sp_img_inr_cp)
         # Dictionary should be the same, except for 'filename':
-        md = sp_img_inr.get_metadata()
-        md_cp = sp_img_inr_cp.get_metadata()
+        md = sp_img_inr.metadata
+        md_cp = sp_img_inr_cp.metadata
         md.pop('filename')
         md_cp.pop('filename')
         self.assertDictEqual(md, md_cp)
@@ -87,8 +87,8 @@ class TestIO(unittest.TestCase):
         sp_img_tiff_cp = imread(img_path_tiff)
         np.testing.assert_array_equal(sp_img_tiff, sp_img_tiff_cp)
         # Dictionary should be the same, except for 'filename':
-        md = sp_img_tiff.get_metadata()
-        md_cp = sp_img_tiff_cp.get_metadata()
+        md = sp_img_tiff.metadata
+        md_cp = sp_img_tiff_cp.metadata
         md.pop('filename')
         md_cp.pop('filename')
         self.assertDictEqual(md, md_cp)
@@ -100,8 +100,8 @@ class TestIO(unittest.TestCase):
         sp_img_mha_cp = imread(img_path_mha)
 
         # Dictionary should be the same, except for 'filename':
-        md = sp_img_mha.get_metadata()
-        md_cp = sp_img_mha_cp.get_metadata()
+        md = sp_img_mha.metadata
+        md_cp = sp_img_mha_cp.metadata
         md.pop('filename')
         md_cp.pop('filename')
         self.assertDictEqual(md, md_cp)

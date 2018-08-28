@@ -41,10 +41,10 @@ def sp_img_to_vt_img(sp_img):
 
     _name = '\0'
     _type = np_type_to_vt_type(sp_img.dtype)
-    _x, _y, _z = sp_img.get_shape()
+    _x, _y, _z = sp_img.shape
     _v = 1
     _dim = vt_4vsize(_v, _x, _y, _z)
-    _vx, _vy, _vz = sp_img.get_voxelsize()
+    _vx, _vy, _vz = sp_img.voxelsize
     _siz = vt_fpt(_vx, _vy, _vz)
     _off = vt_fpt(0.0, 0.0, 0.0)
     _rot = vt_fpt(0.0, 0.0, 0.0)
@@ -78,7 +78,7 @@ def vt_img_to_sp_img(vt_image):
     out_arr = np.array(_np_array.reshape(x, y, z, order="F"))
     out_sp_img = SpatialImage(out_arr, voxelsize=[vx, vy, vz],
                               origin=[0., 0., 0.])
-    if 1 in out_sp_img.get_shape():  # 2D management
+    if 1 in out_sp_img.shape:  # 2D management
         out_sp_img = out_sp_img.to_2D()
     return out_sp_img
 
@@ -106,8 +106,8 @@ def new_vt_image(sp_img_in, dtype=None):
     if not dtype:
         dtype = sp_img_in.dtype
 
-    ori = sp_img_in.get_origin()
-    vxs = sp_img_in.get_voxelsize()
+    ori = sp_img_in.origin
+    vxs = sp_img_in.voxelsize
     shape = sp_img_in.shape
     sp_img_out = SpatialImage(np.zeros(shape, dtype=dtype), voxelsize=vxs,
                               origin=ori)
@@ -145,7 +145,7 @@ class VT_Image(object):
         return self.vt_image
 
     def get_spatial_image(self):
-        if 1 in self._data.get_shape():  # 2D management
+        if 1 in self._data.shape:  # 2D management
             tmp_sp_img = self._data.to_2D()
             self._data = tmp_sp_img
         return self._data

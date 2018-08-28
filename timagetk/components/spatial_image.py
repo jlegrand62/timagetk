@@ -92,7 +92,9 @@ def dimensionality_test(dim, list2test):
 
 
 def tuple_array_to_list(val):
-    """ Returns a list if a tuple or array is provided, else raise Error message."""
+    """
+    Returns a list if a tuple or array is provided, else raise a TypeError.
+    """
     if isinstance(val, np.ndarray):
         val = val.tolist()
     elif isinstance(val, tuple):
@@ -126,9 +128,9 @@ def basic_metadata(obj, metadata_dict=None):
     # -- Check the most important object values against potentially
     # predefined values in the metadata_dict:
     try:
-        assert np.alltrue(metadata_dict['voxelsize'] == obj.voxelsize)
+        assert np.alltrue(metadata_dict['voxelsize'] == obj._voxelsize)
     except KeyError:
-        metadata_dict['voxelsize'] = obj.voxelsize
+        metadata_dict['voxelsize'] = obj._voxelsize
     except AssertionError:
         raise ValueError(
             "Metadata 'voxelsize' does not match the object voxelsize!")
@@ -150,17 +152,17 @@ def basic_metadata(obj, metadata_dict=None):
         raise ValueError("Metadata 'dim' does not match the array dim!")
 
     try:
-        assert np.alltrue(metadata_dict['origin'] == obj.origin)
+        assert np.alltrue(metadata_dict['origin'] == obj._origin)
     except KeyError:
-        metadata_dict['origin'] = obj.origin
+        metadata_dict['origin'] = obj._origin
     except AssertionError:
         raise ValueError(
             "Metadata 'origin' does not match the object origin!")
 
     try:
-        assert np.alltrue(metadata_dict['extent'] == obj.extent)
+        assert np.alltrue(metadata_dict['extent'] == obj._extent)
     except KeyError:
-        metadata_dict['extent'] = obj.extent
+        metadata_dict['extent'] = obj._extent
     except AssertionError:
         raise ValueError(
             "Metadata 'extent' does not match the array extent!")
@@ -197,7 +199,7 @@ class SpatialImage(np.ndarray):
     """
 
     def __new__(cls, input_array, origin=None, voxelsize=None, dtype=None,
-                metadata_dict=None):
+                metadata_dict=None, **kwargs):
         """
         ``SpatialImage`` constructor (2D and 3D images)
 
@@ -322,21 +324,22 @@ class SpatialImage(np.ndarray):
             # - Update metadata in case voxelsize parameter is correctly
             # specified (to avoid potential missmatch against metadata_dict)
             metadata_dict['voxelsize'] = vxs
-        obj.voxelsize = vxs
+        obj._voxelsize = vxs
 
         # - Check & set 'extent' value:
-        ext = [obj.voxelsize[ind] * input_array.shape[ind] for ind in
+        ext = [obj._voxelsize[ind] * input_array.shape[ind] for ind in
                xrange(input_array.ndim)]
         ext = around_list(ext)
         metadata_dict['extent'] = ext
-        obj.extent = ext
+        obj._extent = ext
 
         # - Save/update the metadata:
-        obj.metadata = basic_metadata(obj, metadata_dict)
+        obj._metadata = basic_metadata(obj, metadata_dict)
 
-        # - Backward compatibility with 'openalea.image' `SpatiaImage`:
-        obj.resolution = obj.voxelsize
         return obj
+
+    def __init__(self, input_array, **kwargs):
+        pass
 
     def __array_finalize__(self, obj):
         """
@@ -348,19 +351,19 @@ class SpatialImage(np.ndarray):
         obj : the object returned by the __new__ method.
         """
         if obj is not None:
-            self.voxelsize = getattr(obj, 'voxelsize', [])
-            self.origin = getattr(obj, 'origin', [])
-            self.extent = getattr(obj, 'extent', [])
+            self._voxelsize = getattr(obj, '_voxelsize', [])
+            self._origin = getattr(obj, '_origin', [])
+            self._extent = getattr(obj, '_extent', [])
+            self._metadata = getattr(obj, '_metadata', {})
             self.min = getattr(obj, 'min', [])
             self.max = getattr(obj, 'max', [])
             self.mean = getattr(obj, 'mean', [])
-            self.metadata = getattr(obj, 'metadata', {})
         else:
             return
 
     def __str__(self):
         print "SpatialImage object with following metadata:"
-        print  self.get_metadata()
+        print  self._metadata
         return
 
     def is_isometric(self):
@@ -373,17 +376,84 @@ class SpatialImage(np.ndarray):
         is_iso : bool
             True is isometric, else False.
         """
-        vxs = self.get_voxelsize()
+        vxs = self.voxelsize
         is_iso = np.alltrue([vxs_i == vxs[0] for vxs_i in vxs[1:]])
         return is_iso
 
-    def get_resolution(self):
+    def is2D(self):
         """
-        Ensure backward compatibility with older openalea.image package.
+        Returns True if the SpatialImage is 2D, else False.
         """
-        print DeprecationWarning(
-            "Attribute 'resolution' is deprecated, use 'voxelsize' or 'get_voxelsize()' instead!")
-        return self.voxelsize
+        return self.get_dim() == 2
+
+    def is3D(self):
+        """
+        Returns True if the SpatialImage is 3D, else False.
+        """
+        return self.get_dim() == 3
+
+    def to_2D(self):
+        """
+        Convert, if possible, a 3D SpatiamImage with one "flat" dimension (ie.
+        with only one slice in this dimension) to a 2D SpatialImage.
+
+        Returns
+        -------
+        SpatialImage
+            the 2D SpatialImage
+        """
+        if self.is3D() and 1 in self.shape:
+            voxelsize, shape, array = self.voxelsize, self.shape, self.get_array()
+            ori, md = self.origin, self.metadata
+            if shape[0] == 1:
+                new_arr = np.squeeze(array, axis=(0,))
+                new_vox = [voxelsize[1], voxelsize[2]]
+            elif shape[1] == 1:
+                new_arr = np.squeeze(array, axis=(1,))
+                new_vox = [voxelsize[0], voxelsize[2]]
+            elif shape[2] == 1:
+                new_arr = np.squeeze(array, axis=(2,))
+                new_vox = [voxelsize[0], voxelsize[1]]
+            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
+                                      origin=ori, metadata_dict=md)
+            return out_sp_img
+        else:
+            print('3D SpatialImage can not be reshaped to 2D')
+            return
+
+    def to_3D(self):
+        """
+        Convert, a 2D SpatiamImage into a 3D SpatialImage with one "flat"
+        dimension (ie. with only one slice in this dimension).
+
+        Returns
+        -------
+        SpatialImage
+            the 3D SpatialImage
+        """
+        if self.is2D():
+            voxelsize, shape, array = self.voxelsize, self.shape, self.get_array()
+            ori, md = self.origin, self.metadata
+            new_arr = np.reshape(array, (shape[0], shape[1], 1))
+            new_vox = [voxelsize[0], voxelsize[1], 1.0]
+            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
+                                      origin=ori, metadata_dict=md)
+            return out_sp_img
+        else:
+            print('SpatialImage is not 2D')
+            return
+
+    def get_available_types(self):
+        """
+        Print the availables bits type dictionary.
+        """
+        return DICT_TYPES
+
+    def is_available_types(self, dtype):
+        """
+        Print the availables bits type dictionary.
+        """
+        return dtype in DICT_TYPES.keys()
 
     def equal(self, sp_img):
         """
@@ -413,14 +483,14 @@ class SpatialImage(np.ndarray):
         if not isinstance(sp_img, SpatialImage):
             raise TypeError("Parameter 'sp_img' is not a SpatialImage!")
 
-        if self.get_shape() == sp_img.get_shape():
+        if self.shape == sp_img.shape:
             # out_img = np.zeros_like(self, dtype=np.float)
             out_img = np.abs(self - sp_img)
             conds_arr = True if np.max(out_img < EPS) else False
-            md_ref = self.get_metadata()
-            md = sp_img.get_metadata()
+            md_ref = self.metadata
+            md = sp_img.metadata
             conds_met = all([True if md_ref[k] == md[k] else False for k in
-                             self.get_metadata()])
+                             self.metadata])
             if conds_arr and conds_met:
                 val = True
             elif not conds_arr:
@@ -476,104 +546,6 @@ class SpatialImage(np.ndarray):
         2
         """
         return self.ndim
-
-    def get_extent(self):
-        """
-        Get ``SpatialImage`` physical extent
-
-        Returns
-        ----------
-        :returns: image_extent (*list*) -- ``SpatialImage`` physical extent
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_extent = image.get_extent()
-        >>> print image_extent
-        [5.0, 5.0]
-        """
-        return self.extent
-
-    def get_metadata(self, name=None):
-        """
-        Get ``SpatialImage`` metadata
-
-        Parameters
-        ----------
-        name : None|str|list(str), optional
-            if None (default), we return all metadata, else try to return
-            selected name of list of names
-
-        Returns
-        ----------
-        :returns: image_metadata (*dict*) -- ``SpatialImage`` metadata
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_metadata = image.get_metadata()
-        >>> print image_metadata
-        {'dim': 2,
-         'extent': [5.0, 5.0],
-         'origin': [0, 0],
-         'shape': (5, 5),
-         'type': 'uint8',
-         'voxelsize': [1.0, 1.0]
-         }
-        """
-        met_dict = self.metadata
-        try:
-            assert met_dict.has_key('shape')
-        except AssertionError:
-            met_dict = basic_metadata(self, self.metadata)
-
-        try:
-            assert met_dict['shape'] == self.shape
-        except AssertionError:
-            old_shape = met_dict['shape']
-            met_dict['shape'], met_dict['dim'], met_dict[
-                'type'] = self.shape, self.ndim, str(self.dtype)
-            if (self.ndim == 2 and old_shape[0] == self.shape[1] and old_shape[
-                1] == self.shape[0]):  # --- transposition
-                vox = [met_dict['voxelsize'][1], met_dict['voxelsize'][0]]
-                ext = [met_dict['extent'][1], met_dict['extent'][0]]
-                orig = [met_dict['origin'][1], met_dict['origin'][0]]
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self.voxelsize, self.extent, self.origin = vox, ext, orig
-            elif (self.ndim == 3 and old_shape[0] in self.shape and old_shape[
-                1] in self.shape and old_shape[2] in self.shape):
-                print(
-                    'Warning : possibly incorrect voxelsize, extent and origin')
-                vox, ext, orig = [], [], []
-                for ind in range(0, self.ndim):
-                    tmp = old_shape.index(self.shape[ind])
-                    vox.append(met_dict['voxelsize'][tmp])
-                    ext.append(met_dict['extent'][tmp])
-                    orig.append(met_dict['origin'][tmp])
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self.voxelsize, self.extent, self.origin = vox, ext, orig
-            else:
-                print('Warning : incorrect voxelsize, extent and origin')
-                vox, ext, orig = [], [], []
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self.voxelsize, self.extent, self.origin = vox, ext, orig
-
-        self.metadata = met_dict
-        if isinstance(name, str):
-            return met_dict[name]
-        elif isinstance(name, list):
-            return {n: met_dict[n] for n in name}
-        else:
-            return self.metadata
 
     def get_min(self):
         """
@@ -650,26 +622,6 @@ class SpatialImage(np.ndarray):
             self.metadata.update({'mean': self._mean})
             return self._mean
 
-    def get_origin(self):
-        """
-        Get ``SpatialImage`` origin
-
-        Returns
-        ----------
-        :returns: image_origin (*list*) -- ``SpatialImage`` origin
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_origin = image.get_origin()
-        >>> print image_origin
-        [0, 0]
-        """
-        return self.origin
-
     def get_pixel(self, indices):
         """
         Get ``SpatialImage`` pixel value
@@ -680,7 +632,7 @@ class SpatialImage(np.ndarray):
 
         Returns
         ----------
-        :returns: pixel_value (*self.get_type()*) -- pixel value
+        :returns: pixel_value (*self.type*) -- pixel value
 
         Example
         -------
@@ -695,7 +647,7 @@ class SpatialImage(np.ndarray):
         """
         img_dim = self.get_dim()
         if isinstance(indices, list) and len(indices) == img_dim:
-            img_shape = self.get_shape()
+            img_shape = self.shape
             if img_dim == 2:
                 range_x, range_y = xrange(img_shape[0]), xrange(img_shape[1])
                 conds_ind = indices[0] in range_x and indices[1] in range_y
@@ -753,7 +705,7 @@ class SpatialImage(np.ndarray):
             raise TypeError(
                 "Parameter 'indices' must have twice the number of dimension of the image!")
 
-        sh = [(0, s) for s in self.get_shape()]
+        sh = [(0, s) for s in self.shape]
         conds_ind = all(
             [(indices[i] > sh[i]) & (indices[i + 1] < sh[i + 1] + 1) for i in
              range(0, 2 * img_dim, 2)])
@@ -776,7 +728,7 @@ class SpatialImage(np.ndarray):
 
         bbox = (slice(indices[i], indices[i + 1]) for i in
                 range(0, 2 * img_dim, 2))
-        tmp_arr, tmp_vox = self.get_array(), self.get_voxelsize()
+        tmp_arr, tmp_vox = self.get_array(), self.voxelsize
         reg_val = tmp_arr[bbox]
         if img_dim == 3 & 1 in reg_val.shape:  # 3D --> 2D
             if reg_val.shape[0] == 1:
@@ -792,159 +744,26 @@ class SpatialImage(np.ndarray):
         out_sp_img = SpatialImage(input_array=reg_val, voxelsize=tmp_vox)
         return out_sp_img
 
-    def get_shape(self):
-        """
-        Get ``SpatialImage`` shape
-
-        Returns
-        ----------
-        :returns: image_shape (*tuple*) -- ``SpatialImage`` shape
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_shape = image.get_shape()
-        >>> print image_shape
-        (5, 5)
-        """
-        return self.shape
-
-    def get_type(self):
-        """
-        Get ``SpatialImage`` type
-
-        Returns
-        ----------
-        :returns: image_type (*str*) -- ``SpatialImage`` type
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_type = image.get_type()
-        >>> print image_type
-        uint8
-        """
-        return str(self.dtype)
-
-    def get_voxelsize(self):
-        """
-        Get ``SpatialImage`` voxelsize
-
-        Returns
-        ----------
-        :returns: image_voxelsize (*list*) -- ``SpatialImage`` voxelsize
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_voxelsize = image.get_voxelsize()
-        >>> print image_voxelsize
-        [1.0, 1.0]
-        """
-        return self.voxelsize
-
-    def set_extent(self, img_extent):
-        """
-        Set ``SpatialImage`` physical extent
-
-        Parameters
-        ----------
-        :param list image_extent: ``SpatialImage`` physical extent.
-                                Metadata are updated according to the new physical extent.
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_extent = [10.0, 10.0]
-        >>> image.set_extent(image_extent)
-        """
-        dimensionality_test(self.get_dim(), img_extent)
-        img_extent = tuple_array_to_list(img_extent)
-        img_extent = around_list(img_extent)
-        self.extent = img_extent
-        vox = [img_extent[ind] / self.get_shape()[ind] for ind, val in
-               enumerate(img_extent)]
-        vox = around_list(vox)
-        self.set_voxelsize(vox)
-        meta_dict = self.get_metadata()
-        meta_dict['extent'] = img_extent
-        meta_dict['voxelsize'] = vox
-        self.metadata = meta_dict
-        return "Set extent to '{}'".format(self.extent)
-
-    def set_metadata(self, img_metadata):
-        """
-        Set ``SpatialImage`` metadata
-
-        Parameters
-        ----------
-        :param dict image_metadata: ``SpatialImage`` metadata
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_metadata = {'name':'img_test'}
-        >>> image.set_metadata(image_metadata)
-        """
-        tmp_dict = self.get_metadata()
-        if isinstance(img_metadata, dict) and isinstance(tmp_dict, dict):
-            tmp_dict.update(img_metadata)
-            self.metadata = tmp_dict
-            self.origin = tmp_dict['origin']
-            self.voxelsize = around_list(tmp_dict['voxelsize'])
-            self.extent = around_list(tmp_dict['extent'])
-            try:
-                self.min = tmp_dict['min']
-            except KeyError:
-                self.min = self.get_min()
-            try:
-                self.max = tmp_dict['max']
-            except KeyError:
-                self.max = self.get_max()
-            try:
-                self.mean = tmp_dict['mean']
-            except KeyError:
-                self.mean = self.get_mean()
-
-    def set_origin(self, img_origin):
-        """
-        Set ``SpatialImage`` origin
-
-        Parameters
-        ----------
-        :param list image_origin: ``SpatialImage`` origin
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image_origin = [2, 2]
-        >>> image.set_origin(image_origin)
-        """
-        dimensionality_test(self.get_dim(), img_origin)
-        img_origin = tuple_array_to_list(img_origin)
-        self.origin = img_origin
-        img_met = self.get_metadata()
-        img_met['origin'] = self.origin
-        self.metadata = img_met
-        return "Set origin to '{}'".format(self.origin)
+    # Commented since 'shape' is already an attribute of numpy.array
+    # def get_shape(self):
+    #     """
+    #     Get ``SpatialImage`` shape
+    #
+    #     Returns
+    #     ----------
+    #     :returns: image_shape (*tuple*) -- ``SpatialImage`` shape
+    #
+    #     Example
+    #     -------
+    #     >>> import numpy as np
+    #     >>> from timagetk.components import SpatialImage
+    #     >>> test_array = np.ones((5,5), dtype=np.uint8)
+    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> image_shape = image.shape
+    #     >>> print image_shape
+    #     (5, 5)
+    #     """
+    #     return self.shape
 
     def set_pixel(self, indices, val):
         """
@@ -968,7 +787,7 @@ class SpatialImage(np.ndarray):
         """
         img_dim = self.get_dim()
         if isinstance(indices, list) and len(indices) == img_dim:
-            img_shape = self.get_shape()
+            img_shape = self.shape
             if img_dim == 2:
                 range_x, range_y = xrange(img_shape[0]), xrange(img_shape[1])
                 conds_ind = indices[0] in range_x and indices[1] in range_y
@@ -1014,7 +833,7 @@ class SpatialImage(np.ndarray):
         if conds_type:
             conds_type_2 = isinstance(val, np.ndarray)
             conds_type_3 = isinstance(val, int)
-            tmp_arr, tmp_vox = self.get_array(), self.get_voxelsize()
+            tmp_arr, tmp_vox = self.get_array(), self.voxelsize
             if conds_type_2:
                 if img_dim == 2:
                     conds_shape = (((max(indices[0], indices[1]) - min(
@@ -1058,7 +877,262 @@ class SpatialImage(np.ndarray):
         out_sp_img = SpatialImage(input_array=tmp_arr, voxelsize=tmp_vox)
         return out_sp_img
 
-    def set_type(self, val):
+    # ##########################################################################
+    #
+    # SpatialImage properties :
+    #
+    # ##########################################################################
+    @property
+    def extent(self):
+        """
+        Get ``SpatialImage`` physical extent
+
+        Returns
+        ----------
+        :returns: image_extent (*list*) -- ``SpatialImage`` physical extent
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> print image.extent
+        [5.0, 5.0]
+        """
+        return self._extent
+
+    @extent.setter
+    def extent(self, img_extent):
+        """
+        Set ``SpatialImage`` physical extent
+
+        Parameters
+        ----------
+        :param list image_extent: ``SpatialImage`` physical extent.
+                                Metadata are updated according to the new physical extent.
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> image.extent = [10.0, 10.0]
+        >>> print image.extent
+        """
+        dimensionality_test(self.get_dim(), img_extent)
+        # - Update 'extent' hidden attribute:
+        img_extent = tuple_array_to_list(img_extent)
+        img_extent = around_list(img_extent)
+        self._extent = img_extent
+        # - Update 'voxelsize' hidden attribute:
+        vox = [img_extent[i] / sh for i, sh in enumerate(img_extent)]
+        vox = around_list(vox)
+        self.voxelsize = vox
+        # - Update 'extent' & 'voxelsize' metadata:
+        self._metadata['extent'] = img_extent
+        self._metadata['voxelsize'] = vox
+        print "Set extent to '{}'".format(self.extent)
+        print "Changed voxelsize to '{}'".format(self.voxelsize)
+        return
+
+    @property
+    def metadata(self):
+        """
+        Get ``SpatialImage`` metadata
+
+        Returns
+        ----------
+        :returns: image_metadata (*dict*) -- ``SpatialImage`` metadata
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> print image.metadata
+        {'dim': 2,
+         'extent': [5.0, 5.0],
+         'origin': [0, 0],
+         'shape': (5, 5),
+         'type': 'uint8',
+         'voxelsize': [1.0, 1.0]
+         }
+        """
+        # TODO: 'protect' keys linked to properties (such as 'extent', ...) to avoid missmatch ?
+        met_dict = self._metadata
+        # - Test whether the metadata dict has been initialized:
+        try:
+            assert met_dict.has_key('shape')
+        except AssertionError:
+            met_dict = basic_metadata(self, None)
+
+        # - If attribute and metadata 'shape' are not equal, update metadata
+        try:
+            assert met_dict['shape'] == self.shape
+        except AssertionError:
+            old_shape = met_dict['shape']
+            met_dict['shape'], met_dict['dim'], met_dict[
+                'type'] = self.shape, self.ndim, str(self.dtype)
+            if (self.ndim == 2 and old_shape[0] == self.shape[1] and old_shape[
+                1] == self.shape[0]):  # --- transposition
+                vox = [met_dict['voxelsize'][1], met_dict['voxelsize'][0]]
+                ext = [met_dict['extent'][1], met_dict['extent'][0]]
+                orig = [met_dict['origin'][1], met_dict['origin'][0]]
+                met_dict['voxelsize'], met_dict['extent'], met_dict[
+                    'origin'] = vox, ext, orig
+                self._voxelsize, self.extent, self._origin = vox, ext, orig
+            elif (self.ndim == 3 and old_shape[0] in self.shape and old_shape[
+                1] in self.shape and old_shape[2] in self.shape):
+                print(
+                    'Warning : possibly incorrect voxelsize, extent and origin')
+                vox, ext, orig = [], [], []
+                for ind in range(0, self.ndim):
+                    tmp = old_shape.index(self.shape[ind])
+                    vox.append(met_dict['voxelsize'][tmp])
+                    ext.append(met_dict['extent'][tmp])
+                    orig.append(met_dict['origin'][tmp])
+                met_dict['voxelsize'], met_dict['extent'], met_dict[
+                    'origin'] = vox, ext, orig
+                self._voxelsize, self.extent, self._origin = vox, ext, orig
+            else:
+                print('Warning : incorrect voxelsize, extent and origin')
+                vox, ext, orig = [], [], []
+                met_dict['voxelsize'], met_dict['extent'], met_dict[
+                    'origin'] = vox, ext, orig
+                self._voxelsize, self.extent, self._origin = vox, ext, orig
+            # Update the metadata dictionary
+            self._metadata = met_dict
+
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, img_metadata):
+        """
+        Set ``SpatialImage`` metadata
+
+        Parameters
+        ----------
+        :param dict image_metadata: ``SpatialImage`` metadata
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> image.metadata['name'] = 'img_test'
+        """
+        tmp_dict = self._metadata
+        # - Test provided input is a dictionary
+        try:
+            assert isinstance(img_metadata, dict)
+        except:
+            raise TypeError("Input 'img_metadata' is not a dictionary!")
+        # - Test '_metadata' attribute is a dictionary
+        try:
+            assert isinstance(self._metadata, dict)
+        except:
+            raise TypeError("Attribute metadata is not a dictionary!")
+        # - Update the metadata dictionary with new values:
+        tmp_dict.update(img_metadata)
+        # - Update the attribute:
+        self._metadata = tmp_dict
+        # - Update object properties:
+        self.origin = tmp_dict['origin']
+        self.voxelsize = around_list(tmp_dict['voxelsize'])
+        # Updating 'voxelsize' property also update 'extent' property...
+        # self.extent = around_list(tmp_dict['extent'])
+
+        # - Update 'min', 'mean' and 'max' attributes and metadata:
+        try:
+            self.min = tmp_dict['min']
+        except KeyError:
+            self.min = self.get_min()
+            self._metadata['min'] = self.min
+        try:
+            self.max = tmp_dict['max']
+        except KeyError:
+            self.max = self.get_max()
+            self._metadata['max'] = self.max
+        try:
+            self.mean = tmp_dict['mean']
+        except KeyError:
+            self.mean = self.get_mean()
+            self._metadata['mean'] = self.mean
+
+        return
+
+    @property
+    def origin(self):
+        """
+        Get ``SpatialImage`` origin
+
+        Returns
+        ----------
+        :returns: image_origin (*list*) -- ``SpatialImage`` origin
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> print image.origin
+        [0, 0]
+        """
+        return self._origin
+
+    @origin.setter
+    def origin(self, img_origin):
+        """
+        Set ``SpatialImage`` origin
+
+        Parameters
+        ----------
+        :param list image_origin: ``SpatialImage`` origin
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> image.origin = [2, 2]
+        """
+        dimensionality_test(self.get_dim(), img_origin)
+        img_origin = tuple_array_to_list(img_origin)
+        # - Update hidden attribute 'origin':
+        self._origin = img_origin
+        # - Update hidden attribute metadata key 'origin':
+        self._metadata['origin'] = img_origin
+        print "Set origin to '{}'".format(self.origin)
+        return
+
+    @property
+    def type(self):
+        """
+        Get ``SpatialImage`` type
+
+        Returns
+        ----------
+        :returns: image_type (*str*) -- ``SpatialImage`` type
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> print image.type
+        uint8
+        """
+        return str(self.dtype)
+
+    @type.setter
+    def type(self, val):
         """
         Set ``SpatialImage`` type
 
@@ -1076,21 +1150,47 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
-        >>> image_type = np.uint16
-        >>> out_sp_image = image.set_type(image_type)
+        >>> image.type = np.uint16
+        >>> print image.type
+        uint16
         """
         if (val in DICT_TYPES.keys() or val in DICT_TYPES.values()):
             for key in DICT_TYPES:
                 if (val == key or val == DICT_TYPES[key]):
                     new_type = DICT_TYPES[key]
 
-            met_dict = self.get_metadata()
+            met_dict = self._metadata
             self = self.astype(new_type)
-            met_dict['type'] = str(self.dtype)
-            self.metadata = met_dict
-            return self
+            met_dict['type'] = str(new_type)
+            self._metadata = met_dict
+        else:
+            raise ValueError(
+                "Unknown type '{}', possible types are: {}".format(val,
+                                                                   POSS_TYPES))
+        return self
 
-    def set_voxelsize(self, img_vxs):
+    @property
+    def voxelsize(self):
+        """
+        Get ``SpatialImage`` voxelsize.
+
+        Returns
+        ----------
+        :returns: image_voxelsize (*list*) -- ``SpatialImage`` voxelsize
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image = SpatialImage(input_array=test_array)
+        >>> print image.voxelsize
+        [1.0, 1.0]
+        """
+        return self._voxelsize
+
+    @voxelsize.setter
+    def voxelsize(self, img_vxs):
         """
         Set ``SpatialImage`` voxelsize
 
@@ -1104,98 +1204,47 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
-        >>> image_voxelsize = [0.5, 0.5]
-        >>> image.set_voxelsize(image_voxelsize)
+        >>> image.voxelsize = [0.5, 0.5]
+        >>> print image.voxelsize
+        [0.5, 0.5]
         """
         dimensionality_test(self.get_dim(), img_vxs)
+        # - Update 'voxelsize' hidden attribute:
         img_vxs = tuple_array_to_list(img_vxs)
         img_vxs = around_list(img_vxs)
-        self.voxelsize = img_vxs
-        ext = [img_vxs[ind] * self.shape[ind] for ind, v in
-               enumerate(self.shape)]
+        self._voxelsize = img_vxs
+        # - Update 'extent' hidden attribute:
+        ext = [img_vxs[i] * sh for i, sh in enumerate(self.shape)]
         ext = around_list(ext)
-        self.extent = ext
-        img_met = self.get_metadata()
-        img_met['voxelsize'] = self.voxelsize
-        img_met['extent'] = self.extent
-        self.metadata = img_met
-        return "Set voxelsize to '{}'".format(self.voxelsize)
+        self._extent = ext
+        # - Update 'extent' & 'voxelsize' metadata:
+        self._metadata['voxelsize'] = self.voxelsize
+        self._metadata['extent'] = self.extent
+        print "Set voxelsize to '{}'".format(self.voxelsize)
+        print "Changed extent to '{}'".format(self.extent)
+        return
 
-    def is2D(self):
+    @property
+    def resolution(self):
         """
-        Returns True if the SpatialImage is 2D, else False.
+        Ensure backward compatibility with older openalea.image package.
         """
-        return self.get_dim() == 2
+        print DeprecationWarning(
+            "Attribute 'resolution' is deprecated, use 'voxelsize' attribute instead!")
+        return self._voxelsize
 
-    def is3D(self):
+    @resolution.setter
+    def resolution(self, voxelsize):
         """
-        Returns True if the SpatialImage is 3D, else False.
+        Ensure backward compatibility with older openalea.image package.
         """
-        return self.get_dim() == 3
+        self.voxelsize = voxelsize
 
-    def to_2D(self):
-        """
-        Convert, if possible, a 3D SpatiamImage with one "flat" dimension (ie.
-        with only one slice in this dimension) to a 2D SpatialImage.
-
-        Returns
-        -------
-        SpatialImage
-            the 2D SpatialImage
-        """
-        if self.is3D() and 1 in self.get_shape():
-            voxelsize, shape, array = self.get_voxelsize(), self.get_shape(), self.get_array()
-            ori, md = self.get_origin(), self.get_metadata()
-            if shape[0] == 1:
-                new_arr = np.squeeze(array, axis=(0,))
-                new_vox = [voxelsize[1], voxelsize[2]]
-            elif shape[1] == 1:
-                new_arr = np.squeeze(array, axis=(1,))
-                new_vox = [voxelsize[0], voxelsize[2]]
-            elif shape[2] == 1:
-                new_arr = np.squeeze(array, axis=(2,))
-                new_vox = [voxelsize[0], voxelsize[1]]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
-                                      origin=ori, metadata_dict=md)
-            return out_sp_img
-        else:
-            print('3D SpatialImage can not be reshaped to 2D')
-            return
-
-    def to_3D(self):
-        """
-        Convert, a 2D SpatiamImage into a 3D SpatialImage with one "flat"
-        dimension (ie. with only one slice in this dimension).
-
-        Returns
-        -------
-        SpatialImage
-            the 3D SpatialImage
-        """
-        if self.is2D():
-            voxelsize, shape, array = self.get_voxelsize(), self.get_shape(), self.get_array()
-            ori, md = self.get_origin(), self.get_metadata()
-            new_arr = np.reshape(array, (shape[0], shape[1], 1))
-            new_vox = [voxelsize[0], voxelsize[1], 1.0]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
-                                      origin=ori, metadata_dict=md)
-            return out_sp_img
-        else:
-            print('SpatialImage is not 2D')
-            return
-
-    def get_available_types(self):
-        """
-        Print the availables bits type dictionary.
-        """
-        return DICT_TYPES
-
-    def is_available_types(self, dtype):
-        """
-        Print the availables bits type dictionary.
-        """
-        return dtype in DICT_TYPES.keys()
-
+    # ##############################################################################
+    #
+    # SpatialImage transformation functions:
+    #
+    # ##############################################################################
     def to_8bits(self, unsigned=True):
         """
         Convert the array to a different bit depth.
@@ -1211,9 +1260,9 @@ class SpatialImage(np.ndarray):
         img : SpatialImage
             the converted SpatialImage
         """
-        vxs = self.get_voxelsize()
-        ori = self.get_origin()
-        md = self.get_metadata()
+        vxs = self.voxelsize
+        ori = self.origin
+        md = self.metadata
         if unsigned:
             dtype = 'uint8'
         else:
@@ -1256,7 +1305,7 @@ class SpatialImage(np.ndarray):
         if self.get_dim() == 2:
             self = self.to_3D()
 
-        arr, vox = self.get_array(), self.get_voxelsize()
+        arr, vox = self.get_array(), self.voxelsize
         if axis == 'x':
             new_arr = arr[::-1, :, :]
         if axis == 'y':
@@ -1264,6 +1313,6 @@ class SpatialImage(np.ndarray):
         elif axis == 'z':
             new_arr = arr[:, :, ::-1]
         out_sp_image = SpatialImage(new_arr, voxelsize=vox)
-        if 1 in out_sp_image.get_shape():
+        if 1 in out_sp_image.shape:
             out_sp_image = out_sp_image.to_2D()
         return out_sp_image

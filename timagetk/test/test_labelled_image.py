@@ -11,7 +11,7 @@
 import unittest
 import numpy as np
 
-from timagetk.components import LabelledImage
+from timagetk.components.labelled_image import LabelledImage
 
 array_2D = np.array([[1, 2, 7, 7, 1, 1],
                      [1, 6, 5, 7, 3, 3],

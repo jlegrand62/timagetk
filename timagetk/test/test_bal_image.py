@@ -34,8 +34,8 @@ class TestBalImage(unittest.TestCase):
         """
         sp_image = bal_image.to_spatial_image()
         np.testing.assert_array_almost_equal(sp_image_ref, sp_image, decimal=6)
-        ix, iy, iz = sp_image_ref.get_voxelsize()
-        nx, ny, nz = sp_image.get_voxelsize()
+        ix, iy, iz = sp_image_ref.voxelsize
+        nx, ny, nz = sp_image.voxelsize
         np.testing.assert_almost_equal(ix, nx, decimal=6)
         np.testing.assert_almost_equal(iy, ny, decimal=6)
         np.testing.assert_almost_equal(iz, nz, decimal=6)

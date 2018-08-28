@@ -82,8 +82,8 @@ def inv_trsf(trsf, template_img=None,
         if isinstance(template_img, SpatialImage):
             if template_img.get_dim() == 2:
                 template_img = template_img.to_3D()
-            x, y, z = template_img.get_shape()
-            vx, vy, vz = template_img.get_voxelsize()
+            x, y, z = template_img.shape
+            vx, vy, vz = template_img.voxelsize
             val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
         elif isinstance(template_img, list):
             if len(template_img) == 3:
@@ -151,8 +151,8 @@ def apply_trsf(image, trsf=None, template_img=None,
         if isinstance(template_img, SpatialImage):
             if template_img.get_dim() == 2:
                 template_img = template_img.to_3D()
-            x, y, z = template_img.get_shape()
-            vx, vy, vz = template_img.get_voxelsize()
+            x, y, z = template_img.shape
+            vx, vy, vz = template_img.voxelsize
             val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
         elif isinstance(template_img, list):
             # create the template_img from the list of dimensions:
@@ -167,9 +167,9 @@ def apply_trsf(image, trsf=None, template_img=None,
                                         origin=[0., 0., 0.])
             if template_img.get_dim() == 2:
                 template_img = template_img.to_3D()
-            x, y, z = template_img.get_shape()
+            x, y, z = template_img.shape
             # Get the voxelsize from the input image:
-            vx, vy, vz = image.get_voxelsize()
+            vx, vy, vz = image.voxelsize
             val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
         else:
             raise TypeError(
@@ -191,7 +191,7 @@ def apply_trsf(image, trsf=None, template_img=None,
                                    trsf.c_ptr if trsf else None,
                                    param_str_1, param_str_2)
     res = bal_img_res.to_spatial_image()
-    if 1 in res.get_shape():
+    if 1 in res.shape:
         res = res.to_2D()
     bal_image.free(), bal_img_res.free()
     return res
@@ -232,7 +232,7 @@ def compose_trsf(list_trsf, template_img=None,
     elif 12 in trsf_types and template_img is not None:
         if template_img.get_dim() == 2:
             template_img = template_img.to_3D()
-        x, y, z = template_img.get_shape()
+        x, y, z = template_img.shape
         str_dims = ' -template-dim {} {} {}'.format(x, y, z)
         param_str_1 += str_dims
         trsf_out = BalTransformation(trsf_type=ref.trsf_type,
@@ -287,8 +287,8 @@ def create_trsf(template_img=None, param_str_1=CREATE_TRSF_DEFAULT,
         if template_img.get_dim() == 2:
             template_img = template_img.to_3D()
 
-        x, y, z = template_img.get_shape()
-        vx, vy, vz = template_img.get_voxelsize()
+        x, y, z = template_img.shape
+        vx, vy, vz = template_img.voxelsize
         val_dim = ' -template-dim {} {} {}'.format(x, y, z)
         val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
         param_str_1 = ''.join([param_str_1, val_dim, val_vox])

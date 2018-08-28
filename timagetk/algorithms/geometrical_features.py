@@ -72,7 +72,7 @@ class GeometricalFeatures(object):
         """
         if isinstance(sp_img, SpatialImage):
                 self._segmentation  = np.array(sp_img, dtype=sp_img.dtype) #--- numpy array instance
-                self._voxelsize, self._shape, self._dim = sp_img.get_voxelsize(), sp_img.get_shape(), sp_img.get_dim()
+                self._voxelsize, self._shape, self._dim = sp_img.voxelsize, sp_img.shape, sp_img.get_dim()
                 self._label_range_max = np_unique(self._segmentation.ravel()).tolist()
                 if len(label) is 0:
                     self.int_labels = None

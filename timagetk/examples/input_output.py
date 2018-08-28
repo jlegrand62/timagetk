@@ -20,7 +20,7 @@ sp_img = imread(img_path)
 if isinstance(sp_img, SpatialImage):
 
     # get the SpatialImage metadata, accessor
-    metadata = sp_img.get_metadata() # dictionary
+    metadata = sp_img.metadata # dictionary
     # print the SpatialImage metadata
     print('Metadata :'), metadata
     # metadata modification
@@ -28,10 +28,10 @@ if isinstance(sp_img, SpatialImage):
     # set the SpatialImage metadata, mutator
     sp_img.set_metadata(metadata)
     # print the SpatialImage metadata
-    print('New metadata :'), sp_img.get_metadata()
+    print('New metadata :'), sp_img.metadata
 
     # get the SpatialImage voxelsize (list of floating numbers)
-    vox = sp_img.get_voxelsize()
+    vox = sp_img.voxelsize
     # print the SpatialImage voxelsize
     print('Voxelsize :'), vox
     # voxelsize modification
@@ -39,8 +39,8 @@ if isinstance(sp_img, SpatialImage):
     for ind, val in enumerate(vox):
         new_vox.append(2.0*val)
     # set the SpatialImage voxelsize, mutator
-    sp_img.set_voxelsize(new_vox)
-    print('New voxelsize :'), sp_img.get_voxelsize()
+    sp_img.voxelsize = new_vox
+    print('New voxelsize :'), sp_img.voxelsize
 
     # output
     # filename

@@ -81,7 +81,7 @@ class TemporalMatching(object):
         seg_arr_list = [np_array(segmentation_list[ind], dtype=segmentation_list[ind].dtype)
                         for ind, val in enumerate(segmentation_list)] #--- numpy array instance
         self.segmentation_list = seg_arr_list
-        self.voxelsize_list = [segmentation_list[ind].get_voxelsize() for ind, val in enumerate(segmentation_list)]
+        self._voxelsize_list = [segmentation_list[ind].voxelsize for ind, val in enumerate(segmentation_list)]
 
         #--- background id list
         if background_id_list:
@@ -168,7 +168,7 @@ class TemporalMatching(object):
         ----------
         :return: list -- list of SpatialImage instances
         """
-        sp_img_list = [SpatialImage(self.segmentation_list[ind], voxelsize=self.voxelsize_list[ind])
+        sp_img_list = [SpatialImage(self.segmentation_list[ind], voxelsize=self._voxelsize_list[ind])
                         for ind, val in enumerate(self.segmentation_list)]
         return sp_img_list
 
@@ -449,7 +449,7 @@ class TemporalMatching(object):
                 adm_match_dict = {}
 
                 nodes_0, nodes_1 = nodes_list[glob_index], nodes_list[glob_index+1]
-                matrix_1, shape_1, back_id_1 = segmentation_list[glob_index+1], segmentation_list[glob_index+1].get_shape(), self.back_id_list[glob_index+1]
+                matrix_1, shape_1, back_id_1 = segmentation_list[glob_index+1], segmentation_list[glob_index+1].shape, self.back_id_list[glob_index+1]
 
                 for key in nodes_0:
                     adm_match_dict[key] = {}
@@ -1307,10 +1307,10 @@ class TemporalMatching(object):
                             lab_set_2 = matching_dict[tmp]['Label set 2']
                             app_img[segmentation_list[glob_ind+1]==lab_set_2]=lab_set_2
 
-                init_sp_img = SpatialImage(init_img, voxelsize=segmentation_list[glob_ind].get_voxelsize())
-                end_sp_img = SpatialImage(end_img, voxelsize=segmentation_list[glob_ind+1].get_voxelsize())
-                disapp_sp_img = SpatialImage(disapp_img, voxelsize=segmentation_list[glob_ind].get_voxelsize())
-                app_sp_img = SpatialImage(app_img, voxelsize=segmentation_list[glob_ind+1].get_voxelsize())
+                init_sp_img = SpatialImage(init_img, voxelsize=segmentation_list[glob_ind].voxelsize)
+                end_sp_img = SpatialImage(end_img, voxelsize=segmentation_list[glob_ind+1].voxelsize)
+                disapp_sp_img = SpatialImage(disapp_img, voxelsize=segmentation_list[glob_ind].voxelsize)
+                app_sp_img = SpatialImage(app_img, voxelsize=segmentation_list[glob_ind+1].voxelsize)
                 img_list.append(init_sp_img)
                 img_list.append(end_sp_img)
                 img_list.append(disapp_sp_img)

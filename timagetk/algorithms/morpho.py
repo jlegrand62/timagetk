@@ -72,15 +72,15 @@ class _typeStructuringElement(Structure):
                 ]
 
 
-def default_structuring_element():
+def default_structuring_element_vt():
     """
     Default structuring element.
     This is a cube (26-connectivity) of radius 1.
     """
-    return structuring_element(1, 1, 26)
+    return structuring_element_vt(1, 1, 26)
 
 
-def structuring_element(radius, iterations, connectivity=26):
+def structuring_element_vt(radius, iterations, connectivity=26):
     """
     Create a structuring element to use with `cell_filter` or `morpho`.
     Connectivity is among the 4-, 6-, 8-, 18-, 26-neighborhoods.
@@ -97,7 +97,7 @@ def structuring_element(radius, iterations, connectivity=26):
     return _typeStructuringElement(iterations, connectivity, user_se, radius)
 
 
-def morpho(image, struct_elt=None, param_str_1=MORPHO_DEFAULT, param_str_2=None,
+def morpho(image, struct_elt_vt=None, param_str_1=MORPHO_DEFAULT, param_str_2=None,
            dtype=None):
     """
     Mathematical morphology algorithms on grayscale images.
@@ -106,7 +106,7 @@ def morpho(image, struct_elt=None, param_str_1=MORPHO_DEFAULT, param_str_2=None,
     ----------
     :param *SpatialImage* image: *SpatialImage*, input image
 
-    :param struct_elt: optional, structuring element.
+    :param struct_elt_vt: optional, structuring element.
                     By default an approximation of an euclidean ball is used
 
     :param str param_str_1: MORPHO_DEFAULT, by default a dilation is applied
@@ -132,12 +132,12 @@ def morpho(image, struct_elt=None, param_str_1=MORPHO_DEFAULT, param_str_2=None,
 
     if dtype is None:
         dtype = image.dtype
-    if struct_elt is not None:
-        struct_elt = pointer(struct_elt)
+    if struct_elt_vt is not None:
+        struct_elt_vt = pointer(struct_elt_vt)
     # Core Dumped !
     # else:
     #     print "Initializing default structuring element..."
-    #     struct_elt = default_structuring_element()
+    #     struct_elt_vt = default_structuring_element_vt()
 
     # TODO: make a function raising this warning and use it when needed ('morpho', 'cell_filter', ...)
     # Raise a 'SyntaxWarning' when using both 'sphere' and 'connectivity' params
@@ -150,14 +150,14 @@ def morpho(image, struct_elt=None, param_str_1=MORPHO_DEFAULT, param_str_2=None,
         warnings.warn(msg, SyntaxWarning)
 
     vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
-    rvalue = libvtexec.API_morpho(vt_input.c_ptr, vt_res.c_ptr, struct_elt,
+    rvalue = libvtexec.API_morpho(vt_input.c_ptr, vt_res.c_ptr, struct_elt_vt,
                                   param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)
     vt_input.free(), vt_res.free()
     return out_sp_img
 
 
-def cell_filter(image, struct_elt=None, param_str_1=CELL_FILTER_DEFAULT,
+def cell_filter(image, struct_elt_vt=None, param_str_1=CELL_FILTER_DEFAULT,
                 param_str_2=None, dtype=None):
     """
     Mathematical morphology algorithms on segmented images.
@@ -166,7 +166,7 @@ def cell_filter(image, struct_elt=None, param_str_1=CELL_FILTER_DEFAULT,
     ----------
     :param *SpatialImage* image: *SpatialImage*, input image
 
-    :param struct_elt: optional, structuring element.
+    :param struct_elt_vt: optional, structuring element.
                     By default an approximation of an euclidean ball is used
 
     :param str param_str_1: CELL_FILTER_DEFAULT, by default a dilation is applied
@@ -188,8 +188,8 @@ def cell_filter(image, struct_elt=None, param_str_1=CELL_FILTER_DEFAULT,
 
     if dtype is None:
         dtype = image.dtype
-    if struct_elt is not None:
-        struct_elt = pointer(struct_elt)
+    if struct_elt_vt is not None:
+        struct_elt_vt = pointer(struct_elt_vt)
 
     # Raise a 'SyntaxWarning' when using both 'sphere' and 'connectivity' params
     all_params = param_str_1 + param_str_2
@@ -201,7 +201,7 @@ def cell_filter(image, struct_elt=None, param_str_1=CELL_FILTER_DEFAULT,
         warnings.warn(msg, SyntaxWarning)
 
     vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
-    rvalue = libvp.API_cellfilter(vt_input.c_ptr, vt_res.c_ptr, struct_elt,
+    rvalue = libvp.API_cellfilter(vt_input.c_ptr, vt_res.c_ptr, struct_elt_vt,
                                   param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)
     vt_input.free(), vt_res.free()

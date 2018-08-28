@@ -185,11 +185,11 @@ def write_tiff_image(tiff_file, sp_img):
         data = np.transpose(sp_img.get_array(), (2, 1, 0))
 
     with TiffWriter(tiff_file, bigtiff=False, imagej=True) as tif:
-        voxelsize = sp_img.get_voxelsize()
+        voxelsize = sp_img.voxelsize
         if sp_img.get_dim()==2:
             tif.save(data, compress=0, resolution=(1.0/voxelsize[0],1.0/voxelsize[1]))
         elif sp_img.get_dim()==3:
-            metadata_dict={'spacing': voxelsize[2], 'slices':sp_img.get_shape()[2]}
+            metadata_dict={'spacing': voxelsize[2], 'slices':sp_img.shape[2]}
             tif.save(data, compress=0, resolution=(1.0/voxelsize[0],1.0/voxelsize[1]), metadata=metadata_dict)
         else:
             pass

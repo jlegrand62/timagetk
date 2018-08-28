@@ -22,7 +22,7 @@ for ind, val in enumerate(times):
     img = imread(data_path('time_' + str(val) + '_seg.inr'))
 
     # subimage extraction
-    shape = img.get_shape()
+    shape = img.shape
     indices = [0,shape[0]-1,0,shape[1]-1,0,5]
     img = img.get_region(indices=indices)
 
@@ -30,7 +30,7 @@ for ind, val in enumerate(times):
     labels = np.unique(img).tolist()
     img = labels_post_processing(img, method='labels_erosion', radius=2)
     img[img==0] = np.min(labels)
-    img = SpatialImage(img, voxelsize=img.get_voxelsize())
+    img = SpatialImage(img, voxelsize=img.voxelsize)
 
     # save input labeled images
     res_name = 'example_track_time_' + str(val) + '_seg.inr'
