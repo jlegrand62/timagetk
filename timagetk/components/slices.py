@@ -26,7 +26,7 @@ def dilation(slices):
 
     Parameters
     ----------
-    slices : tuple
+    slices: tuple
         a tuple of slices
 
     Returns
@@ -44,9 +44,9 @@ def dilation_by(slices, amount=2):
 
     Parameters
     ----------
-    slices : tuple
+    slices: tuple
         a tuple of slices
-    amount : int
+    amount: int
         the amount of expansion to apply to each slice start and stop
 
     Returns
@@ -63,9 +63,9 @@ def change_boundingbox_origins(bboxes, xyz_origin):
 
     Parameters
     ----------
-    bboxes : tuple
+    bboxes: tuple
         length-3 tuple of slices to translate
-    xyz_origin : list
+    xyz_origin: list
         length-3 list of x, y & z values used to translate the bounding box
         origin
 
@@ -91,9 +91,9 @@ def real_indices(slices, resolutions):
 
     Parameters
     ----------
-    slices : list
+    slices: list
         list of slices or bounding boxes found using scipy.ndimage.find_objects
-    resolutions : list
+    resolutions: list
         length-2 (2D) or length-3 (3D) vector of float indicating the size of a
         voxel in real-world units
 
@@ -110,16 +110,16 @@ def sort_labels_by_bbox(boundingbox, label_1, label_2):
 
     Parameters
     ----------
-    bounding box : dict
+    bounding box: dict
         label-based dictionary of slices tuples
-    labels : int
+    labels: int
         a label to be found within the image
-    label_2 : int
+    label_2: int
         a label to be found within the image
 
     Returns
     -------
-    tuple : contain both labels, first one has the smallest bounding box
+    tuple: contain both labels, first one has the smallest bounding box
     """
     assert isinstance(boundingbox, dict)
     if label_1 not in boundingbox:
@@ -159,16 +159,16 @@ def smallest_boundingbox(image, label_1, label_2):
 
     Parameters
     ----------
-    image : SpatialImage
+    image: SpatialImage
         labelled image containing labels 'label_1' and 'label_2'
-    label_1 : int
+    label_1: int
         a label to be found within the image
-    label_2 : int
+    label_2: int
         a label to be found within the image
 
     Returns
     -------
-    tuple : the smallest bounding box object between 'label_1' and 'label_2'
+    tuple: the smallest bounding box object between 'label_1' and 'label_2'
     """
     bbox = nd.find_objects(image, max_label=max([label_1, label_2]))
     # we do 'label_x - 1' since 'nd.find_objects' start at '1' (and not '0') !
@@ -183,9 +183,9 @@ def region_slice(sliceA, sliceB):
 
     Parameters
     ----------
-    sliceA : slice
+    sliceA: slice
         slice for object A
-    sliceB : slice
+    sliceB: slice
         slice for object B
 
     Returns
@@ -215,7 +215,7 @@ def combine_slices(slices):
 
     Parameters
     ----------
-    slices : list
+    slices: list
         list of slice to combine
 
     Returns
@@ -246,9 +246,9 @@ def overlapping_slices(sliceA, sliceB):
 
     Parameters
     ----------
-    sliceA : tuple or list of slice
+    sliceA: tuple or list of slice
         slice for object A
-    sliceB : tuple or list of slice
+    sliceB: tuple or list of slice
         slice for object B
 
     Returns

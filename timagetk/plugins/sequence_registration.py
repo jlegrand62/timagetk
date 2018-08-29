@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -42,16 +42,16 @@ def sequence_registration(list_images, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
     method: str, optional
         used method, by default 'sequence_registration_rigid'
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of BalTransformation, ie. transformation matrix or vectorfields
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of sequentially registered SpatialImage
 
     Example
@@ -121,14 +121,14 @@ def sequence_registration_rigid(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after rigid registration
     """
     n_imgs = len(list_images)
@@ -180,14 +180,14 @@ def sequence_registration_affine(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after affine registration
     """
     n_imgs = len(list_images)
@@ -252,14 +252,14 @@ def sequence_registration_deformable(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after deformable registration
     """
     n_imgs = len(list_images)

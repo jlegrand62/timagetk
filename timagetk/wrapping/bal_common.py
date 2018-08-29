@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -20,8 +20,8 @@ __all__ = ['bal_mystr_c_ptr',
 def bal_mystr_c_ptr(c_or_bal_mystr, BAL_MYSTR, BalMyStr):
     """
     Return a pointer to instance of BAL_MYSTR or BalMyStr.
-    BAL_MYSTR can be either : BAL_IMAGE, BAL_MATRIX
-    BalMyStr can be either : BalImage, BalMatrix
+    BAL_MYSTR can be either: BAL_IMAGE, BAL_MATRIX
+    BalMyStr can be either: BalImage, BalMatrix
     """
     if c_or_bal_mystr is None:
         return
@@ -36,8 +36,8 @@ def bal_mystr_c_ptr(c_or_bal_mystr, BAL_MYSTR, BalMyStr):
 def bal_mystr_c_struct(c_or_bal_mystr, BAL_MYSTR, BalMyStr):
     """
     Return an instance of BAL_MYSTR or BalMyStr.
-    BAL_MYSTR can be either : BAL_IMAGE, BAL_MATRIX
-    BalMyStr can be either : BalImage, BalMatrix
+    BAL_MYSTR can be either: BAL_IMAGE, BAL_MATRIX
+    BalMyStr can be either: BalImage, BalMatrix
     """
     if c_or_bal_mystr is None:
         return

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -32,6 +32,7 @@ try:
     from timagetk.wrapping.bal_matrix import allocate_c_bal_matrix
     from timagetk.wrapping.bal_trsf import BalTransformation
     from timagetk.components.spatial_image import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
@@ -52,22 +53,25 @@ CREATE_TRSF_DEFAULT = '-identity'
 def inv_trsf(trsf, template_img=None,
              param_str_1=INV_TRSF_DEFAULT, param_str_2=None):
     """
-    Inversion of a *BalTransformation* transformation
+    Inversion of a ``BalTransformation`` transformation
 
     Parameters
     ----------
-    :param *BalTransformation* trsf: *BalTransformation*, input transformation
+    trsf: ``BalTransformation``
+        ``BalTransformation``, input transformation
 
     :param template_img: optional, default is None. template_img is used for output image geometry
                                                     and can be either SpatialImage or a list of dimensions
 
-    :param str param_str_1: INV_TRSF_DEFAULT, default = ''
+    param_str_1: str
+        INV_TRSF_DEFAULT, default = ''
 
-    :param str param_str_2: optional, optional parameters
+    param_str_2: str
+        optional, optional parameters
 
     Returns
-    ----------
-    :return: output *BalTransformation* transformation
+    -------
+    :return: output ``BalTransformation`` transformation
 
     Example
     -------
@@ -104,38 +108,38 @@ def inv_trsf(trsf, template_img=None,
 def apply_trsf(image, trsf=None, template_img=None,
                param_str_1=APPLY_TRSF_DEFAULT, param_str_2=None, dtype=None):
     """
-    Apply a *BalTransformation* transformation to a *SpatialImage image
+    Apply a ``BalTransformation`` transformation to a *SpatialImage image
     To apply a transformation to a segmented SpatialImage, uses '-nearest' in
     param_str_2, default is '-linear'
 
     Parameters
     ----------
-    :param *SpatialImage* image: input *SpatialImage*
-
-    :param *BalTransformation* trsf: input *BalTransformation* transformation
-
-    :param template_img: optional, default is None. template_img is used for output image geometry
-                                                    and can be either SpatialImage or a list of dimensions.
-                                                    If a list of dimension, voxelsize is defined by `image`.
-
-    :param str param_str_1: APPLY_TRSF_DEFAULT
-
-    :param str param_str_2: optional, optional parameters
-
-    :param *np.dtype* dtype  optional, output image type. By default, the output type is equal to the input type.
+    image: ``SpatialImage``
+        input image to transform
+    trsf: ``BalTransformation``, optional
+        input transformation, default is identity
+    template_img: ``SpatialImage``|list, optional
+        used for output image geometry and can be either be a
+        SpatialImage or a list of dimensions. If a list of dimension, voxelsize
+        is defined by `image`. default is None
+    param_str_1: str, optional
+        APPLY_TRSF_DEFAULT
+    param_str_2: str, optional
+        optional parameters
+    dtype: np.dtype, optional
+        output image type, by default, output type is equal to input type.
 
     Returns
-    ----------
-    :return: *SpatialImage* output image
+    -------
+    ``SpatialImage``
+        output image with metadata
 
     Example
     -------
     >>> output_image = apply_trsf(input_image, input_trsf)
     """
-    try:
-        assert isinstance(image, SpatialImage)
-    except AssertionError:
-        raise TypeError('Input image must be a SpatialImage!')
+    try_spatial_image(image)
+
     if trsf is not None:
         try:
             assert isinstance(trsf, BalTransformation)
@@ -200,21 +204,25 @@ def apply_trsf(image, trsf=None, template_img=None,
 def compose_trsf(list_trsf, template_img=None,
                  param_str_1=COMPOSE_TRSF_DEFAULT, param_str_2=None):
     """
-    Composition of *BalTransformation* transformations
+    Composition of ``BalTransformation`` transformations
 
     Parameters
     ----------
-    :param list list_trsf: list of *BalTransformation* transformations
+    list_trsf: list
+        list of ``BalTransformation`` transformations
 
-    :param *SpatialImage* template_img: optional, template_img is a *SpatialImage* specified for vectorfield composition
+    template_img: ``SpatialImage``, optional,
+        template_img is a ``SpatialImage`` specified for vectorfield composition
 
-    :param str param_str_1: COMPOSE_TRSF_DEFAULT
+    param_str_1: str
+        COMPOSE_TRSF_DEFAULT
 
-    :param str param_str_2: optional, optional parameters
+    param_str_2: str
+        optional, optional parameters
 
     Returns
-    ----------
-    :return: res_trsf, *BalTransformation* transformation
+    -------
+    :return: res_trsf, ``BalTransformation`` transformation
 
     Examples
     -------
@@ -258,26 +266,31 @@ def compose_trsf(list_trsf, template_img=None,
 def create_trsf(template_img=None, param_str_1=CREATE_TRSF_DEFAULT,
                 param_str_2=None, trsf_type=None, trsf_unit=None):
     """
-    Creation of classical *BalTransformation* transformations such as identity,
+    Creation of classical ``BalTransformation`` transformations such as identity,
     translation, rotation,sinusoidal, random, etc.
 
     Parameters
     ----------
-    :param *SpatialImage* template_img: optional, template_img is a *SpatialImage*
+    template_img: ``SpatialImage``, optional,
+        template_img is a ``SpatialImage``
 
-    :param str param_str_1: CREATE_TRSF_DEFAULT, default is identity
+    param_str_1: str
+        CREATE_TRSF_DEFAULT, default is identity
 
-    :param str param_str_2: optional, optional parameters
+    param_str_2: str
+        optional, optional parameters
 
-    :param *BalTransformationType* trsf_type: type of *BalTransformation* transformation (see enumTypeTransfo in bal_stddef)
+    trsf_type: *BalTransformationType*
+        type of ``BalTransformation`` transformation (see enumTypeTransfo in bal_stddef)
                     Default trsf_type is BalTransformation.AFFINE_3D
 
-    :param *BalTransformationUnit* trsf_unit: unit of *BalTransformation* transformation (see enumUnitTransfo in bal_stddef)
+    trsf_unit: *BalTransformationUnit*
+        unit of ``BalTransformation`` transformation (see enumUnitTransfo in bal_stddef)
             Default trsf_unit is BalTransformation.REAL_UNIT
 
     Returns
-    ----------
-    :return: *BalTransformation* trsf_out, output transformation
+    -------
+    :return: ``BalTransformation`` trsf_out, output transformation
 
     Example
     -------
@@ -319,15 +332,16 @@ def create_trsf(template_img=None, param_str_1=CREATE_TRSF_DEFAULT,
 
 def mean_trsfs(list_trsf):
     """
-    Mean trsfs (vectorfield) *BalTransformation* transformation
+    Mean trsfs (vectorfield) ``BalTransformation`` transformation
 
     Parameters
     ----------
-    :param list list_trsf: list of *BalTransformation* transformations (vectorfield type)
+    list_trsf: list
+        list of ``BalTransformation`` transformations (vectorfield type)
 
     Returns
-    ----------
-    :return: *BalTransformation* trsf_out, output mean transformation
+    -------
+    :return: ``BalTransformation`` trsf_out, output mean transformation
 
     Example
     -------
@@ -415,11 +429,11 @@ def save_trsf(trsf, filename, compress=False):
 
     Parameters
     ----------
-    trsf : BalTransformation
+    trsf: BalTransformation
         BalTransformation object to save
-    filename : str
+    filename: str
         name of the file
-    compress : bool, optional
+    compress: bool, optional
         if True (default False) the saved transformation matrix is compressed
     """
     if trsf.is_vectorfield():
@@ -450,12 +464,12 @@ def read_trsf(filename):
 
     Parameters
     ----------
-    filename : str
+    filename: str
         name of the file
 
     Returns
     -------
-    tsrf : BalTransformation
+    tsrf: BalTransformation
         loaded BalTransformation object
     """
     c_bal_trsf = BAL_TRSF()

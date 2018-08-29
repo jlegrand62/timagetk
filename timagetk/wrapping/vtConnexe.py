@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -40,7 +40,7 @@ class VT_Connexe (object):
     """ Definition of VT_Connexe object """
 
     def __init__(self):
-        """ Initialization : """
+        """ Initialization: """
 
     def set_default(self):
         """ Default """

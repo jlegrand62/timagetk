@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -43,11 +43,11 @@ def bal_image_c_ptr(c_or_bal_image):
 
     Parameters
     ----------
-    c_or_bal_image : instance of BAL_IMAGE or BalImage
+    c_or_bal_image: instance of BAL_IMAGE or BalImage
 
     Returns
-    ----------
-    output : pointer
+    -------
+    output: pointer
 
     Example
     -------
@@ -62,11 +62,11 @@ def bal_image_c_struct(c_or_bal_image):
 
     Parameters
     ----------
-    c_or_bal_image : instance of BAL_IMAGE or BalImage
+    c_or_bal_image: instance of BAL_IMAGE or BalImage
 
     Returns
-    ----------
-    output : c_struct
+    -------
+    output: c_struct
 
     Example
     -------
@@ -81,7 +81,7 @@ def free_bal_image(c_or_bal_image):
 
     Parameters
     ----------
-    c_or_bal_image : instance of BAL_IMAGE or BalImage
+    c_or_bal_image: instance of BAL_IMAGE or BalImage
 
     Example
     -------
@@ -103,11 +103,11 @@ def spatial_image_to_bal_image_fields(spatial_image):
 
     Parameters
     ----------
-    spatial_image : spatial_image, see timagetk.components.spatial_image
+    spatial_image: spatial_image, see timagetk.components.spatial_image
 
     Returns
-    ----------
-    output : BalImage fields, type dict
+    -------
+    output: BalImage fields, type dict
 
     Example
     -------
@@ -143,7 +143,7 @@ def init_c_bal_image(c_bal_image, **kwargs):
 
     Parameters
     ----------
-    c_bal_image : BAL_IMAGE
+    c_bal_image: BAL_IMAGE
     kwargs:
         - vy, vy, vz: voxelsize
         - np_type OR vt_type: data type (np_type: np.dtype, np_type: vt_type)
@@ -192,8 +192,8 @@ def allocate_c_bal_image(c_bal_image, spatial_image, **kwargs):
 
     Parameters
     ----------
-    c_bal_image : c_bal_image
-    spatial_image : spatial_image, see timagetk.components.spatial_image
+    c_bal_image: c_bal_image
+    spatial_image: spatial_image, see timagetk.components.spatial_image
 
     Example
     -------
@@ -214,7 +214,7 @@ def new_c_bal_image(**kwargs):
 
     Parameters
     ----------
-    **kwargs : contains all fields necessary to c_bal_image, type dict
+    **kwargs: contains all fields necessary to c_bal_image, type dict
 
     Example
     -------
@@ -231,12 +231,12 @@ def spatial_image_to_bal_image(spatial_image, **kwargs):
 
     Parameters
     ----------
-    spatial_image : spatial_image, see timagetk.components.spatial_image
-    kwargs : contains all fields necessary to c_bal_image not found in spatial_image
+    spatial_image: spatial_image, see timagetk.components.spatial_image
+    kwargs: contains all fields necessary to c_bal_image not found in spatial_image
 
     Returns
-    ----------
-    output : c_bal_image
+    -------
+    output: c_bal_image
 
     Example
     -------
@@ -260,12 +260,12 @@ def bal_image_to_spatial_image(c_or_bal_image, **kwargs):
 
     Parameters
     ----------
-    c_or_bal_image : c_or_bal_image
-    kwargs : contains all fields necessary to spatial_image not found in c_bal_image
+    c_or_bal_image: c_or_bal_image
+    kwargs: contains all fields necessary to spatial_image not found in c_bal_image
 
     Returns
-    ----------
-    output : spatial_image, see timagetk.components.spatial_image
+    -------
+    output: spatial_image, see timagetk.components.spatial_image
 
     Example
     -------

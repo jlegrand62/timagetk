@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -59,7 +59,7 @@ class _typeStructuringElement(Structure):
     """
     Definition of typeStructuringElement structure
 
-    Morphology :
+    Morphology:
         - iterations number
         - connectivity
     """
@@ -104,20 +104,25 @@ def morpho(image, struct_elt_vt=None, param_str_1=MORPHO_DEFAULT, param_str_2=No
 
     Parameters
     ----------
-    :param *SpatialImage* image: *SpatialImage*, input image
+    image: ``SpatialImage``
+        ``SpatialImage``, input image
 
     :param struct_elt_vt: optional, structuring element.
                     By default an approximation of an euclidean ball is used
 
-    :param str param_str_1: MORPHO_DEFAULT, by default a dilation is applied
+    param_str_1: str
+        MORPHO_DEFAULT, by default a dilation is applied
 
-    :param str param_str_2: optional, optional parameters
+    param_str_2: str
+        optional, optional parameters
 
-    :param *np.dtype* dtype: optional, output image type. By default, the output type is equal to the input type.
+    dtype: *np.dtype*, optional,
+        output image type. By default, the output type is equal to the input type.
 
     Returns
-    ----------
-    :return: ``SpatialImage`` instance -- output image and metadata
+    -------
+    ``SpatialImage``
+        output image and metadata
 
     Notes
     -----
@@ -164,20 +169,25 @@ def cell_filter(image, struct_elt_vt=None, param_str_1=CELL_FILTER_DEFAULT,
 
     Parameters
     ----------
-    :param *SpatialImage* image: *SpatialImage*, input image
+    image: ``SpatialImage``
+        ``SpatialImage``, input image
 
     :param struct_elt_vt: optional, structuring element.
                     By default an approximation of an euclidean ball is used
 
-    :param str param_str_1: CELL_FILTER_DEFAULT, by default a dilation is applied
+    param_str_1: str
+        CELL_FILTER_DEFAULT, by default a dilation is applied
 
-    :param str param_str_2: optional, optional parameters
+    param_str_2: str
+        optional, optional parameters
 
-    :param *np.dtype* dtype: optional, output image type. By default, the output type is equal to the input type.
+    dtype: *np.dtype*, optional,
+        output image type. By default, the output type is equal to the input type.
 
     Returns
-    ----------
-    :return: ``SpatialImage`` instance -- output image and metadata
+    -------
+    ``SpatialImage``
+        output image and metadata
 
     Example
     -------

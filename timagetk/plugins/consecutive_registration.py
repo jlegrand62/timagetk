@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -44,15 +44,17 @@ def consecutive_registration(list_images, method=None, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
-    :param str method: used method (example: 'consecutive_registration_rigid')
+    method: used method (example: str
+        'consecutive_registration_rigid')
 
     Returns
-    ----------
-    :return: list_compo_trsf -- list of *BalTransformation* transformation
+    -------
+    :return: list_compo_trsf -- list of ``BalTransformation`` transformation
 
-    :return: list_res_img -- list of *SpatialImage*
+    :return: list_res_img -- list of ``SpatialImage``
 
     Example
     ----------
@@ -122,14 +124,14 @@ def consecutive_registration_rigid(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after rigid registration
     """
     # --- consecutive pairwise registration
@@ -158,14 +160,14 @@ def consecutive_registration_affine(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after affine registration
     """
     # --- consecutive pairwise registration
@@ -204,14 +206,14 @@ def consecutive_registration_deformable(list_images):
 
     Parameters
     ----------
-    list_images : list(SpatialImage)
+    list_images: list(SpatialImage)
         list of time sorted SpatialImage
 
     Returns
     -------
-    list_compo_trsf : list(BalTransformation)
+    list_compo_trsf: list(BalTransformation)
         list of composed transformation
-    list_res_img : list(SpatialImage)
+    list_res_img: list(SpatialImage)
         list of images after affine registration
     """
     # --- consecutive pairwise registration

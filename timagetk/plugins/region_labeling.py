@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -43,22 +43,22 @@ def region_labeling(input_image, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
     method: str, optional
         used method, by default 'erosion'
 
     **kwargs
     ------
-    low_threshold : int, optional
+    low_threshold: int, optional
         low threshold
-    high_threshold : int, optional
+    high_threshold: int, optional
         high threshold
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
 
     Example
     ----------
@@ -102,15 +102,15 @@ def connected_components(input_image, low_threshold=None, high_threshold=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    low_threshold : int, optional
+    low_threshold: int, optional
         low threshold
-    high_threshold : int, optional
+    high_threshold: int, optional
         high threshold
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     if low_threshold is None:

@@ -1,5 +1,5 @@
 # -*- python -*-
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #
 #       timagetk.algorithms.reconstruction
 #
@@ -7,28 +7,32 @@
 #
 #       File author(s): Eric MOSCARDI <eric.moscardi@gmail.com>
 #                       Daniel BARBEAU <daniel.barbeau@inria.fr>
+#                       Jonathan LEGRAND <jonathan.legrand@ens-lyon.fr>
 #
 #       Distributed under the Cecill-C License.
 #       See accompanying file LICENSE.txt or copy at
 #       http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 #
-#       OpenAlea WebSite : http://openalea.gforge.inria.fr
-################################################################################
+#       OpenAlea WebSite: http://openalea.gforge.inria.fr
+# ------------------------------------------------------------------------------
 
 __license__ = "Cecill-C"
 __revision__ = " $Id$ "
 
-# This is a revised copy of (deprecated?) package 'vplants.mars_alt.mars.reconstruction'
-# It was using a library that is not available anymore (morpheme).
+"""
+This is a revised copy of (deprecated?) package 'vplants.mars_alt.mars.reconstruction'
+It was using a library that is not available anymore (morpheme).
+"""
 
 import numpy as np
 import scipy.ndimage as ndimage
 from openalea.image.algo.basic import stroke, end_margin
-from openalea.image.algo.morpho import connectivity_4
-from openalea.image.algo.morpho import connectivity_6
-from openalea.image.algo.morpho import connectivity_8
+from timagetk.util import try_spatial_image
 from timagetk.algorithms import connexe
 from timagetk.components.spatial_image import SpatialImage
+from timagetk.components.labelled_image import connectivity_4
+from timagetk.components.labelled_image import connectivity_6
+from timagetk.components.labelled_image import connectivity_8
 from timagetk.plugins import linear_filtering
 
 
@@ -40,23 +44,23 @@ def im2surface(image, threshold_value=45, only_altitude=False,
 
     Parameters
     ----------
-    image : SpatialImage
+    image: SpatialImage
         image to be masked
-    threshold_value : int, float
+    threshold_value: int, float
         consider intensities superior to threshold.
-    only_altitude : bool
+    only_altitude: bool
         only return altitude map, not maximum intensity projection
-    front_half_only : bool
+    front_half_only: bool
         only consider the first half of all slices in the Z direction.
 
     Returns
     -------
-    mip_img : SpatialImage
+    mip_img: SpatialImage
         maximum intensity projection. *None* if only_altitude in True
-    alt_img : SpatialImage
+    alt_img: SpatialImage
         altitude of maximum intensity projection
     """
-    resolution = image.resolution
+    resolution = image.voxelsize
     # Added gaussian smoothing to reduce
     img_th = linear_filtering(image, 'gaussian_smoothing', std_dev=2.0)
     img_th = img_th >= threshold_value
@@ -65,7 +69,8 @@ def im2surface(image, threshold_value=45, only_altitude=False,
     threshold = image >= threshold_value
 
     # ~ labeling, n = component_labeling(img_th, connectivity_26, number_labels=1)
-    labeling = connexe(img_th, param_str_1='-labels -connectivity 26 -debug -parallel')
+    labeling = connexe(img_th,
+                       param_str_1='-labels -connectivity 26 -debug -parallel')
     del img_th
 
     iterations = 15
@@ -142,17 +147,17 @@ def surface2im(points, altitude):
 
     Parameters
     ----------
-    points : list
+    points: list
         list of points from the maximum intensity projection
-    altitude : |SpatialImage|
+    altitude: |SpatialImage|
         altitude of maximum intensity projection
 
     Returns
     -------
-    coord : list
+    coord: list
         list of points in the real world
     """
-    assert isinstance(altitude, SpatialImage)
+    try_spatial_image(altitude)
     coord = list()
 
     vx = altitude.resolution[0]
@@ -174,31 +179,34 @@ def spatialise_matrix_points(points, image, mip_thresh=45):
 
     Parameters
     ----------
-    points : list[ of tuple[of float,float,float],
+    points: list(tuple(float,float,float)),
         file 2D points to spatialise.
         Can also be a filename pointing to a numpy-compatible list of points.
-    image : |SpatialImage|, str
+    image: SpatialImage
         image or path to image to use to spatialise the points.
-    mip_thresh : int, float
+    mip_thresh: int, float
         threshold used to compute the original altitude map for points.
 
     Returns
     -------
-    points3d : list [of tuple [of float, float, float]]
+    points3d: list [of tuple [of float, float, float]]
         3D points in REAL coordinates.
     """
-    image, was_path = lazy_image_or_path(image)
+    try_spatial_image(image)
+
     if isinstance(points, (str, unicode)):
         points = np.loadtxt(points)
+
     return surface2im(points, im2surface(image, threshold_value=mip_thresh,
                                          only_altitude=True)[1])
 
 
-def surface_landmark_matching(ref, ref_pts, flo, flo_pts,
+def surface_landmark_matching(ref_img, ref_pts, flo_img, flo_pts,
                               ref_pts_already_spatialised=False,
                               flo_pts_already_spatialised=False,
                               mip_thresh=45):
-    """ Computes the registration of "flo" to "ref" by minimizing distances between ref_pts and flo_pts.
+    """
+    Computes the registration of "flo_img" to "ref_img" by minimizing distances between ref_pts and flo_pts.
 
     .. note::
 
@@ -210,29 +218,29 @@ def surface_landmark_matching(ref, ref_pts, flo, flo_pts,
 
     Parameters
     ----------
-    ref : |SpatialImage|, str
+    ref_img: |SpatialImage|, str
         image or path to image to use to reference image.
-    ref_pts : list
+    ref_pts: list
         ordered sequence of 2D/3D points to use as reference landmarks.
-    flo : |SpatialImage|, str
+    flo_img: |SpatialImage|, str
         image or path to image to use to floating image
-    flo_pts : list
+    flo_pts: list
         ordered sequence of 2D/3D points to use as floating landmarks.
-    ref_pts_already_spatialised : bool
+    ref_pts_already_spatialised: bool
         If True, consider reference points are already in REAL 3D space.
-    flo_pts_already_spatialised : bool
+    flo_pts_already_spatialised: bool
         If True, consider floating points are already in REAL 3D space.
-    mip_thresh : int, float
+    mip_thresh: int, float
         used to recompute altitude map to project points in 3D if they aren't spatialised.
 
     Returns
     -------
-    trs : numpy.ndarray
-        The result is a 4x4 **resampling voxel matrix** (*i.e.* from ref to flo,
+    trs: numpy.ndarray
+        The result is a 4x4 **resampling voxel matrix** (*i.e.* from ref_img to flo_img,
          from ref_space to flo_space and NOT from real_space to real_space).
     """
-    ref, was_path = lazy_image_or_path(ref)
-    flo, was_path = lazy_image_or_path(flo)
+    try_spatial_image(ref_img)
+    try_spatial_image(flo_img)
 
     if isinstance(ref_pts, (str, unicode)):
         ref_pts = np.loadtxt(ref_pts)
@@ -242,7 +250,7 @@ def surface_landmark_matching(ref, ref_pts, flo, flo_pts,
 
     if not ref_pts_already_spatialised:
         print "spatialising reference"
-        ref_spa_pts = spatialise_matrix_points(ref_pts, ref,
+        ref_spa_pts = spatialise_matrix_points(ref_pts, ref_img,
                                                mip_thresh=mip_thresh)
     else:
         print "not spatialising reference"
@@ -250,7 +258,7 @@ def surface_landmark_matching(ref, ref_pts, flo, flo_pts,
 
     if not flo_pts_already_spatialised:
         print "spatialising floating"
-        flo_spa_pts = spatialise_matrix_points(flo_pts, flo,
+        flo_spa_pts = spatialise_matrix_points(flo_pts, flo_img,
                                                mip_thresh=mip_thresh)
     else:
         print "not spatialising floating"
@@ -258,9 +266,9 @@ def surface_landmark_matching(ref, ref_pts, flo, flo_pts,
 
     trs = pts2transfo(ref_spa_pts, flo_spa_pts)
 
-    # -- trs is from ref to flo, in other words it is T-1,
-    # a resampling matrix to put flo into ref space. ref_pts and
+    # -- trs is from ref_img to flo_img, in other words it is T-1,
+    # a resampling matrix to put flo_img into ref_img space. ref_pts and
     # flo_pts are in real coordinates so the matrix is also in
     # real coordinates and must be converted to voxels --
-    trs_vox = matrix_real2voxels(trs, flo.resolution, ref.resolution)
+    trs_vox = matrix_real2voxels(trs, flo_img.resolution, ref_img.resolution)
     return trs_vox

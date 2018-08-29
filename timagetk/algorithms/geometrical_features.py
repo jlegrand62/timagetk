@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -66,9 +66,11 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param *SpatialImage* sp_img: input ``SpatialImage``
+        sp_img: ``SpatialImage``
+            input ``SpatialImage``
 
-        :param list label: labels of interest
+        label: list
+            labels of interest
         """
         if isinstance(sp_img, SpatialImage):
                 self._segmentation  = np.array(sp_img, dtype=sp_img.dtype) #--- numpy array instance
@@ -87,7 +89,8 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param list label: labels of interest
+        label: list
+            labels of interest
         """
         label_range_max = self._label_range_max
         val = 0
@@ -108,10 +111,11 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param list label: labels of interest
+        label: list
+            labels of interest
 
         Returns
-        ----------
+        -------
         :return: int_labels -- labels of interest
         """
         return self.int_labels
@@ -139,11 +143,11 @@ class GeometricalFeatures(object):
                     index_list_append((xmin, xmax, ymin, ymax, zmin, zmax))
             self.int_indexes = index_list
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Iterators, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Iterators, elapsed time: '), end_time - start_time
             return
         else:
-            print('Error : invalid index')
+            print('Error: invalid index')
             print('Index list :'), self._label_range_max
             return
 
@@ -176,11 +180,11 @@ class GeometricalFeatures(object):
                     glob_list_append(iter_list)
             self.int_iterators = glob_list
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Iterators, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Iterators, elapsed time: '), end_time - start_time
             return
         else:
-            print('Error : invalid index')
+            print('Error: invalid index')
             print('Index list :'), self._label_range_max
             return
 
@@ -191,12 +195,14 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param list iterators: iterators
+        iterators: list
+            iterators
 
-        :param list order: order
+        order: list
+            order
 
         Returns
-        ----------
+        -------
         :return: moment_value (*double*)
         """
         moment_value = 0
@@ -216,8 +222,9 @@ class GeometricalFeatures(object):
         In 3D, it is [min(X), max(X), min(Y), max(Y), min(Z), max(Z)]
 
         Returns
-        ----------
-        :return: bounding_box_dict (*dict*) -- bounding box dictionary
+        -------
+        bounding_box_dict: dict
+            bounding box dictionary
 
         Example
         -------
@@ -246,8 +253,8 @@ class GeometricalFeatures(object):
                         bbox_volume = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1)
                         bounding_box_dict[val] = {"Label":val, "Bounding box":bbox, "Bounding box size":bbox_size, "Bounding box volume":bbox_volume}
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Bonding box, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Bonding box, elapsed time: '), end_time - start_time
             return bounding_box_dict
         else:
             print('Index list :'), self._label_range_max
@@ -259,8 +266,9 @@ class GeometricalFeatures(object):
         Volume calculated from the image moments
 
         Returns
-        ----------
-        :return: volume_dict (*dict*) -- dictionary of area (2D) or volumes (3D)
+        -------
+        volume_dict: dict
+            dictionary of area (2D) or volumes (3D)
 
         Example
         -------
@@ -290,8 +298,8 @@ class GeometricalFeatures(object):
                         vol = around_val(m_000*vox_prod)
                         volume_dict[val] = {"Label":val, "Physical volume":vol}
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Volume, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Volume, elapsed time: '), end_time - start_time
             return volume_dict
         else:
             print('Index list :'), self._label_range_max
@@ -303,8 +311,9 @@ class GeometricalFeatures(object):
         Unweighted centroid calculated from the image moments.
 
         Returns
-        ----------
-        :return: centroid_dict (*dict*) -- dictionary of centroids.
+        -------
+        centroid_dict: dict
+            dictionary of centroids.
 
         Example
         -------
@@ -340,8 +349,8 @@ class GeometricalFeatures(object):
                                          around_val(voxelsize[2]*centroid[2]))
                         centroid_dict[val] = {"Label":val, "Physical centroid":centroid_phys, "Index centroid":centroid}
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Centroid, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Centroid, elapsed time: '), end_time - start_time
             return centroid_dict
         else:
             print('Index list :'), self._label_range_max
@@ -355,9 +364,11 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param list order: moment orders, default: [0,0] (2D), [0,0,0] (3D)
+        order: moment orders, default: list
+            [0,0] (2D), [0,0,0] (3D)
 
-        :param str option: moment option, default:'raw'.
+        option: str
+            moment option, default:'raw'.
                            option can be either ['raw', 'centered', 'normalised']
                            - 'raw' moments are not translation invariant,
                            - 'central' moments are translation invariant,
@@ -365,8 +376,9 @@ class GeometricalFeatures(object):
                            - 'normalised' moments are translation invariant and scaling invariant
 
         Returns
-        ----------
-        :return: moment_dict (*dict*) -- dictionary of moments.
+        -------
+        moment_dict: dict
+            dictionary of moments.
 
         Example
         -------
@@ -386,7 +398,7 @@ class GeometricalFeatures(object):
                     order = [0, 0, 0]
             else:
                 if len(order) != dim:
-                    print('Warning : incorrect specification')
+                    print('Warning: incorrect specification')
                     if dim==2:
                         order = [0, 0]
                     elif dim==3:
@@ -438,8 +450,8 @@ class GeometricalFeatures(object):
                             moment_norm = around_val(moment_norm)
                             moment_dict[val] = {"Label":val, "Moment":moment_norm}
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Elapsed time: '), end_time - start_time
             return moment_dict
         else:
             print('Index list :'), self._label_range_max
@@ -453,8 +465,9 @@ class GeometricalFeatures(object):
         the covariance matrix.
 
         Returns
-        ----------
-        :return: cov_dict (*dict*) -- dictionary of cov_mat, eigenvalues and
+        -------
+        cov_dict: dict
+            dictionary of cov_mat, eigenvalues and
                                         eigenvectors
 
         Example
@@ -541,8 +554,8 @@ class GeometricalFeatures(object):
                              "Total inertia":tot_inertia}
 
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Elapsed time: '), end_time - start_time
             return cov_dict
         else:
             print('Index list :'), self._label_range_max
@@ -557,15 +570,19 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids
+        centroid_dict: dict
+            dictionary of centroids
 
-        :param int background_id: background label, default: background_id==1
+        background_id: background label, default: int
+            background_id==1
 
-        :param int radius: circle/sphere radius (pixel/voxel), if 0 an automatic radius is computed
+        radius: int
+            circle/sphere radius (pixel/voxel), if 0 an automatic radius is computed
 
         Returns
-        ----------
-        :return: neigh_dict (*dict*) -- dictionary of local adjacencies
+        -------
+        neigh_dict: dict
+            dictionary of local adjacencies
 
         Example
         -------
@@ -676,8 +693,8 @@ class GeometricalFeatures(object):
                         neigh_dict[key]['Distances'][neigh] = val
 
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Local rag approx, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Local rag approx, elapsed time: '), end_time - start_time
             return neigh_dict
         else:
             print('Index list :'), self._label_range_max
@@ -691,18 +708,23 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids, optional, default={}
+        centroid_dict: dict
+            dictionary of centroids, optional, default={}
 
-        :param int background_id: background label, optional, default==1
+        background_id: int
+            background label, optional, default==1
 
-        :param str connectivity: considered connectivity, optional, default: '8-neighbors'
-                                 connectivity can be either : ['4-neighbors', '8-neighbors']
+        connectivity: considered connectivity, optional, default: str
+            '8-neighbors'
+                                 connectivity can be either: ['4-neighbors', '8-neighbors']
 
-        :param int exploration_length: exploration_length (pixel), if 0 an automatic exploration_length is computed
+        exploration_length: int
+            exploration_length (pixel), if 0 an automatic exploration_length is computed
 
         Returns
-        ----------
-        :return: neigh_dict (*dict*) -- dictionary of local adjacencies.
+        -------
+        neigh_dict: dict
+            dictionary of local adjacencies.
 
         Example
         -------
@@ -724,9 +746,9 @@ class GeometricalFeatures(object):
 
             connect = ['4-neighbors', '8-neighbors']
             if connectivity not in connect:
-                print('Possible connectivity : '), connect
+                print('Possible connectivity: '), connect
                 connectivity = '8-neighbors'
-                print('Setting connectivity to : '), connectivity
+                print('Setting connectivity to: '), connectivity
             else:
                 connectivity = str(connectivity)
 
@@ -849,8 +871,8 @@ class GeometricalFeatures(object):
                         neigh_dict[key]['Distances'][neigh] = val
 
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('2D local rag, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('2D local rag, elapsed time: '), end_time - start_time
             return neigh_dict
         else:
             print('Index list :'), self._label_range_max
@@ -864,18 +886,23 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids, optional, default={}
+        centroid_dict: dict
+            dictionary of centroids, optional, default={}
 
-        :param int background_id: background label, optional, default==1
+        background_id: int
+            background label, optional, default==1
 
-        :param str connectivity: considered connectivity, default: '26-neighbors'
-                                 connectivity can be either : ['6-neighbors', '18-neighbors', '26-neighbors']
+        connectivity: considered connectivity, default: str
+            '26-neighbors'
+                                 connectivity can be either: ['6-neighbors', '18-neighbors', '26-neighbors']
 
-        :param int exploration_length: exploration_length (voxel), if 0 an automatic exploration_length is computed
+        exploration_length: int
+            exploration_length (voxel), if 0 an automatic exploration_length is computed
 
         Returns
-        ----------
-        :return: neigh_dict (*dict*) -- dictionary of local adjacencies
+        -------
+        neigh_dict: dict
+            dictionary of local adjacencies
 
         Example
         -------
@@ -897,9 +924,9 @@ class GeometricalFeatures(object):
 
             connect = ['6-neighbors', '18-neighbors', '26-neighbors']
             if connectivity not in connect:
-                print('Possible connectivity : '), connect
+                print('Possible connectivity: '), connect
                 connectivity = '26-neighbors'
-                print('Setting connectivity to : '), connectivity
+                print('Setting connectivity to: '), connectivity
             else:
                 connectivity = str(connectivity)
 
@@ -1050,8 +1077,8 @@ class GeometricalFeatures(object):
                         neigh_dict[key]['Distances'][neigh] = val
 
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('3D local rag, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('3D local rag, elapsed time: '), end_time - start_time
             return neigh_dict
         else:
             print('Index list :'), self._label_range_max
@@ -1065,19 +1092,24 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids, optional, default={}
+        centroid_dict: dict
+            dictionary of centroids, optional, default={}
 
-        :param int background_id: background label, optional, default==1
+        background_id: int
+            background label, optional, default==1
 
-        :param str connectivity: considered connectivity, default: '26-neighbors'
-                                 connectivity can be either : ['4-neighbors', '6-neighbors', '8-neighbors',
+        connectivity: considered connectivity, default: str
+            '26-neighbors'
+                                 connectivity can be either: ['4-neighbors', '6-neighbors', '8-neighbors',
                                                                '18-neighbors', '26-neighbors']
 
-        :param int exploration_length: exploration_length (voxel), if 0 an automatic exploration_length is computed
+        exploration_length: int
+            exploration_length (voxel), if 0 an automatic exploration_length is computed
 
         Returns
-        ----------
-        :return: neigh_dict (*dict*) -- dictionary of local adjacencies
+        -------
+        neigh_dict: dict
+            dictionary of local adjacencies
 
         Example
         -------
@@ -1100,16 +1132,16 @@ class GeometricalFeatures(object):
             connect_3D = ['6-neighbors', '18-neighbors', '26-neighbors']
             if dim==2:
                 if connectivity not in connect_2D:
-                    print('Possible connectivity : '), connect_2D
+                    print('Possible connectivity: '), connect_2D
                     connectivity = '8-neighbors'
-                    print('Setting connectivity to : '), connectivity
+                    print('Setting connectivity to: '), connectivity
                 else:
                     connectivity = str(connectivity)
             elif dim==3:
                 if connectivity not in connect_3D:
-                    print('Possible connectivity : '), connect_3D
+                    print('Possible connectivity: '), connect_3D
                     connectivity = '26-neighbors'
-                    print('Setting connectivity to : '), connectivity
+                    print('Setting connectivity to: '), connectivity
                 else:
                     connectivity = str(connectivity)
 
@@ -1156,22 +1188,28 @@ class GeometricalFeatures(object):
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids
+        centroid_dict: dict
+            dictionary of centroids
 
-        :param dict volume_dict: dictionary of volumes
+        volume_dict: dict
+            dictionary of volumes
 
-        :param dict neigh_dict: dictionary of local adjacencies
+        neigh_dict: dict
+            dictionary of local adjacencies
 
-        :param dict bbox_dict: dictionary of local bounding boxes
+        bbox_dict: dict
+            dictionary of local bounding boxes
 
-        :param int background_id: background label, default==1
+        background_id: int
+            background label, default==1
 
         Returns
-        ----------
-        :return: feature_space_dict (*dict*) -- dictionary of features
+        -------
+        feature_space_dict: dict
+            dictionary of features
 
         Example
-        ----------
+        -------
         >>> feature_space_dict = self.compute_feature_space_label(centroid_dict, volume_dict,
                                                                   neigh_dict, bbox_dict, background_id)
         """
@@ -1220,8 +1258,8 @@ class GeometricalFeatures(object):
                 feature_space_dict[key].update(volume_dict[key])
                 feature_space_dict[key].update(neigh_dict[key])
             end_time = time.time()
-            print('Number of labels : '), len(label)
-            print('Feature space, elapsed time : '), end_time - start_time
+            print('Number of labels: '), len(label)
+            print('Feature space, elapsed time: '), end_time - start_time
             return feature_space_dict
         else:
             print('Index list :'), self._label_range_max
@@ -1233,28 +1271,34 @@ class GeometricalFeatures(object):
         """
         Extract L1 and/or L2 and/or L3 layers (only 3D algorithm)
 
-        Hypothesis : L1 is connected to background, L2 is connected to L1, etc.
+        Hypothesis: L1 is connected to background, L2 is connected to L1, etc.
 
         Parameters
         ----------
-        :param dict centroid_dict: dictionary of centroids
+        centroid_dict: dict
+            dictionary of centroids
 
-        :param int background_id: background label, default==1
+        background_id: int
+            background label, default==1
 
-        :param str connectivity: considered connectivity, default: '26-neighbors'
-                                 connectivity can be either : ['6-neighbors','18-neighbors', '26-neighbors']
+        connectivity: considered connectivity, default: str
+            '26-neighbors'
+                                 connectivity can be either: ['6-neighbors','18-neighbors', '26-neighbors']
 
-        :param int exploration_length: exploration_length (voxel), if 0 an automatic exploration_length is computed
+        exploration_length: int
+            exploration_length (voxel), if 0 an automatic exploration_length is computed
 
-        :param str opt: layers option, default: 'L1'
-                        opt can be either : ['L1','L2','L3','L1L2','L1L2L3']
+        opt: layers option, default: str
+            'L1'
+                        opt can be either: ['L1','L2','L3','L1L2','L1L2L3']
 
         Returns
-        ----------
-        :return: layer_dict (*dict*) -- dictionary of layers and features
+        -------
+        layer_dict: dict
+            dictionary of layers and features
 
         Example
-        ----------
+        -------
         >>> layer_dict = self.compute_3D_layers()
         """
 
@@ -1274,9 +1318,9 @@ class GeometricalFeatures(object):
 
             connect = ['6-neighbors', '18-neighbors', '26-neighbors']
             if connectivity not in connect:
-                print('Possible connectivity : '), connect
+                print('Possible connectivity: '), connect
                 connectivity = '26-neighbors'
-                print('Setting connectivity to : '), connectivity
+                print('Setting connectivity to: '), connectivity
             else:
                 connectivity = str(connectivity)
 
@@ -1451,8 +1495,8 @@ class GeometricalFeatures(object):
                 layer_dict.update(l3_dict)
 
             end_time = time.time()
-            print('Number of labels (layers) : '), len(layer_dict)
-            print('Layers extraction, elapsed time : '), end_time - start_time
+            print('Number of labels (layers): '), len(layer_dict)
+            print('Layers extraction, elapsed time: '), end_time - start_time
             return layer_dict
         else:
             print('Index list :'), self._label_range_max

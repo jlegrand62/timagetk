@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #       Copyright 2016 INRIA
 #
@@ -46,12 +46,12 @@ def read_tiff_image(tiff_file):
 
     Parameters
     ----------
-    tiff_file : type string, path to the file.
-        Supported extensions : '.tif', '.tiff'
+    tiff_file: type string, path to the file.
+        Supported extensions: '.tif', '.tiff'
 
     Returns
-    ----------
-    out_sp_img : type SpatialImage, image and associated information
+    -------
+    out_sp_img: type SpatialImage, image and associated information
 
     Example
     -------
@@ -90,7 +90,7 @@ def read_tiff_image(tiff_file):
                 if tag.name in int_tags:
                     if 'resolution' in tag.name:
                         if (isinstance(tag.value, tuple) and len(tag.value)==2):
-                            res = float(tag.value[0]/tag.value[1])    # SR : OK (due to from __future__ import division)
+                            res = float(tag.value[0]/tag.value[1])    # SR: OK (due to from __future__ import division)
                             metadata_dict['resolution'] = res
                         elif (isinstance(tag.value, float) and len(tag.value)==1):
                             #--- todo float management ?
@@ -148,10 +148,10 @@ def write_tiff_image(tiff_file, sp_img):
 
     Parameters
     ----------
-    tiff_file : type string, path to the file.
-        Supported extensions : '.tif', '.tiff'
+    tiff_file: type string, path to the file.
+        Supported extensions: '.tif', '.tiff'
 
-    sp_img : type SpatialImage
+    sp_img: type SpatialImage
 
     Example
     -------

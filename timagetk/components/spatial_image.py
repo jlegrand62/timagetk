@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #       Copyright 2016 INRIA
 #
@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 # ----
-# SR : update - 08/2016
+# SR: update - 08/2016
 # numpy types, tests and conds, 2D and 3D management
 # origin, voxelsize, extent, mean, min, max and metadata
 # set and get methods
@@ -33,33 +33,30 @@ DEF_VXS_2D, DEF_VXS_3D = [1.0, 1.0], [1.0, 1.0, 1.0]
 DEF_ORIG_2D, DEF_ORIG_3D = [0, 0], [0, 0, 0]
 
 # - Define possible values for 'dtype':
-DICT_TYPES = {0: np.uint8, 1: np.int8, 2: np.uint16, 3: np.int16,
-              4: np.uint32,
+DICT_TYPES = {0: np.uint8, 1: np.int8, 2: np.uint16, 3: np.int16, 4: np.uint32,
               5: np.int32, 6: np.uint64, 7: np.int64, 8: np.float32,
-              9: np.float64,
-              10: np.float_, 11: np.complex64, 12: np.complex128,
-              13: np.complex_,
-              'uint8': np.uint8, 'uint16': np.uint16, 'ushort': np.uint16,
-              'uint32': np.uint32,
-              'uint64': np.uint64, 'uint': np.uint64,
-              'ulonglong': np.uint64, 'int8': np.int8,
+              9: np.float64, 10: np.float_, 11: np.complex64, 12: np.complex128,
+              13: np.complex_, 'uint8': np.uint8, 'uint16': np.uint16,
+              'ushort': np.uint16, 'uint32': np.uint32, 'uint64': np.uint64,
+              'uint': np.uint64, 'ulonglong': np.uint64, 'int8': np.int8,
               'int16': np.int16, 'short': np.int16, 'int32': np.int32,
-              'int64': np.int64,
-              'int': np.int64, 'longlong': np.int64, 'float16': np.float16,
-              'float32': np.float32,
-              'single': np.float32, 'float64': np.float64,
-              'double': np.float64, 'float': np.float64,
-              'float128': np.float_, 'longdouble': np.float_,
-              'longfloat': np.float_,
+              'int64': np.int64, 'int': np.int64, 'longlong': np.int64,
+              'float16': np.float16, 'float32': np.float32,
+              'single': np.float32, 'float64': np.float64, 'double': np.float64,
+              'float': np.float64, 'float128': np.float_,
+              'longdouble': np.float_, 'longfloat': np.float_,
               'complex64': np.complex64, 'singlecomplex': np.complex64,
-              'complex128': np.complex128,
-              'cdouble': np.complex128, 'cfloat': np.complex128,
-              'complex': np.complex128,
+              'complex128': np.complex128, 'cdouble': np.complex128,
+              'cfloat': np.complex128, 'complex': np.complex128,
               'complex256': np.complex_, 'clongdouble': np.complex_,
-              'clongfloat': np.complex_,
-              'longcomplex': np.complex_}
+              'clongfloat': np.complex_, 'longcomplex': np.complex_}
 POSS_TYPES = sorted([k for k in DICT_TYPES.keys() if isinstance(k, str)])
+# - Define default type:
 DEF_TYPE = DICT_TYPES[0]
+# - List of protected attribute or poperties:
+PROTECT_PPTY = ['shape', 'min', 'max', 'mean']
+# - Array equality testing methods:
+EQ_METHODS = ['max_error', 'cum_error']
 
 
 def around_list(input_list, dec_val=DEC_VAL):
@@ -112,14 +109,14 @@ def basic_metadata(obj, metadata_dict=None):
 
     Parameters
     ----------
-    obj : SpatialImage
+    obj: SpatialImage
         a SpatialImage to use for metadata definition
-    metadata_dict : dict, optional
+    metadata_dict: dict, optional
         a metadata dictionary to compare to the object variables
 
     Returns
     -------
-    metadata_dict : dict
+    metadata_dict: dict
         a verified metadata dictionary
     """
     if not metadata_dict:
@@ -205,20 +202,21 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param *numpy.ndarray* input_array: image
-
-        :param list origin: image origin, optional. Default: [0,0] or [0,0,0]
-
-        :param list voxelsize: image voxelsize, optional. Default: [1.0,1.0] or [1.0,1.0,1.0]
-
-        :param str dtype: image type, optional. Default: dtype=input_array.dtype
-
-        :param dict metadata_dict: image metadata, optional. Default: metadata_dict={}
+        input_array: numpy.ndarray
+            2D or 3D array defining an image, eg. intensity or labelled image
+        origin: list, optional
+            coordinates of the origin in the image, default: [0,0] or [0,0,0]
+        voxelsize: list, optional.
+            image voxelsize, default: [1.0,1.0] or [1.0,1.0,1.0]
+        dtype: str, optional
+            image type, default dtype = input_array.dtype
+        metadata_dict: dict, optional
+            dictionary of image metadata, default is an empty dict
 0
         Returns
         -------
         SpatialImage
-         transformed image with its metadata
+            image with metadata
 
         Notes
         -----
@@ -230,9 +228,13 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image_1 = SpatialImage(input_array=test_array)
-        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
-        >>> isinstance(image_1, SpatialImage) and isinstance(image_2, SpatialImage)
+        >>> isinstance(image_1, SpatialImage)
         True
+        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
+        >>> isinstance(image_2, SpatialImage)
+        True
+        >>> print image_2.voxelsize
+        [0.5, 0.5]
         """
         # TODO: SpatialImage should have 'filename' attribute or metadata!
         # - Test input array: should be a numpy array of dimension 2 or 3:
@@ -339,6 +341,8 @@ class SpatialImage(np.ndarray):
         return obj
 
     def __init__(self, input_array, **kwargs):
+        """
+        """
         pass
 
     def __array_finalize__(self, obj):
@@ -348,7 +352,7 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        obj : the object returned by the __new__ method.
+        obj: the object returned by the __new__ method.
         """
         if obj is not None:
             self._voxelsize = getattr(obj, '_voxelsize', [])
@@ -362,6 +366,8 @@ class SpatialImage(np.ndarray):
             return
 
     def __str__(self):
+        """
+        """
         print "SpatialImage object with following metadata:"
         print  self._metadata
         return
@@ -373,7 +379,7 @@ class SpatialImage(np.ndarray):
 
         Returns
         -------
-        is_iso : bool
+        is_iso: bool
             True is isometric, else False.
         """
         vxs = self.voxelsize
@@ -411,14 +417,14 @@ class SpatialImage(np.ndarray):
             elif shape[1] == 1:
                 new_arr = np.squeeze(array, axis=(1,))
                 new_vox = [voxelsize[0], voxelsize[2]]
-            elif shape[2] == 1:
+            else:
                 new_arr = np.squeeze(array, axis=(2,))
                 new_vox = [voxelsize[0], voxelsize[1]]
             out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
                                       origin=ori, metadata_dict=md)
             return out_sp_img
         else:
-            print('3D SpatialImage can not be reshaped to 2D')
+            print('This 3D SpatialImage can not be reshaped to 2D.')
             return
 
     def to_3D(self):
@@ -440,32 +446,52 @@ class SpatialImage(np.ndarray):
                                       origin=ori, metadata_dict=md)
             return out_sp_img
         else:
-            print('SpatialImage is not 2D')
+            print('This SpatialImage is not 2D.')
             return
 
     def get_available_types(self):
         """
-        Print the availables bits type dictionary.
+        Print the available bits type dictionary.
         """
         return DICT_TYPES
 
-    def is_available_types(self, dtype):
+    def is_available_types(self, type):
         """
-        Print the availables bits type dictionary.
-        """
-        return dtype in DICT_TYPES.keys()
-
-    def equal(self, sp_img):
-        """
-        Equality test between two ``SpatialImage``
+        Test if the given type is available.
 
         Parameters
         ----------
-        :param ``SpatialImage`` sp_img: ``SpatialImage`` instance
+        type: str
+            name of the type to find in DICT_TYPES
+        """
+        return type in DICT_TYPES.keys()
+
+    def equal(self, sp_img, error=EPS, method='max_error'):
+        """
+        Equality test between two ``SpatialImage``, uses array equality and
+        metadata matching.
+
+        Parameters
+        ----------
+        sp_img: ``SpatialImage``
+            another ``SpatialImage`` instance to test for array equality
+        error: float, optional
+            maximum difference accepted between the two arrays (default=EPS)
+        method: str, optional
+            type of "error measurement", choose among (default='max_error'):
+              - max_error: max difference accepted for a given pixel
+              - cum_error: max cumulative (sum) difference for the whole array
 
         Returns
         -------
-        :returns: True/False (*bool*) -- if (array and metadata) are equal/or not
+        bool
+            True/False if (array and metadata) are equal/or not
+
+        Notes
+        -----
+        Metadata equality test compare defined self.metadata keys to their
+        counterpart in 'sp_img'. Hence, a missing key in 'sp_im' or a different
+        value will return False.
 
         Example
         -------
@@ -473,45 +499,123 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image_1 = SpatialImage(input_array=test_array)
-        >>> image_1==image_1
+        >>> image_1.equal(image_1)
         True
         >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
-        >>> image_1==image_2
+        >>> image_1.equal(image_2)
+        SpatialImages metadata are different.
+        False
+        >>> image_2[1, 1] = 2
+        >>> image_1.equal(image_2)
+        Max difference between arrays is greater than '1e-09'.
+        SpatialImages metadata are different.
         False
         """
-        val = False
+        equal = False
+        # - Test array equality:
+        t_arr = self.equal_array(sp_img, error=error, method=method)
+        # - Test metadata equality:
+        md_ref = self.metadata
+        md = sp_img.metadata
+        t_met = all([md.has_key(k) and v == md[k] for k, v in md_ref.items()])
+        # - Combine test and print when fail:
+        if t_arr and t_met:
+            equal = True
+        if not t_arr:
+            m = 'Max' if method == 'max_error' else 'Cumulative'
+            print "{} difference between arrays is greater than '{}'.".format(
+                m, error)
+        if not t_met:
+            print "SpatialImages metadata are different."
+
+        return equal
+
+    def equal_array(self, sp_img, error=EPS, method='max_error'):
+        """
+        Test array equality between two ``SpatialImage``.
+
+        Parameters
+        ----------
+        sp_img: ``SpatialImage``
+            another ``SpatialImage`` instance to test for array equality
+        error: float, optional
+            maximum difference accepted between the two arrays, should be
+            strictly inferior to this value to return True, default: EPS
+        method: str, optional
+            type of "error measurement", choose among:
+              - max_error: max difference accepted for a given pixel
+              - cum_error: max cumulative (sum) difference for the whole array
+
+        Returns
+        -------
+        bool
+            True/False if arrays are equal/or not
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> test_array = np.ones((5,5), dtype=np.uint8)
+        >>> image_1 = SpatialImage(input_array=test_array)
+        >>> image_1.equal_array(image_1)
+        True
+        >>> # - Changing voxelsize does not affect array equality test:
+        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
+        >>> image_1.equal_array(image_2)
+        True
+        >>> # - Changing array value does affect array equality test:
+        >>> image_2[0, 0] = 0
+        >>> image_1.equal_array(image_2)
+        False
+        >>> # - Changing accepted max difference affect array equality test:
+        >>> image_1.equal_array(image_2, error=2)
+        True
+        """
         if not isinstance(sp_img, SpatialImage):
             raise TypeError("Parameter 'sp_img' is not a SpatialImage!")
+        try:
+            assert method in EQ_METHODS
+        except AssertionError:
+            msg = "Unknown method '{}', should be in {}."
+            raise ValueError(msg.format(method, EQ_METHODS))
 
-        if self.shape == sp_img.shape:
-            # out_img = np.zeros_like(self, dtype=np.float)
-            out_img = np.abs(self - sp_img)
-            conds_arr = True if np.max(out_img < EPS) else False
-            md_ref = self.metadata
-            md = sp_img.metadata
-            conds_met = all([True if md_ref[k] == md[k] else False for k in
-                             self.metadata])
-            if conds_arr and conds_met:
-                val = True
-            elif not conds_arr:
-                print "Max difference between arrays is greater than '{}' !".format(
-                    EPS)
-            elif not conds_met:
-                print "SpatialImages metadata are different !"
-            else:
-                pass
+        # - Starts by testing the shapes are equal:
+        if self.shape != sp_img.shape:
+            msg = "SpatialImage 'sp_img' has a different shape than this one!"
+            print msg
+            return False
+
+        # - Test array equality:
+        ori_type = self.type
+        if ori_type.startswith(
+                'u'):  # unsigned case is problematic for 'np.subtract'
+            tmp_type = DICT_TYPES[ori_type[1:]]
         else:
-            err = "Image 'sp_img' has a different shape than the current one!"
-            raise ValueError(err)
-        return val
+            tmp_type = ori_type
+        # - Compute the difference between the two arrays:
+        out_img = np.abs(np.subtract(self, sp_img).astype(tmp_type)).astype(
+            ori_type)
+        # - Try to find non-null values in this array:
+        non_null_idx = np.nonzero(out_img)
+        if len(non_null_idx[0]) != 0:
+            non_null = out_img[non_null_idx]
+            if method == 'max_error':
+                equal = np.max(non_null) < error
+            else:
+                equal = np.sum(non_null) < error
+        else:
+            equal = True
+
+        return equal
 
     def get_array(self):
         """
         Get a ``numpy.ndarray`` from a ``SpatialImage``
 
         Returns
-        ----------
-        :returns: image_array (*numpy.ndarray*) -- ``SpatialImage`` array
+        -------
+        numpy.ndarray:
+            ``SpatialImage`` array
 
         Example
         -------
@@ -532,8 +636,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` dimension (2D or 3D image)
 
         Returns
-        ----------
-        :returns: image_dim (*int*) -- ``SpatialImage`` dimension
+        -------
+        int:
+            ``SpatialImage`` dimensionality
 
         Example
         -------
@@ -552,8 +657,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` min value
 
         Returns
-        ----------
-        :returns: image_min (*val*) -- ``SpatialImage`` min
+        -------
+        *val*
+            ``SpatialImage`` min
 
         Example
         -------
@@ -577,8 +683,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` max value
 
         Returns
-        ----------
-        :returns: image_max (*val*) -- ``SpatialImage`` max
+        -------
+        *val*
+            ``SpatialImage`` max
 
         Example
         -------
@@ -602,8 +709,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` mean
 
         Returns
-        ----------
-        :returns: image_mean (*val*) -- ``SpatialImage`` mean
+        -------
+        *val*
+            ``SpatialImage`` mean
 
         Example
         -------
@@ -628,11 +736,13 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param list indices: indices as list of integers
+        indices: list
+            indices as list of integers
 
         Returns
-        ----------
-        :returns: pixel_value (*self.type*) -- pixel value
+        -------
+        *self.type*
+            pixel value
 
         Example
         -------
@@ -675,11 +785,13 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param list indices: indices as list of integers
+        indices: list
+            indices as list of integers
 
         Returns
-        ----------
-        :returns: out_sp_image (``SpatialImage``) -- output ``SpatialImage``
+        -------
+        ``SpatialImage``
+            output ``SpatialImage``
 
         Example
         -------
@@ -765,15 +877,16 @@ class SpatialImage(np.ndarray):
     #     """
     #     return self.shape
 
-    def set_pixel(self, indices, val):
+    def set_pixel(self, indices, value):
         """
-        Set ``SpatialImage`` pixel value
+        Set ``SpatialImage`` pixel value at given array coordinates.
 
         Parameters
         ----------
-        :param list indices: indices as list of integers
-
-        :param value: new value, type of ``SpatialImage`` array
+        indices: list
+            indices as list of integers
+        value: array.dtype
+            new value for the selected pixel, type of ``SpatialImage`` array
 
         Example
         -------
@@ -781,9 +894,13 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
-        >>> indices = [1,1]
-        >>> value = 2
-        >>> image.set_pixel(indices, value)
+        >>> image.set_pixel([1,1], 2)
+        >>> image.get_array()
+        array([[1, 1, 1, 1, 1],
+               [1, 2, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1],
+               [1, 1, 1, 1, 1]], dtype=uint8)
         """
         img_dim = self.get_dim()
         if isinstance(indices, list) and len(indices) == img_dim:
@@ -798,9 +915,9 @@ class SpatialImage(np.ndarray):
                             indices[2] in range_z
             if conds_ind:
                 if img_dim == 2:
-                    self[indices[0], indices[1]] = val
+                    self[indices[0], indices[1]] = value
                 elif img_dim == 3:
-                    self[indices[0], indices[1], indices[2]] = val
+                    self[indices[0], indices[1], indices[2]] = value
             return
         else:
             print('Warning, incorrect specification')
@@ -812,12 +929,15 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param list indices: indices as list of integers
-        :param val: new values (*np.ndarray* or value)
+        indices: list
+            indices as list of integers
+        val: array.dtype|np.array
+            new value for the selected pixels, type of ``SpatialImage`` array
 
         Returns
-        ----------
-        :returns: out_sp_image (``SpatialImage``) -- ``SpatialImage`` instance
+        -------
+        ``SpatialImage``
+            ``SpatialImage`` instance
 
         Example
         -------
@@ -879,17 +999,18 @@ class SpatialImage(np.ndarray):
 
     # ##########################################################################
     #
-    # SpatialImage properties :
-    #
+    # SpatialImage properties:     #
     # ##########################################################################
     @property
     def extent(self):
         """
-        Get ``SpatialImage`` physical extent
+        Get ``SpatialImage`` physical extent. It is related to the array shape
+        and image voxelsize.
 
         Returns
-        ----------
-        :returns: image_extent (*list*) -- ``SpatialImage`` physical extent
+        -------
+        list
+            ``SpatialImage`` physical extent
 
         Example
         -------
@@ -905,12 +1026,17 @@ class SpatialImage(np.ndarray):
     @extent.setter
     def extent(self, img_extent):
         """
-        Set ``SpatialImage`` physical extent
+        Set ``SpatialImage`` physical extent, will change voxelsize based on
+        array shape.
 
         Parameters
         ----------
-        :param list image_extent: ``SpatialImage`` physical extent.
-                                Metadata are updated according to the new physical extent.
+        img_extent: list
+            ``SpatialImage`` new physical extent.
+
+        Notes
+        -----
+        Metadata are updated according to the new physical extent and voxelsize.
 
         Example
         -------
@@ -918,8 +1044,15 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
+        >>> print image.voxelsize
+        [1.0, 1.0]
         >>> image.extent = [10.0, 10.0]
+        Set extent to '[10.0, 10.0]'
+        Changed voxelsize to '[2.0, 2.0]'
         >>> print image.extent
+        [10.0, 10.0]
+        >>> print image.voxelsize
+        [2.0, 2.0]
         """
         dimensionality_test(self.get_dim(), img_extent)
         # - Update 'extent' hidden attribute:
@@ -927,12 +1060,12 @@ class SpatialImage(np.ndarray):
         img_extent = around_list(img_extent)
         self._extent = img_extent
         # - Update 'voxelsize' hidden attribute:
-        vox = [img_extent[i] / sh for i, sh in enumerate(img_extent)]
+        vox = [img_extent[i] / float(sh) for i, sh in enumerate(self.shape)]
         vox = around_list(vox)
-        self.voxelsize = vox
+        self._voxelsize = vox
         # - Update 'extent' & 'voxelsize' metadata:
-        self._metadata['extent'] = img_extent
-        self._metadata['voxelsize'] = vox
+        self._metadata['extent'] = self.extent
+        self._metadata['voxelsize'] = self.voxelsize
         print "Set extent to '{}'".format(self.extent)
         print "Changed voxelsize to '{}'".format(self.voxelsize)
         return
@@ -943,8 +1076,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` metadata
 
         Returns
-        ----------
-        :returns: image_metadata (*dict*) -- ``SpatialImage`` metadata
+        -------
+        dict
+            ``SpatialImage`` metadata
 
         Example
         -------
@@ -987,7 +1121,7 @@ class SpatialImage(np.ndarray):
             elif (self.ndim == 3 and old_shape[0] in self.shape and old_shape[
                 1] in self.shape and old_shape[2] in self.shape):
                 print(
-                    'Warning : possibly incorrect voxelsize, extent and origin')
+                    'Warning: possibly incorrect voxelsize, extent and origin')
                 vox, ext, orig = [], [], []
                 for ind in range(0, self.ndim):
                     tmp = old_shape.index(self.shape[ind])
@@ -998,7 +1132,7 @@ class SpatialImage(np.ndarray):
                     'origin'] = vox, ext, orig
                 self._voxelsize, self.extent, self._origin = vox, ext, orig
             else:
-                print('Warning : incorrect voxelsize, extent and origin')
+                print('Warning: incorrect voxelsize, extent and origin')
                 vox, ext, orig = [], [], []
                 met_dict['voxelsize'], met_dict['extent'], met_dict[
                     'origin'] = vox, ext, orig
@@ -1015,7 +1149,17 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param dict image_metadata: ``SpatialImage`` metadata
+        image_metadata: dict
+            ``SpatialImage`` metadata
+
+        Notes
+        -----
+        Attributes or properties will be updated accordingly.
+        Following keys from 'img_metadata' will be ignored:
+          - 'shape': depend on the array shape;
+          - 'min': depend on the values found within the array;
+          - 'max': depend on the values found within the array;
+          - 'mean': depend on the values found within the array;
 
         Example
         -------
@@ -1023,9 +1167,14 @@ class SpatialImage(np.ndarray):
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
-        >>> image.metadata['name'] = 'img_test'
+        >>> image.metadata = {'name': 'img_test'}
+        >>> image.metadata = {'voxelsize': [1.0, 1.0]}
+        >>> image.metadata = {'voxelsize': [1.5, 1.5]}
+        Set voxelsize to '[1.5, 1.5]'
+        Changed extent to '[7.5, 7.5]'
+        >>> image.metadata = {'shape': [5, 5]}
+        'shape' is a protected attribute, it will not be updated!
         """
-        tmp_dict = self._metadata
         # - Test provided input is a dictionary
         try:
             assert isinstance(img_metadata, dict)
@@ -1035,44 +1184,54 @@ class SpatialImage(np.ndarray):
         try:
             assert isinstance(self._metadata, dict)
         except:
-            raise TypeError("Attribute metadata is not a dictionary!")
-        # - Update the metadata dictionary with new values:
-        tmp_dict.update(img_metadata)
-        # - Update the attribute:
-        self._metadata = tmp_dict
-        # - Update object properties:
-        self.origin = tmp_dict['origin']
-        self.voxelsize = around_list(tmp_dict['voxelsize'])
-        # Updating 'voxelsize' property also update 'extent' property...
-        # self.extent = around_list(tmp_dict['extent'])
+            raise TypeError("Attribute 'metadata' is not a dictionary!")
 
-        # - Update 'min', 'mean' and 'max' attributes and metadata:
-        try:
-            self.min = tmp_dict['min']
-        except KeyError:
-            self.min = self.get_min()
-            self._metadata['min'] = self.min
-        try:
-            self.max = tmp_dict['max']
-        except KeyError:
-            self.max = self.get_max()
-            self._metadata['max'] = self.max
-        try:
-            self.mean = tmp_dict['mean']
-        except KeyError:
-            self.mean = self.get_mean()
-            self._metadata['mean'] = self.mean
+        # - Attribute 'resolution' is deprecated, we do not want to use it here:
+        if img_metadata.has_key('resolution'):
+            print "Attribute 'resolution' is deprecated, use 'voxelsize' instead!"
+            img_metadata.pop('resolution')
+        # - Protected attribute or properties:
+        msg = "'{}' is a protected attribute, it will not be updated!"
+        for ppty in PROTECT_PPTY:
+            try:
+                img_metadata.pop(ppty)
+            except KeyError:
+                pass
+            else:
+                print msg.format(ppty)
+
+        # - If both 'extent' and 'voxelsize' are provided, they might not match:
+        if img_metadata.has_key('voxelsize') and img_metadata.has_key('extent'):
+            print "Both 'extent' and 'voxelsize' were provided...",
+            print "Using only 'voxelsize' for safety reasons!"
+            img_metadata.pop('extent')
+
+        # - Update the metadata dictionary with new values:
+        self._metadata.update(img_metadata)
+        # - Update object properties:
+        if img_metadata.has_key('origin') and img_metadata[
+            'origin'] != self.origin:
+            self.origin = img_metadata['origin']
+        # Updating 'voxelsize' property also update 'extent' property...
+        # if img_metadata.has_key('extent') and img_metadata['extent'] != self.extent:
+        # self.extent = around_list(img_metadata['extent'])
+        if img_metadata.has_key('voxelsize') and img_metadata[
+            'voxelsize'] != self.voxelsize:
+            self.voxelsize = around_list(img_metadata['voxelsize'])
+        if img_metadata.has_key('type') and img_metadata['type'] != self.type:
+            self.type = img_metadata['type']
 
         return
 
     @property
     def origin(self):
         """
-        Get ``SpatialImage`` origin
+        Get ``SpatialImage`` origin.
 
         Returns
-        ----------
-        :returns: image_origin (*list*) -- ``SpatialImage`` origin
+        -------
+        list
+            ``SpatialImage`` origin coordinates
 
         Example
         -------
@@ -1088,11 +1247,13 @@ class SpatialImage(np.ndarray):
     @origin.setter
     def origin(self, img_origin):
         """
-        Set ``SpatialImage`` origin
+        Set ``SpatialImage`` origin using a list of same length than the image
+        dimensionality.
 
         Parameters
         ----------
-        :param list image_origin: ``SpatialImage`` origin
+        image_origin: list
+            ``SpatialImage`` origin coordinates,
 
         Example
         -------
@@ -1101,6 +1262,7 @@ class SpatialImage(np.ndarray):
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
         >>> image.origin = [2, 2]
+        Set origin to '[2, 2]'
         """
         dimensionality_test(self.get_dim(), img_origin)
         img_origin = tuple_array_to_list(img_origin)
@@ -1114,11 +1276,12 @@ class SpatialImage(np.ndarray):
     @property
     def type(self):
         """
-        Get ``SpatialImage`` type
+        Get ``SpatialImage`` type.
 
         Returns
-        ----------
-        :returns: image_type (*str*) -- ``SpatialImage`` type
+        -------
+        str
+            ``SpatialImage`` type
 
         Example
         -------
@@ -1134,15 +1297,17 @@ class SpatialImage(np.ndarray):
     @type.setter
     def type(self, val):
         """
-        Set ``SpatialImage`` type
+        Set ``SpatialImage`` type.
 
         Parameters
         ----------
-        :param str image_type: image type (see numpy types).
+        image_type: str
+            image type (see numpy types).
 
         Returns
-        ----------
-        :returns: out_sp_image (``SpatialImage``) -- ``SpatialImage`` instance
+        -------
+        ``SpatialImage``
+            new instance of given type
 
         Example
         -------
@@ -1175,8 +1340,9 @@ class SpatialImage(np.ndarray):
         Get ``SpatialImage`` voxelsize.
 
         Returns
-        ----------
-        :returns: image_voxelsize (*list*) -- ``SpatialImage`` voxelsize
+        -------
+        list
+            ``SpatialImage`` voxelsize
 
         Example
         -------
@@ -1192,11 +1358,17 @@ class SpatialImage(np.ndarray):
     @voxelsize.setter
     def voxelsize(self, img_vxs):
         """
-        Set ``SpatialImage`` voxelsize
+        Set ``SpatialImage`` voxelsize, will change physical extent based on
+        array shape.
 
         Parameters
         ----------
-        :param list image_voxelsize: ``SpatialImage`` voxelsize
+        image_voxelsize: list
+            ``SpatialImage`` new voxelsize
+
+        Notes
+        -----
+        Metadata are updated according to the new physical extent and voxelsize.
 
         Example
         -------
@@ -1205,8 +1377,12 @@ class SpatialImage(np.ndarray):
         >>> test_array = np.ones((5,5), dtype=np.uint8)
         >>> image = SpatialImage(input_array=test_array)
         >>> image.voxelsize = [0.5, 0.5]
+        Set voxelsize to '[0.5, 0.5]'
+        Changed extent to '[2.5, 2.5]'
         >>> print image.voxelsize
         [0.5, 0.5]
+        >>> print image.extent
+        [2.5, 2.5]
         """
         dimensionality_test(self.get_dim(), img_vxs)
         # - Update 'voxelsize' hidden attribute:
@@ -1214,7 +1390,7 @@ class SpatialImage(np.ndarray):
         img_vxs = around_list(img_vxs)
         self._voxelsize = img_vxs
         # - Update 'extent' hidden attribute:
-        ext = [img_vxs[i] * sh for i, sh in enumerate(self.shape)]
+        ext = [img_vxs[i] * float(sh) for i, sh in enumerate(self.shape)]
         ext = around_list(ext)
         self._extent = ext
         # - Update 'extent' & 'voxelsize' metadata:
@@ -1240,25 +1416,25 @@ class SpatialImage(np.ndarray):
         """
         self.voxelsize = voxelsize
 
-    # ##############################################################################
+    # ------------------------------------------------------------------------------
     #
     # SpatialImage transformation functions:
     #
-    # ##############################################################################
+    # ------------------------------------------------------------------------------
     def to_8bits(self, unsigned=True):
         """
-        Convert the array to a different bit depth.
+        Convert the ``SpatialImage`` array to a different type.
 
         Parameters
         ----------
-        unsigned : bool, optional
+        unsigned: bool, optional
             if True (default), return as unsigned integer 'uint8', else signed
             integer 'int8'
 
         Returns
         -------
-        img : SpatialImage
-            the converted SpatialImage
+        ``SpatialImage``
+            the converted ``SpatialImage``
         """
         vxs = self.voxelsize
         ori = self.origin
@@ -1288,11 +1464,13 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        :param str axis: can be either 'x', 'y' or 'z'
+        axis: str
+            can be either 'x', 'y' or 'z'
 
         Returns
-        ----------
-        :returns: out_sp_image (``SpatialImage``) -- ``SpatialImage`` instance
+        -------
+        ``SpatialImage``
+            ``SpatialImage`` instance
 
         Example
         -------

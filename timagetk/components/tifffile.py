@@ -290,12 +290,12 @@ def imsave(file, data, **kwargs):
 
     Parameters
     ----------
-    file : str or binary stream
+    file: str or binary stream
         File name or writable binary stream, such as a open file or BytesIO.
-    data : array_like
+    data: array_like
         Input image. The last dimensions are assumed to be image depth,
         height, width, and samples.
-    kwargs : dict
+    kwargs: dict
         Parameters 'byteorder', 'bigtiff', 'software', and 'imagej', are passed
         to the TiffWriter class.
         Parameters 'photometric', 'planarconfig', 'resolution', 'compress',
@@ -360,18 +360,18 @@ class TiffWriter(object):
 
         Parameters
         ----------
-        file : str, binary stream, or FileHandle
+        file: str, binary stream, or FileHandle
             File name or writable binary stream, such as a open file
             or BytesIO.
-        bigtiff : bool
+        bigtiff: bool
             If True, the BigTIFF format is used.
-        byteorder : {'<', '>'}
+        byteorder: {'<', '>'}
             The endianness of the data in the file.
             By default this is the system's native byte order.
-        software : str
+        software: str
             Name of the software used to create the file.
             Saved with the first page in the file only.
-        imagej : bool
+        imagej: bool
             If True, write an ImageJ hyperstack compatible file.
             This format can handle data types uint8, uint16, or float32 and
             data shapes up to 6 dimensions in TZCYXS order.
@@ -444,67 +444,67 @@ class TiffWriter(object):
 
         Parameters
         ----------
-        data : numpy.ndarray
+        data: numpy.ndarray
             Input image. The last dimensions are assumed to be image depth,
             height (length), width, and samples.
             If a colormap is provided, the dtype must be uint8 or uint16 and
             the data values are indices into the last dimension of the
             colormap.
-        photometric : {'minisblack', 'miniswhite', 'rgb', 'palette'}
+        photometric: {'minisblack', 'miniswhite', 'rgb', 'palette'}
             The color space of the image data.
             By default this setting is inferred from the data shape and the
             value of colormap.
-        planarconfig : {'contig', 'planar'}
+        planarconfig: {'contig', 'planar'}
             Specifies if samples are stored contiguous or in separate planes.
             By default this setting is inferred from the data shape.
             'contig': last dimension contains samples.
             'planar': third last dimension contains samples.
-        resolution : (float, float) or ((int, int), (int, int))
+        resolution: (float, float) or ((int, int), (int, int))
             X and Y resolution in dots per inch as float or rational numbers.
-        compress : int or 'lzma'
+        compress: int or 'lzma'
             Values from 0 to 9 controlling the level of zlib compression.
             If 0, data are written uncompressed (default).
             Compression cannot be used to write contiguous files.
             If 'lzma', LZMA compression is used, which is not available on
             all platforms.
-        colormap : numpy.ndarray
+        colormap: numpy.ndarray
             RGB color values for the corresponding data value.
             Must be of shape (3, 2**(data.itemsize*8)) and dtype uint16.
-        tile : tuple of int
+        tile: tuple of int
             The shape (depth, length, width) of image tiles to write.
             If None (default), image data are written in one stripe per plane.
             The tile length and width must be a multiple of 16.
             If the tile depth is provided, the SGI image_depth and tile_depth
             tags are used to save volume data. Few software can read the
             SGI format, e.g. MeVisLab.
-        datetime : datetime
+        datetime: datetime
             Date and time of image creation. Saved with the first page only.
             If None (default), the current date and time is used.
-        description : str
+        description: str
             The subject of the image. Saved with the first page only.
             Cannot be used with the ImageJ format.
-        metadata : dict
+        metadata: dict
             Additional meta data to be saved along with shape information
             in JSON or ImageJ formats in an image_description tag.
             If None, do not write second image_description tag.
-        contiguous : bool
+        contiguous: bool
             If True (default) and the data and parameters are compatible with
             previous ones, if any, the data are stored contiguously after
             the previous one. Parameters 'photometric' and 'planarconfig' are
             ignored.
-        extratags : sequence of tuples
+        extratags: sequence of tuples
             Additional tags as [(code, dtype, count, value, writeonce)].
 
-            code : int
+            code: int
                 The TIFF tag Id.
-            dtype : str
+            dtype: str
                 Data type of items in 'value' in Python struct format.
                 One of B, s, H, I, 2I, b, h, i, f, d, Q, or q.
-            count : int
+            count: int
                 Number of data values. Not used for string values.
-            value : sequence
+            value: sequence
                 'Count' values compatible with 'dtype'.
-            writeonce : bool
+            writeonce: bool
                 If True, the tag is written to the first page only.
 
         """
@@ -1113,19 +1113,19 @@ def imread(files, **kwargs):
 
     Parameters
     ----------
-    files : str, binary stream, or sequence
+    files: str, binary stream, or sequence
         File name, seekable binary stream, glob pattern, or sequence of
         file names.
-    key : int, slice, or sequence of page indices
+    key: int, slice, or sequence of page indices
         Defines which pages to return as array.
-    series : int
+    series: int
         Defines which series of pages in file to return as array.
-    multifile : bool
+    multifile: bool
         If True (default), OME-TIFF data may include pages from multiple files.
-    pattern : str
+    pattern: str
         Regular expression pattern that matches axes names and indices in
         file names.
-    kwargs : dict
+    kwargs: dict
         Additional parameters passed to the TiffFile or TiffSequence asarray
         function.
 
@@ -1191,9 +1191,9 @@ class TiffFile(object):
 
     Attributes
     ----------
-    pages : list of TiffPage
+    pages: list of TiffPage
         All TIFF pages in file.
-    series : list of TiffPageSeries
+    series: list of TiffPageSeries
         TIFF pages with compatible shapes and types.
     micromanager_metadata: dict
         Extra MicroManager non-TIFF metadata in the file, if exists.
@@ -1215,27 +1215,27 @@ class TiffFile(object):
 
         Parameters
         ----------
-        arg : str or open file
+        arg: str or open file
             Name of file or open file object.
             The file objects are closed in TiffFile.close().
-        name : str
+        name: str
             Optional name of file in case 'arg' is a file handle.
-        offset : int
+        offset: int
             Optional start position of embedded file. By default this is
             the current file position.
-        size : int
+        size: int
             Optional size of embedded file. By default this is the number
             of bytes from the 'offset' to the end of the file.
-        multifile : bool
+        multifile: bool
             If True (default), series may include pages from multiple files.
             Currently applies to OME-TIFF only.
-        multifile_close : bool
+        multifile_close: bool
             If True (default), keep the handles of other files in multifile
             series closed. This is inefficient when few files refer to
             many pages. If False, the C runtime may run out of resources.
-        maxpages : int
+        maxpages: int
             Number of pages to read (default: no limit).
-        fastij : bool
+        fastij: bool
             If True (default), try to use only the metadata from the first page
             of ImageJ files. Significantly speeds up loading movies with
             thousands of pages.
@@ -1367,15 +1367,15 @@ class TiffFile(object):
 
         Parameters
         ----------
-        key : int, slice, or sequence of page indices
+        key: int, slice, or sequence of page indices
             Defines which pages to return as array.
-        series : int or TiffPageSeries
+        series: int or TiffPageSeries
             Defines which series of pages to return as array.
-        memmap : bool
+        memmap: bool
             If True, return an read-only array stored in a binary file on disk
             if possible. The TIFF file is used if possible, else a temporary
             file is created.
-        tempdir : str
+        tempdir: str
             The directory where the memory-mapped file will be created.
 
         """
@@ -1876,23 +1876,23 @@ class TiffPage(object):
 
     Attributes
     ----------
-    index : int
+    index: int
         Index of page in file.
-    dtype : str {TIFF_SAMPLE_DTYPES}
+    dtype: str {TIFF_SAMPLE_DTYPES}
         Data type of image, color-mapped if applicable.
-    shape : tuple
+    shape: tuple
         Dimensions of the image array in TIFF page,
         color-mapped and with extra samples if applicable.
-    axes : str
+    axes: str
         Axes label codes:
         'X' width, 'Y' height, 'S' sample, 'I' image series|page|plane,
         'Z' depth, 'C' color|em-wavelength|channel, 'E' ex-wavelength|lambda,
         'T' time, 'R' region|tile, 'A' angle, 'P' phase, 'H' lifetime,
         'L' exposure, 'V' event, 'Q' unknown, '_' missing
-    tags : TiffTags
+    tags: TiffTags
         Dictionary of tags in page.
         Tag values are also directly accessible as attributes.
-    color_map : numpy.ndarray
+    color_map: numpy.ndarray
         Color look up table, if exists.
     cz_lsm_scan_info: Record(dict)
         LSM scan info attributes, if exists.
@@ -2278,20 +2278,20 @@ class TiffPage(object):
 
         Parameters
         ----------
-        squeeze : bool
+        squeeze: bool
             If True, all length-1 dimensions (except X and Y) are
             squeezed out from result.
-        colormapped : bool
+        colormapped: bool
             If True, color mapping is applied for palette-indexed images.
-        rgbonly : bool
+        rgbonly: bool
             If True, return RGB(A) image without additional extra samples.
-        memmap : bool
+        memmap: bool
             If True, use numpy.memmap to read arrays from file if possible.
             For use on 64 bit systems and files with few huge contiguous data.
-        reopen : bool
+        reopen: bool
             If True and the parent file handle is closed, the file is
             temporarily re-opened (and closed if no exception occurs).
-        scale_mdgel : bool
+        scale_mdgel: bool
             If True, MD Gel data will be scaled according to the private
             metadata in the second TIFF page. The dtype will be float32.
         maxsize: int or None
@@ -2781,17 +2781,17 @@ class TiffTag(object):
 
     Attributes
     ----------
-    name : string
+    name: string
         Attribute name of tag.
-    code : int
+    code: int
         Decimal code of tag.
-    dtype : str
+    dtype: str
         Datatype of tag data. One of TIFF_DATA_TYPES.
-    count : int
+    count: int
         Number of values.
-    value : various types
+    value: various types
         Tag data as Python object.
-    value_offset : int
+    value_offset: int
         Location of value in file, if any.
 
     All attributes are read-only.
@@ -2923,15 +2923,15 @@ class TiffPageSeries(object):
 
     Attributes
     ----------
-    pages : list of TiffPage
+    pages: list of TiffPage
         Sequence of TiffPages in series.
-    dtype : numpy.dtype or str
+    dtype: numpy.dtype or str
         Data type of the image array in series.
-    shape : tuple
+    shape: tuple
         Dimensions of the image array in series.
-    axes : str
+    axes: str
         Labels of axes in shape. See TiffPage.axes.
-    offset : int or None
+    offset: int or None
         Position of image data in file if memory-mappable, else None.
 
     """
@@ -2955,7 +2955,7 @@ class TiffPageSeries(object):
 
         Parameters
         ----------
-        memmap : bool
+        memmap: bool
             If True, return an array stored in a binary file on disk
             if possible.
 
@@ -3020,11 +3020,11 @@ class TiffSequence(object):
 
     Attributes
     ----------
-    files : list
+    files: list
         List of file names.
-    shape : tuple
+    shape: tuple
         Shape of image sequence.
-    axes : str
+    axes: str
         Labels of axes in shape.
 
     Examples
@@ -3058,13 +3058,13 @@ class TiffSequence(object):
 
         Parameters
         ----------
-        files : str, or sequence of str
+        files: str, or sequence of str
             Glob pattern or sequence of file names.
             Binary streams are not supported.
-        imread : function or class
+        imread: function or class
             Image read function or class with asarray function returning numpy
             array from single file.
-        pattern : str
+        pattern: str
             Regular expression pattern that matches axes names and sequence
             indices in file names.
             By default this matches Olympus OIF and Leica TIFF series.
@@ -3266,13 +3266,13 @@ class FileHandle(object):
 
     Attributes
     ----------
-    name : str
+    name: str
         Name of the file.
-    path : str
+    path: str
         Absolute path to file.
-    size : int
+    size: int
         Size of file in bytes.
-    is_file : bool
+    is_file: bool
         If True, file has a filno and can be memory-mapped.
 
     All attributes are read-only.
@@ -3286,17 +3286,17 @@ class FileHandle(object):
 
         Parameters
         ----------
-        file : str, binary stream, or FileHandle
+        file: str, binary stream, or FileHandle
             File name or seekable binary stream, such as a open file
             or BytesIO.
-        mode : str
+        mode: str
             File open mode in case 'file' is a file name. Must be 'rb' or 'wb'.
-        name : str
+        name: str
             Optional name of file in case 'file' is a binary stream.
-        offset : int
+        offset: int
             Optional start position of embedded file. By default this is
             the current file position.
-        size : int
+        size: int
             Optional size of embedded file. By default this is the number
             of bytes from the 'offset' to the end of the file.
 
@@ -4091,7 +4091,7 @@ def decode_floats(data):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data: numpy.ndarray
         The image to be decoded. The dtype must be a floating point.
         The shape must include the number of contiguous samples per pixel
         even if 1.
@@ -4251,13 +4251,13 @@ def unpack_ints(data, dtype, itemsize, runlen=0):
 
     Parameters
     ----------
-    data : byte str
+    data: byte str
         Data to decompress.
-    dtype : numpy.dtype or str
+    dtype: numpy.dtype or str
         A numpy boolean or integer type.
-    itemsize : int
+    itemsize: int
         Number of bits per integer.
-    runlen : int
+    runlen: int
         Number of consecutive integers, after which to start at next byte.
 
     """
@@ -4316,19 +4316,19 @@ def unpack_rgb(data, dtype='<B', bitspersample=(5, 6, 5), rescale=True):
 
     Parameters
     ----------
-    data : byte str
+    data: byte str
         The data to be decoded. Samples in each pixel are stored consecutively.
         Pixels are aligned to 8, 16, or 32 bit boundaries.
-    dtype : numpy.dtype
+    dtype: numpy.dtype
         The sample data type. The byteorder applies also to the data stream.
-    bitspersample : tuple
+    bitspersample: tuple
         Number of bits for each sample in a pixel.
-    rescale : bool
+    rescale: bool
         Upscale samples to the number of bits in dtype.
 
     Returns
     -------
-    result : ndarray
+    result: ndarray
         Flattened array of unpacked samples of native dtype.
 
     Examples
@@ -4371,7 +4371,7 @@ def reverse_bitorder(data):
 
     Parameters
     ----------
-    data : byte string or ndarray
+    data: byte string or ndarray
         The data to be bit reversed. If byte string, a new bit-reversed byte
         string is returned. Numpy arrays are bit-reversed in-place.
 
@@ -4439,11 +4439,11 @@ def apply_colormap(image, colormap, contig=True):
 
     Parameters
     ----------
-    image : numpy.ndarray
+    image: numpy.ndarray
         Indexes into the colormap.
-    colormap : numpy.ndarray
+    colormap: numpy.ndarray
         RGB lookup table aka palette of shape (3, 2**bits_per_sample).
-    contig : bool
+    contig: bool
         If True, return a contiguous array.
 
     Examples
@@ -4466,10 +4466,10 @@ def reorient(image, orientation):
 
     Parameters
     ----------
-    image : numpy.ndarray
+    image: numpy.ndarray
         Non-squeezed output of asarray() functions.
         Axes -3 and -2 must be image length and width respectively.
-    orientation : int or str
+    orientation: int or str
         One of TIFF_ORIENTATIONS keys or values.
 
     """
@@ -5631,19 +5631,19 @@ def imshow(data, title=None, vmin=0, vmax=None, cmap=None,
 
     Parameters
     ----------
-    bitspersample : int or None
+    bitspersample: int or None
         Number of bits per channel in integer RGB images.
-    photometric : {'miniswhite', 'minisblack', 'rgb', or 'palette'}
+    photometric: {'miniswhite', 'minisblack', 'rgb', or 'palette'}
         The color space of the image data.
-    title : str
+    title: str
         Window and subplot title.
-    figure : matplotlib.figure.Figure (optional).
+    figure: matplotlib.figure.Figure (optional).
         Matplotlib to use for plotting.
-    subplot : int
+    subplot: int
         A matplotlib.pyplot.subplot axis.
-    maxdim : int
+    maxdim: int
         maximum image width and length.
-    kwargs : optional
+    kwargs: optional
         Arguments for matplotlib.pyplot.imshow.
 
     """

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -69,6 +69,29 @@ def _method_check(method, valid_methods, default_index=0):
     return method
 
 
+def try_spatial_image(obj, obj_name=None):
+    """
+    Tests whether given instance is a SpatialImage.
+
+    Parameters
+    ----------
+    obj: instance
+        instance to test
+    obj_name: str, optional
+        if given used as object name for TypeError printing
+    """
+    if obj_name is None:
+        obj_name = obj.__name__
+
+    err = "Input '{}' is not a SpatialImage instance."
+    try:
+        assert isinstance(obj, SpatialImage)
+    except AssertionError:
+        raise TypeError(err.format(obj_name))
+
+    return
+
+
 def _input_img_check(input_image, real=False):
     """
     Used to check `input_image` type and method units.
@@ -76,17 +99,14 @@ def _input_img_check(input_image, real=False):
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         tested input type
-    real : bool, optional
+    real: bool, optional
         indicate if the method works on real or voxel units
     """
     # TODO: use function name for better 'warnings'
     # - Check the `input_image` is indeed a `SpatialImage`
-    try:
-        assert isinstance(input_image, SpatialImage)
-    except AssertionError:
-        raise TypeError('Input image must be a SpatialImage instance!')
+    try_spatial_image(input_image)
 
     # - Check the isometry of the image when using voxel units:
     if not real and not input_image.is_isometric():
@@ -192,14 +212,14 @@ def min_percent_step(N, default_step=5):
     Compute the minimu step to apply when printing percentage of progress
     Parameters
     ----------
-    N : int
+    N: int
         number of element over which to increment
-    default_step : int
+    default_step: int
         default increment
 
     Returns
     -------
-    minimum_step : int
+    minimum_step: int
         the minimum step to use
     """
     return max(default_step, 100 / N)
@@ -211,13 +231,13 @@ def percent_progress(progress, n, N, step=None):
 
     Parameters
     ----------
-    progress : int
+    progress: int
         progress state
-    n : int
+    n: int
         iteration number
-    N : int
+    N: int
         max iteration number
-    step : int
+    step: int
         progress step to apply for printing
 
     Returns
@@ -244,11 +264,11 @@ def elapsed_time(start, stop=None, round_to=3):
 
     Parameters
     ----------
-    start : float
+    start: float
         start time
-    stop : float, optional
+    stop: float, optional
         stop time, if None, get it now
-    round : int, optional
+    round: int, optional
         number of decimals to returns
 
     Returns

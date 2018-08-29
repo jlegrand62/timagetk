@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -192,12 +192,13 @@ def linear_filtering_gradient_modulus(input_image):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-gradient-modulus'
@@ -210,12 +211,13 @@ def linear_filtering_gradient(input_image):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-gradient'
@@ -228,12 +230,13 @@ def linear_filtering_hessian(input_image):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-hessian'
@@ -246,12 +249,13 @@ def linear_filtering_laplacian(input_image):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-laplacian'
@@ -264,12 +268,13 @@ def linear_filtering_zero_crossings_hessian(input_image, **kwargs):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-zero-crossings-hessian'
     return linearfilter(input_image, param_str_2=params)
@@ -281,12 +286,13 @@ def linear_filtering_zero_crossings_laplacian(input_image, **kwargs):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-zero-crossings-laplacian'
@@ -299,12 +305,13 @@ def linear_filtering_gradient_hessian(input_image, **kwargs):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-gradient-hessian'
@@ -317,12 +324,13 @@ def linear_filtering_gradient_laplacian(input_image, **kwargs):
 
     Parameters
     ----------
-    :param *SpatialImage* input_image: input_image *SpatialImage*
+    input_image: ``SpatialImage``
+        input_image ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     _input_img_check(input_image)
     params = '-gradient-laplacian'

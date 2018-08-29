@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -12,7 +12,7 @@
 #       See accompanying file LICENSE.txt
 # ------------------------------------------------------------------------------
 
-# WARNING : currently, it seems that tests cannot be run in parallel.
+# WARNING: currently, it seems that tests cannot be run in parallel.
 # Need to check and fix it!
 
 

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -75,8 +75,8 @@ def labels_post_processing(input_image, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image: *SpatialImage*
-        input *SpatialImage*
+    input_image: ``SpatialImage``
+        input ``SpatialImage``
     method: str
         used method (example: 'labels_erosion')
 
@@ -93,9 +93,9 @@ def labels_post_processing(input_image, method=None, **kwargs):
         manually control the use of openalea 'plugin' functionality
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
 
     *WARNING*: If your images are not isometric, the morphological
      operation will not be the same in every directions!
@@ -145,7 +145,7 @@ def labels_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image: *SpatialImage*
+    input_image: ``SpatialImage``
         input labelled SpatialImage to erode
 
     **kwargs
@@ -156,9 +156,9 @@ def labels_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
         number of iteration of the morphological operation; default = 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-erosion'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -172,7 +172,7 @@ def labels_dilation(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input labelled SpatialImage to dilate
 
     **kwargs
@@ -183,9 +183,9 @@ def labels_dilation(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
         number of iteration of the morphological operation; default = 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-dilation'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -199,8 +199,8 @@ def labels_opening(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image: *SpatialImage*
-        input *SpatialImage*
+    input_image: ``SpatialImage``
+        input ``SpatialImage``
 
     **kwargs
     ------
@@ -210,9 +210,9 @@ def labels_opening(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
         number of iteration of the morphological operation; default = 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-opening'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -226,8 +226,8 @@ def labels_closing(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image: *SpatialImage*
-        input *SpatialImage*
+    input_image: ``SpatialImage``
+        input ``SpatialImage``
 
     **kwargs
     ------
@@ -237,9 +237,9 @@ def labels_closing(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
         number of iteration of the morphological operation; default = 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-closing'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)

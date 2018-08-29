@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -39,11 +39,11 @@ def bal_matrix_c_ptr(c_or_bal_matrix):
 
     Parameters
     ----------
-    c_or_bal_matrix : instance of BAL_MATRIX
+    c_or_bal_matrix: instance of BAL_MATRIX
 
     Returns
-    ----------
-    output : c_ptr, pointer
+    -------
+    output: c_ptr, pointer
 
     Example
     -------
@@ -65,7 +65,7 @@ def free_bal_matrix(c_or_bal_matrix):
 
     Parameters
     ----------
-    c_or_bal_matrix : instance of BAL_MATRIX
+    c_or_bal_matrix: instance of BAL_MATRIX
 
     Example
     -------
@@ -83,11 +83,11 @@ def np_array_to_bal_matrix_fields(np_array):
 
     Parameters
     ----------
-    np_array : numpy array
+    np_array: numpy array
 
     Returns
-    ----------
-    output : BAL_MATRIX fields, type dict
+    -------
+    output: BAL_MATRIX fields, type dict
 
     Example
     -------
@@ -104,7 +104,7 @@ def init_c_bal_matrix(c_bal_matrix, **kwargs):
 
     Parameters
     ----------
-    c_bal_matrix : c_bal_matrix
+    c_bal_matrix: c_bal_matrix
     kwargs: type dict
         - l: number of lines
         - c: number of columns
@@ -122,8 +122,8 @@ def allocate_c_bal_matrix(c_bal_matrix, np_array, **kwargs):
 
     Parameters
     ----------
-    c_bal_matrix : c_bal_matrix
-    np_array : numpy array
+    c_bal_matrix: c_bal_matrix
+    np_array: numpy array
 
     Example
     -------
@@ -154,7 +154,7 @@ def bal_matrix_to_np_array(c_or_bal_matrix, **kwargs):
 
     Parameters
     ----------
-    c_or_bal_matrix : c_or_bal_matrix
+    c_or_bal_matrix: c_or_bal_matrix
     """
     m = bal_matrix_c_struct(c_or_bal_matrix)
     l = m.l

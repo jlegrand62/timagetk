@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -31,15 +31,16 @@ __all__ = ['fusion']
 def fusion(list_images, iterations=None, man_trsf_list=None,
            mean_imgs_prefix="", vf_params="", time=False):
     """
-    Multiview reconstruction (registration)
+    Multiview reconstruction (registration).
 
     Parameters
     ----------
-    :param list list_images: list of input ``SpatialImage``
-
-    :param int iterations: number of iterations, optional. Default: 5
-
-    :param list man_trsf_list: list of input ``BalTransformation``, optional
+    list_images: list
+        list of input ``SpatialImage``
+    iterations: int, optional
+        number of iterations (default=5)
+    man_trsf_list: list
+        list of input ``BalTransformation``, optional
         Use it to define initial rigid or affine trsf matrix list obtained
          by manually registering all images (except the first) on the first one.
         They will be used as `init_result_transformation` for blockmaching
@@ -49,7 +50,7 @@ def fusion(list_images, iterations=None, man_trsf_list=None,
           iterations of rigid step.
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
 

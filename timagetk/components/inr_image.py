@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #       Copyright 2016 INRIA
 #
@@ -35,15 +35,16 @@ POSS_EXT = ['.inr', '.inr.gz', '.inr.zip']
 def read_inr_image(inr_file):
     """
     Read an '.inr' file (2D or 3D images)
-    The supported formats are : ['.inr', '.inr.gz', '.inr.zip']
+    The supported formats are: ['.inr', '.inr.gz', '.inr.zip']
 
     Parameters
     ----------
-    :param str inr_file: path to the image
+    inr_file: str
+        path to the image
 
     Returns
-    ----------
-    :returns: out_sp_img (*SpatialImage*) -- image and metadata (such as voxelsize, extent, type, etc.)
+    -------
+    :returns: out_sp_img (``SpatialImage``) -- image and metadata (such as voxelsize, extent, type, etc.)
 
     Example
     -------
@@ -146,12 +147,14 @@ def read_inr_image(inr_file):
 def write_inr_image(inr_file, sp_img):
     """
     Write an '.inr' file (2D or 3D images).
-    The supported formats are : ['.inr', '.inr.gz', '.inr.zip']
+    The supported formats are: ['.inr', '.inr.gz', '.inr.zip']
 
     Parameters
     ----------
-    :param str inr_file : path to the file.
-    :param SpatialImage sp_img: *SpatialImage* instance
+    inr_file: str
+        path to the file.
+    sp_img: SpatialImage
+        ``SpatialImage`` instance
 
     Example
     -------

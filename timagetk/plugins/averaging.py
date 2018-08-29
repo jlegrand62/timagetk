@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -43,12 +43,14 @@ def averaging(list_images, method=None, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
-    :param str method: used method (example: 'mean_averaging')
+    method: used method (example: str
+        'mean_averaging')
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
 
@@ -94,10 +96,11 @@ def mean_averaging(list_images, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     sp_img = mean_images(list_images, param_str_2='-mean')
@@ -110,10 +113,11 @@ def robust_mean_averaging(list_images, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     sp_img = mean_images(list_images, param_str_2='-robust-mean')
@@ -126,10 +130,11 @@ def median_averaging(list_images, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     sp_img = mean_images(list_images, param_str_2='-median')
@@ -142,10 +147,11 @@ def min_averaging(list_images, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     sp_img = mean_images(list_images, param_str_2='-minimum')
@@ -158,10 +164,11 @@ def max_averaging(list_images, **kwargs):
 
     Parameters
     ----------
-    :param list list_images: list of *SpatialImage*
+    list_images: list
+        list of ``SpatialImage``
 
     Returns
-    ----------
+    -------
     SpatialImage: image and metadata
     """
     sp_img = mean_images(list_images, param_str_2='-maximum')

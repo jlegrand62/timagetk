@@ -26,11 +26,11 @@ from timagetk.components.slices import real_indices
 __all__ = ['LabelledImage']
 
 
-# ##############################################################################
+# ------------------------------------------------------------------------------
 #
 # Morphology functions, array based (not to use with VT algorithms):
 #
-# ##############################################################################
+# ------------------------------------------------------------------------------
 def connectivity_4():
     """
     Create a 2D structuring element (array) of radius 1 with a 4-neighborhood.
@@ -137,11 +137,11 @@ def default_structuring_element3d():
     return connectivity_26()
 
 
-# ##############################################################################
+# ------------------------------------------------------------------------------
 #
 # LABEL based functions:
 #
-# ##############################################################################
+# ------------------------------------------------------------------------------
 def label_inner_wall(labelled_img, label_id, struct=None, connectivity_order=1):
     """
     Detect inner-wall position of a given 'label_id' within a segmented image
@@ -149,13 +149,13 @@ def label_inner_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Parameters
     ----------
-    labelled_img : np.array|LabelledImage
+    labelled_img: np.array|LabelledImage
         a labelled image containing 'label_id'
-    label_id : int
+    label_id: int
         label to use for outer-wall detection
-    struct : np.array, optional
+    struct: np.array, optional
         a binary structure to use for erosion
-    connectivity_order : int, optional
+    connectivity_order: int, optional
         connectivity order determines which elements of the output array belong to the
         structure, i.e. are considered as neighbors of the central element.
         Elements up to a squared distance of connectivity from the center are
@@ -165,7 +165,7 @@ def label_inner_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Returns
     -------
-    np.array|LabelledImage : a labelled array with only the inner-wall position
+    np.array|LabelledImage: a labelled array with only the inner-wall position
     as non-null value
     """
     if struct is None:
@@ -188,13 +188,13 @@ def label_outer_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Parameters
     ----------
-    labelled_img : np.array|LabelledImage
+    labelled_img: np.array|LabelledImage
         a labelled image containing 'label_id'
-    label_id : int
+    label_id: int
         label to use for outer-wall detection
-    struct : np.array, optional
+    struct: np.array, optional
         a binary structure to use for dilation
-    connectivity_order : int, optional
+    connectivity_order: int, optional
         connectivity order determines which elements of the output array belong to the
         structure, i.e. are considered as neighbors of the central element.
         Elements up to a squared distance of connectivity from the center are
@@ -204,7 +204,7 @@ def label_outer_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Returns
     -------
-    np.array|LabelledImage : a labelled array with only the outer-wall position
+    np.array|LabelledImage: a labelled array with only the outer-wall position
     as non-null value
     """
     if struct is None:
@@ -226,14 +226,14 @@ def neighbors_from_image(labelled_img, label_id):
 
     Parameters
     ----------
-    labelled_img : np.array|LabelledImage
+    labelled_img: np.array|LabelledImage
         a labelled image containing 'label_id'
-    label_id : int|list(int)
+    label_id: int|list(int)
         label to use for neighbors detection
 
     Returns
     -------
-    list : neighbors label of 'label_id'
+    list: neighbors label of 'label_id'
     """
     if isinstance(label_id, int):
         # Get outer-wall position & return unique list of labels:
@@ -247,11 +247,11 @@ def neighbors_from_image(labelled_img, label_id):
                 type(label_id)))
 
 
-# ##############################################################################
+# ------------------------------------------------------------------------------
 #
 # WHOLE LABELLED IMAGE functions:
 #
-# ##############################################################################
+# ------------------------------------------------------------------------------
 def image_with_labels(image, labels, boundingbox, erase_value=0):
     """
     Create a new image containing only the given labels.
@@ -261,16 +261,16 @@ def image_with_labels(image, labels, boundingbox, erase_value=0):
     ----------
     image: SpatialImage
         labelled spatial image to use as template for labels extraction
-    labels : list
+    labels: list
         list of labels to keep in the image
     boundingbox: dict
         dictionary of labels' boundingbox
-    erase_value : int, optional
+    erase_value: int, optional
         value use to use in place of discarded labels
 
     Returns
     -------
-    template_im : SpatialImage
+    template_im: SpatialImage
         the image containing only the given 'labels'
     """
     print "Initialising empty template image..."
@@ -316,16 +316,16 @@ def image_without_labels(image, labels, boundingbox, erase_value=0):
     ----------
     image: SpatialImage
         labelled spatial image to use as template for labels deletion
-    labels : list
+    labels: list
         list of labels to remove from the image
     boundingbox: dict
         dictionary of labels' boundingbox
-    erase_value : int, optional
+    erase_value: int, optional
         value use to use in place of discarded labels
 
     Returns
     -------
-    template_im : SpatialImage
+    template_im: SpatialImage
         an image without the given 'labels'
     """
     print "Initialising template image from self.image..."
@@ -585,7 +585,7 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        label : int
+        label: int
             label to check
         """
         return label in self.get_array()
@@ -596,16 +596,16 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : None|int|list(int)|str, optional
+        labels: None|int|list(int)|str, optional
             if None (default) returns all labels.
             if an integer, make sure it is in self.labels()
             if a list of integers, make sure they are in self.labels()
             if a string, should be in LABEL_STR to get corresponding
             list of cells (case insensitive)
-        real : bool, optional
+        real: bool, optional
             if False (default), return the bounding-boxes in voxel units, else
             in real units.
-        verbose : bool, optional
+        verbose: bool, optional
             control verbosity of the function
 
         Examples
@@ -674,12 +674,12 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        label : int
+        label: int
             label for which to extract the neighbors
 
         Returns
         -------
-        crop_im : np.array
+        crop_im: np.array
             labelled array cropped around the label bounding box
         """
         # - Get the slice for given label:
@@ -698,12 +698,12 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        label : int
+        label: int
             the label for which to compute the neighborhood
 
         Returns
         -------
-        neighbors : list
+        neighbors: list
             list of neighbors for given label
         """
         # - Compute the neighbors and update the unfiltered neighbors dict:
@@ -719,12 +719,12 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        label : int
+        label: int
             the label for which to compute the neighborhood
 
         Returns
         -------
-        neighborhood : dict
+        neighborhood: dict
             neighborhood dictionary for given list of labels
         """
         verbose = kwargs.get('verbose', False)
@@ -761,13 +761,13 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : None|int|list(int)|str, optional
+        labels: None|int|list(int)|str, optional
             if None (default) returns all labels.
             if an integer, make sure it is in self.labels()
             if a list of integers, make sure they are in self.labels()
             if a string, should be in LABEL_STR to get corresponding
             list of cells (case insensitive)
-        verbose : bool, optional
+        verbose: bool, optional
             control verbosity
 
         Examples
@@ -836,18 +836,18 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : int|list(int)
+        labels: int|list(int)
             if None (default) returns all labels.
             if an integer, make sure it is in self.labels()
             if a list of integers, make sure they are in self.labels()
             if a string, should be in LABEL_STR to get corresponding
             list of cells (case insensitive)
-        keep_background : bool, optional
+        keep_background: bool, optional
             indicate if background label should be kept in the returned image
 
         Returns
         -------
-        template_im : SpatialImage
+        template_im: SpatialImage
             labelled image with 'labels' only
         """
         try:
@@ -896,19 +896,19 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : None|int|list|str
+        labels: None|int|list|str
             label or list of labels to keep in the image.
             if None, neighbors for all labels found in self.image will
             be returned.
             strings might be processed trough 'self.labels_checker()'
-        keep_background : bool, optional
+        keep_background: bool, optional
             indicate if background label should be kept in the returned image
-        no_label_value : int
+        no_label_value: int
             value use to use in place of discarded labels
 
         Returns
         -------
-        template_im : SpatialImage
+        template_im: SpatialImage
             labelled image with 'labels' only
         """
         all_labels = self.labels()
@@ -923,12 +923,12 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : list
+        labels: list
             list of labels to fuse
-        value : str, optional
+        value: str, optional
             value used to replace the given list of labels, by default use the
             min value of the `labels` list. Can also be the max value.
-        verbose : bool, optional
+        verbose: bool, optional
             control verbosity
 
         Returns
@@ -998,10 +998,10 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels : list|str
+        labels: list|str
             list of labels to remove from the image
             strings might be processed trough 'self.labels_checker()'
-        verbose : bool, optional
+        verbose: bool, optional
             control verbosity
 
         Returns
@@ -1075,16 +1075,16 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        mapping : dict
+        mapping: dict
             a dictionary indicating the original label as keys and their new
             labels as values
-        clear_unmapped : bool, optional
+        clear_unmapped: bool, optional
             if True (default False), only the mapped labels are kept in the
             returned image
 
         **kwargs
         --------
-        verbose : bool, optional
+        verbose: bool, optional
             control code verbosity; default = False
 
         Returns
@@ -1280,11 +1280,11 @@ class AbstractEpidermisLabelledImage(LabelledImage2D, LabelledImage3D):
 
         Parameters
         ----------
-        n_voxel_layer : int
+        n_voxel_layer: int
             number of layer of voxel from the background to get
         connectivity: int
             connectivity or neighborhood of the structuring element
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1317,7 +1317,7 @@ class AbstractEpidermisLabelledImage(LabelledImage2D, LabelledImage3D):
         ----------
         connectivity: int
             connectivity or neighborhood of the structuring element
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1406,11 +1406,11 @@ class EpidermisLabelledImage2D(AbstractEpidermisLabelledImage):
 
         Parameters
         ----------
-        n_voxel_layer : int
+        n_voxel_layer: int
             number of layer of voxel from the background to get
         connectivity: int
             connectivity of the 2D structuring element, default 4
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1435,7 +1435,7 @@ class EpidermisLabelledImage2D(AbstractEpidermisLabelledImage):
         ----------
         connectivity: int, optional
             connectivity of the 2D structuring element, default 4
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1478,11 +1478,11 @@ class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
 
         Parameters
         ----------
-        n_voxel_layer : int
+        n_voxel_layer: int
             number of layer of voxel from the background to get
         connectivity: int
             connectivity of the 3D structuring element, default 18
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1507,7 +1507,7 @@ class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
         ----------
         connectivity: int, optional
             connectivity of the 3D structuring element, default 18
-        keep_background : bool, optional
+        keep_background: bool, optional
             if true the LabelledImage returned contains the background in addition
             of the first layer of labelled voxels
 
@@ -1523,64 +1523,51 @@ class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
                                                                 **kwargs)
 
 
-def LabelledImage(image, **kwargs):
-    """
-    Constructor.
-    """
-    # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
-    if isinstance(image, str):
-        image = imread(image)
-    elif isinstance(image, np.ndarray):
-        dtype = image.dtype
-        image = SpatialImage(image, dtype=dtype)
-    else:
-        try:
-            assert isinstance(image, SpatialImage)
-        except AssertionError:
-            raise TypeError(
-                "Input image should be file path, a nupy array or a SpatialImage!")
-
-    background = kwargs.get('background', None)
-    # - If declared value for 'background', return the class Epidermis
-    if background is not None:
-        if image.is2D():
-            return EpidermisLabelledImage2D(image, **kwargs)
-        else:
-            return EpidermisLabelledImage3D(image, **kwargs)
-    else:
-        if image.is2D():
-            return LabelledImage2D(image, **kwargs)
-        else:
-            return LabelledImage3D(image, **kwargs)
-
-# class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
-#                     LabelledImage2D, LabelledImage3D):
+# def LabelledImage(image, **kwargs):
+#     """
+#     Constructor.
+#     """
+#     # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
+#     if isinstance(image, str):
+#         image = imread(image)
+#     elif isinstance(image, np.ndarray):
+#         dtype = image.dtype
+#         image = SpatialImage(image, dtype=dtype)
+#     else:
+#         try:
+#             assert isinstance(image, SpatialImage)
+#         except AssertionError:
+#             raise TypeError(
+#                 "Input image should be file path, a nupy array or a SpatialImage!")
 #
-#     def __init__(self, image, **kwargs):
-#         """
-#         """
-#         # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
-#         if isinstance(image, str):
-#             image = imread(image)
-#         elif isinstance(image, np.ndarray):
-#             dtype = image.dtype
-#             image = SpatialImage(image, dtype=dtype)
+#     background = kwargs.get('background', None)
+#     # - If declared value for 'background', return the class Epidermis
+#     if background is not None:
+#         if image.is2D():
+#             return EpidermisLabelledImage2D(image, **kwargs)
 #         else:
-#             try:
-#                 assert isinstance(image, SpatialImage)
-#             except AssertionError:
-#                 raise TypeError(
-#                     "Input image should be file path, a nupy array or a SpatialImage!")
-#
-#         background = kwargs.get('background', None)
-#         # - If declared value for 'background', return the class Epidermis
-#         if background is not None:
-#             if image.is2D():
-#                 EpidermisLabelledImage2D.__init__(self, image, **kwargs)
-#             else:
-#                 EpidermisLabelledImage3D.__init__(self, image, **kwargs)
+#             return EpidermisLabelledImage3D(image, **kwargs)
+#     else:
+#         if image.is2D():
+#             return LabelledImage2D(image, **kwargs)
 #         else:
-#             if image.is2D():
-#                 LabelledImage2D.__init__(self, image, **kwargs)
-#             else:
-#                 LabelledImage3D.__init__(self, image, **kwargs)
+#             return LabelledImage3D(image, **kwargs)
+
+class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
+                    LabelledImage2D, LabelledImage3D):
+
+    def __init__(self, image, **kwargs):
+        """
+        """
+        background = kwargs.get('background', None)
+        # - If declared value for 'background', return the class Epidermis
+        if background is not None:
+            if image.is2D():
+                EpidermisLabelledImage2D.__init__(self, image, **kwargs)
+            else:
+                EpidermisLabelledImage3D.__init__(self, image, **kwargs)
+        else:
+            if image.is2D():
+                LabelledImage2D.__init__(self, image, **kwargs)
+            else:
+                LabelledImage3D.__init__(self, image, **kwargs)

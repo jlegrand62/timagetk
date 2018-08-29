@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -81,15 +81,16 @@ def cell_filtering(input_image, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    :param str method: used method (example: 'erosion')
+    method: used method (example: str
+        'erosion')
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
 
     Example
     ----------
@@ -159,19 +160,19 @@ def cell_filtering_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-erosion'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -185,19 +186,19 @@ def cell_filtering_dilation(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-dilation'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -211,19 +212,19 @@ def cell_filtering_opening(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-opening'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -237,19 +238,19 @@ def cell_filtering_closing(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-closing'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -264,19 +265,19 @@ def cell_filtering_hat_transform(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-closinghat'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -290,19 +291,19 @@ def cell_filtering_inverse_hat_transform(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-openinghat'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -316,19 +317,19 @@ def cell_filtering_gradient(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-gradient'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -342,19 +343,19 @@ def cell_filtering_contrast(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
 
-    radius : int
-         radius to use for structuring element, default is 1
+    radius: int
+valueradius to use for structuring element, default is 1
 
-    iterations : int
-         number of iterations to performs with structuring element, default is 1
+    iterations: int
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-contrast'
     params += _cellfilter_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -368,14 +369,14 @@ def cell_filtering_oc_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
 
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """
@@ -399,14 +400,14 @@ def cell_filtering_co_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
 
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """
@@ -430,13 +431,13 @@ def cell_filtering_coc_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """
@@ -461,14 +462,14 @@ def cell_filtering_oco_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
 
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -67,28 +67,28 @@ def registration(floating_img, reference_img, method=None, **kwargs):
 
     Parameters
     ----------
-    floating_img : SpatialImage
+    floating_img: SpatialImage
         floating SpatialImage, ie. image to register
-    reference_img : SpatialImage
-        reference *SpatialImage* for registration
-    method : str, optional
+    reference_img: SpatialImage
+        reference ``SpatialImage`` for registration
+    method: str, optional
         used method, eg. 'rigid_registration' (default)
 
     **kwargs
     ------
-    pyramid_lowest_level : int, optional
+    pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
-    pyramid_highest_level : int, optional
+    pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin : bool, optional
+    try_plugin: bool, optional
         manually control the use of openalea.core 'plugin' functionality, avoid
         it by default (ie. try_plugin=False)
 
     Returns
-    ----------
-    trsf_out : BalTransformation
+    -------
+    trsf_out: BalTransformation
         computed transformation
-    res_image : SpatialImage
+    res_image: SpatialImage
         deformed image and metadata
 
     Example
@@ -163,33 +163,33 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
 
     Parameters
     ----------
-    floating_img : SpatialImage
+    floating_img: SpatialImage
         floating SpatialImage, ie. image to register
-    reference_img : SpatialImage
-        reference *SpatialImage* for registration
-    init_trsf : BalTransformation, optional
+    reference_img: SpatialImage
+        reference ``SpatialImage`` for registration
+    init_trsf: BalTransformation, optional
         if provided (default None) the trsf will be used to initialize
         blockmatching registration and the returned trsf will contain this trsf
-    left_trsf : BalTransformation, optional
+    left_trsf: BalTransformation, optional
         if provided (default None) the trsf will be used to initialize
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
     ------
-    pyramid_lowest_level : int, optional
+    pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
-    pyramid_highest_level : int, optional
+    pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin : bool, optional
+    try_plugin: bool, optional
         manually control the use of openalea 'plugin' functionality, use
         it by default (True)
 
     Returns
     -------
-    trsf_rig : BalTransformation
-        estimated *BalTransformation* by registration process
-    res_rig : SpatialImage
-        interpolated *SpatialImage* after registration
+    trsf_rig: BalTransformation
+        estimated ``BalTransformation`` by registration process
+    res_rig: SpatialImage
+        interpolated ``SpatialImage`` after registration
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
@@ -236,33 +236,33 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
 
     Parameters
     ----------
-    floating_img : SpatialImage
+    floating_img: SpatialImage
         floating SpatialImage, ie. image to register
-    reference_img : SpatialImage
-        reference *SpatialImage* for registration
-    init_trsf : BalTransformation, optional
+    reference_img: SpatialImage
+        reference ``SpatialImage`` for registration
+    init_trsf: BalTransformation, optional
         if provided (default None) the trsf matrix will be used to initialize
         blockmatching registration and the returned trsf will contain this trsf
-    left_trsf : BalTransformation, optional
+    left_trsf: BalTransformation, optional
         if provided (default None) the trsf matrix will be used to initialize
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
     ------
-    pyramid_lowest_level : int, optional
+    pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
-    pyramid_highest_level : int, optional
+    pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin : bool, optional
+    try_plugin: bool, optional
         manually control the use of openalea 'plugin' functionality, use
         it by default (True)
 
     Returns
     -------
-    trsf_aff : BalTransformation
-        estimated *BalTransformation* by registration process
-    res_aff : SpatialImage
-        interpolated *SpatialImage* after registration
+    trsf_aff: BalTransformation
+        estimated ``BalTransformation`` by registration process
+    res_aff: SpatialImage
+        interpolated ``SpatialImage`` after registration
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
@@ -319,33 +319,33 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
 
     Parameters
     ----------
-    floating_img : SpatialImage
+    floating_img: SpatialImage
         floating SpatialImage, ie. image to register
-    reference_img : SpatialImage
-        reference *SpatialImage* for registration
-    init_trsf : BalTransformation, optional
+    reference_img: SpatialImage
+        reference ``SpatialImage`` for registration
+    init_trsf: BalTransformation, optional
         if provided (default None) the trsf matrix will be used to initialize
         blockmatching registration and the returned trsf will contain this trsf
-    left_trsf : BalTransformation, optional
+    left_trsf: BalTransformation, optional
         if provided (default None) the trsf matrix will be used to initialize
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
     ------
-    pyramid_lowest_level : int, optional
+    pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
-    pyramid_highest_level : int, optional
+    pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin : bool, optional
+    try_plugin: bool, optional
         manually control the use of openalea 'plugin' functionality, use
         it by default (True)
 
     Returns
     -------
-    trsf_def : BalTransformation
-        estimated *BalTransformation* by registration process
-    res_def : SpatialImage
-        interpolated *SpatialImage* after registration
+    trsf_def: BalTransformation
+        estimated ``BalTransformation`` by registration process
+    res_def: SpatialImage
+        interpolated ``SpatialImage`` after registration
     """
     param_str_2 = _registration_kwargs(**kwargs)
 

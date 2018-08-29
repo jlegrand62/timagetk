@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -52,11 +52,11 @@ def bal_trsf_c_ptr(c_or_bal_trsf):
 
     Parameters
     ----------
-    c_or_bal_trsf : instance of BAL_TRSF
+    c_or_bal_trsf: instance of BAL_TRSF
 
     Returns
-    ----------
-    output : pointer
+    -------
+    output: pointer
 
     Example
     -------
@@ -84,7 +84,7 @@ def free_bal_trsf(c_or_bal_trsf):
 
     Parameters
     ----------
-    c_or_bal_trsf : instance of BAL_TRSF
+    c_or_bal_trsf: instance of BAL_TRSF
 
     Example
     -------

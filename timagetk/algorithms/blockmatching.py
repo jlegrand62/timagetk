@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -10,23 +10,27 @@
 #           Gregoire Malandain <gregoire.malandain@inria.fr>
 #
 #       See accompanying file LICENSE.txt
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#--- Aug. 2016
+# --- Aug. 2016
 from ctypes import pointer
 import numpy as np
+
 try:
     from timagetk.wrapping.clib import add_doc, libblockmatching
     from timagetk.wrapping.balImage import BAL_IMAGE
     from timagetk.wrapping.bal_image import BalImage, init_c_bal_image
-    from timagetk.wrapping.bal_image import allocate_c_bal_image, spatial_image_to_bal_image_fields
+    from timagetk.wrapping.bal_image import allocate_c_bal_image, \
+        spatial_image_to_bal_image_fields
     from timagetk.wrapping.bal_trsf import BalTransformation
     from timagetk.components import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
 __all__ = ['BLOCKMATCHING_DEFAULT', 'blockmatching']
 BLOCKMATCHING_DEFAULT = '-trsf-type rigid'
+
 
 # previous API - FRED
 # Three plugins (rigid, affine and deformable registration) were implemented
@@ -40,35 +44,37 @@ BLOCKMATCHING_DEFAULT = '-trsf-type rigid'
 
 def blockmatching(floating_image, reference_image,
                   init_result_transformation=None, left_transformation=None,
-                  param_str_1=BLOCKMATCHING_DEFAULT, param_str_2=None, dtype=None):
+                  param_str_1=BLOCKMATCHING_DEFAULT, param_str_2=None,
+                  dtype=None):
     """
-    Registration algorithm. Registers a floating_image onto a reference_image.
+    Blockmatching registration algorithm.
+    Registers a floating_image onto a reference_image.
 
     Parameters
     ----------
-    :param *SpatialImage* floating_image: *SpatialImage*, floating image
-
-    :param *SpatialImage* reference_image: *SpatialImage*, reference image
-
-    :param *BalTransformation* init_result_transformation: optional, BalTransformation init transformation.
-                By default init_result_transformation is None
-                If given, init_result_transformation is modified as result
-
-    :param *BalTransformation* left_transformation: optional, BalTransformation left transformation
-                By default left_transformation is None
-
-    :param str param_str1: by default a rigid registration is computed and
-                            param_str_1=BLOCKMATCHING_DEFAULT='-trsf-type rigid'
-
-    :param str param_str_2: optional, type string
-
-    :param *np.dtype* dtype: optional, output image type. By default, the output type is equal to the input type.
+    floating_image: ``SpatialImage``
+        image to register
+    reference_image: ``SpatialImage``
+        reference image to use for registration of floating_image
+    init_result_transformation: BalTransformation, optional
+        if given (default=None) it is used to initialise the registration and
+        the returned transformation will contain it (composition)
+    left_transformation: BalTransformation, optional
+        if given (default=None) it is used to initialise the registration but
+        the returned transformation will NOT contain it (no composition)
+    param_str1: str, optional
+        string of parameters used by blockmatching API (default='-trsf-type rigid')
+    param_str_2: str, optional
+        string of EXTRA parameters used by blockmatching API (default=None)
+    dtype: np.dtype, optional
+        output image type, by default is equal to the input type.
 
     Returns
-    ----------
-    :return: ``BalTransformation`` transformation -- trsf_out
-
-    :return: ``SpatialImage`` instance -- res_img, image and metadata
+    -------
+    trsf_out: ``BalTransformation``
+        transformation matrix
+    res_img: ``SpatialImage`
+        registered image and metadata
 
     Example
     -------
@@ -84,16 +90,9 @@ def blockmatching(floating_image, reference_image,
                                           init_result_transformation=trsf_rig,
                                           param_str_2=param_str_2) # deformable registration
     """
-    try:
-        assert isinstance(floating_image, SpatialImage)
-    except AssertionError:
-        raise TypeError(
-            "Input 'floating_image' must be a SpatialImage instance")
-    try:
-        assert isinstance(reference_image, SpatialImage)
-    except AssertionError:
-        raise TypeError(
-            "Input 'reference_image' must be a SpatialImage instance")
+    # - Check if both input images are `SpatialImage`:
+    try_spatial_image(floating_image)
+    try_spatial_image(reference_image)
 
     # - Initialise BalImage:
     bal_floating_image = BalImage(floating_image)
@@ -102,10 +101,11 @@ def blockmatching(floating_image, reference_image,
     kwargs = spatial_image_to_bal_image_fields(reference_image)
     if dtype:
         kwargs['np_type'] = dtype
-    # - Initialise result image:
+    #  - Initialise result image:
     c_img_res = BAL_IMAGE()
     init_c_bal_image(c_img_res, **kwargs)
-    allocate_c_bal_image(c_img_res, np.ndarray(kwargs['shape'], kwargs['np_type']))
+    allocate_c_bal_image(c_img_res,
+                         np.ndarray(kwargs['shape'], kwargs['np_type']))
     img_res = BalImage(c_bal_image=c_img_res)
 
     # --- old API FRED, see plugins
@@ -128,10 +128,10 @@ def blockmatching(floating_image, reference_image,
         trsf_out = BalTransformation(c_bal_trsf=trsf_out_ptr.contents)
     # - Transform result BalImage to SpatialImage:
     sp_img = img_res.to_spatial_image()
-    # - Free memory:
+    #  - Free memory:
     bal_floating_image.free(), bal_reference_image.free(), img_res.free()
 
     return trsf_out, sp_img
 
-add_doc(blockmatching, libblockmatching.API_Help_blockmatching)
 
+add_doc(blockmatching, libblockmatching.API_Help_blockmatching)

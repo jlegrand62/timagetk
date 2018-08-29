@@ -42,6 +42,6 @@ print('')
 sp_label = 137
 print('Retrieve information for the label :'), sp_label
 print('')
-print('Label : '), str(sp_label), feature_space_list[0][sp_label]
+print('Label: '), str(sp_label), feature_space_list[0][sp_label]
 print('')
-print('Label : '), str(sp_label), feature_space_list[1][sp_label]
+print('Label: '), str(sp_label), feature_space_list[1][sp_label]

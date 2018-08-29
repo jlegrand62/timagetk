@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -126,10 +126,11 @@ class VT_Image(object):
 
         Parameters
         ----------
-        :param *SpatialImage* sp_img: SpatialImage instance --- image and metadata
+        sp_img: ``SpatialImage``
+            SpatialImage instance --- image and metadata
         """
         if not isinstance(sp_img, SpatialImage):
-            print('Warning : sp_img is not a SpatialImage instance')
+            print('Warning: sp_img is not a SpatialImage instance')
             ndim = sp_img.ndim
             sp_img = SpatialImage(sp_img, voxelsize=[1.] * ndim,
                                   origin=[0.] * ndim)

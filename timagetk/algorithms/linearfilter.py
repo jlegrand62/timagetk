@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -17,6 +17,7 @@ try:
     from timagetk.wrapping.clib import libvtexec, add_doc, return_value
     from timagetk.wrapping.vt_image import vt_image, new_vt_image
     from timagetk.components import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
@@ -31,17 +32,19 @@ def linearfilter(image, param_str_1=LINEARFILTER_DEFAULT, param_str_2=None,
 
     Parameters
     ----------
-    :param *SpatialImage* image: *SpatialImage*, input image
-
-    :param str param_str_1: LINEARFILTER_DEFAULT, default is a gaussian filter with an unitary sigma
-
-    :param str param_str_2: optional, optional parameters
-
-    :param *np.dtype* dtype: optional, output image type. By default, the output type is equal to the input type.
+    image: ``SpatialImage``
+        ``SpatialImage``, input image
+    param_str_1: str
+        LINEARFILTER_DEFAULT, default is a gaussian filter with an unitary sigma
+    param_str_2: str
+        optional, optional parameters
+    dtype: *np.dtype*, optional,
+        output image type. By default, the output type is equal to the input type.
 
     Returns
-    ----------
-    :return: ``SpatialImage`` instance -- output image and metadata
+    -------
+    ``SpatialImage``
+        output image and metadata
 
     Example
     -------
@@ -54,10 +57,8 @@ def linearfilter(image, param_str_1=LINEARFILTER_DEFAULT, param_str_2=None,
     >>> param_str_2 = '-x 0 -y 0 -z 0 -sigma 2.0'
     >>> output_image = linearfilter(input_image, param_str_2=param_str_2)
     """
-    try:
-        assert isinstance(image, SpatialImage)
-    except:
-        raise TypeError('Input image must be a SpatialImage')
+    # - Check if input image is indeed a `SpatialImage`:
+    try_spatial_image(image)
 
     if dtype is None:
         dtype = image.dtype

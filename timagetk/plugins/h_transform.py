@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -60,15 +60,15 @@ def h_transform(input_image, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
+    input_image: SpatialImage
+valueinput image to transform
     method: str, optional
         used method, by default 'h_transform_min'
 
     Returns
     -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
 
     Example
     -------
@@ -109,15 +109,15 @@ def h_transform_min(input_image, h=DEF_H, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    h : int, optional
+    input_image: SpatialImage
+valueinput image to transform
+    h: int, optional
         height value to use in transformation, default is 1
 
     Returns
     -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-minima'
     params += _ht_kwargs(h=h, **kwargs)
@@ -130,15 +130,15 @@ def h_transform_max(input_image, h=DEF_H, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    h : int, optional
+    input_image: SpatialImage
+valueinput image to transform
+    h: int, optional
         height value to use in transformation, default is 1
 
     Returns
     -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-maxima'
     params += _ht_kwargs(h=h, **kwargs)

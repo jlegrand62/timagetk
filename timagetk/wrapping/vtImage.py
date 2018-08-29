@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -25,7 +25,7 @@ MY_CPU = CpuType.LITTLEENDIAN
 
 
 class _VT_IMAGE(Structure):
-    """ vt_image structure, see : vt_image.h """
+    """ vt_image structure, see: vt_image.h """
     _fields_ = [("name", c_char * STRINGLENGTH),
                 ("type", c_uint),
                 ("dim", vt_4vsize),  # dimension of image

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -50,8 +50,7 @@ def np_type_to_vt_type(dtype):
         _type = ImageType.FLOAT
     elif dtype == np.float64:
         _type = ImageType.DOUBLE
-#     elif dtype == np.float128 :
-#         _type = ImageType.LONG_DO
+#     elif dtype == np.float128: #         _type = ImageType.LONG_DO
     else:
         _type = ImageType.TYPE_UNKNOWN
     return _type
@@ -78,8 +77,7 @@ def vt_type_to_np_type(vt_type):
         return np.float32
     elif vt_type == ImageType.DOUBLE:
         return np.float64
-    # elif vt_type == VOXELTYPE. :
-    #    self._data.dtype == np.float128
+    # elif vt_type == VOXELTYPE.:     #    self._data.dtype == np.float128
     else:
         print "TYPE_UNKNOWN"
         return -1
@@ -111,8 +109,7 @@ def vt_type_to_c_type(vt_type):
         return c_float
     elif vt_type == ImageType.DOUBLE:
         return c_double
-    # elif vt_type == VOXELTYPE. :
-    #    self._data.dtype == np.float128
+    # elif vt_type == VOXELTYPE.:     #    self._data.dtype == np.float128
     else:
         print "TYPE_UNKNOWN"
         return -1

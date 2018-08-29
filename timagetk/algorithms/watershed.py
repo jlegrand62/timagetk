@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -17,13 +17,13 @@ try:
     from timagetk.wrapping.clib import libvtexec, add_doc, return_value
     from timagetk.wrapping.vt_image import vt_image, new_vt_image
     from timagetk.components.spatial_image import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
 __all__ = ['WATERSHED_DEFAULT', 'watershed']
 
 WATERSHED_DEFAULT = '-labelchoice most'
-# WATERSHED_DEFAULT = ''
 
 
 def watershed(image, seeds, param_str_1=WATERSHED_DEFAULT, param_str_2=None,
@@ -33,19 +33,21 @@ def watershed(image, seeds, param_str_1=WATERSHED_DEFAULT, param_str_2=None,
 
     Parameters
     ----------
-    :param *SpatialImage* image: *SpatialImage*, input image
-
-    :param *SpatialImage* seeds: *SpatialImage*, seeds image, each marker have an unique value
-
-    :param str param_str_1: WATERSHED_DEFAULT
-
-    :param str param_str_2: optional, optional parameters
-
-    :param *np.dtype* dtype: optional, output image type. By default, the output type is equal to the input type.
+    image: ``SpatialImage``
+        input image
+    seeds: ``SpatialImage``
+        seeds image, each marker have an unique value
+    param_str_1: str
+        WATERSHED_DEFAULT
+    param_str_2: str
+        optional, optional parameters
+    dtype: *np.dtype*, optional,
+        output image type,By default, output type is equal to input type.
 
     Returns
-    ----------
-    :return: ``SpatialImage`` instance -- output image and metadata
+    -------
+    ``SpatialImage``
+        output image and metadata
 
     Example
     -------
@@ -60,15 +62,9 @@ def watershed(image, seeds, param_str_1=WATERSHED_DEFAULT, param_str_2=None,
     >>> output_image = watershed(smooth_img, conn_img)
     """
     # - Check image is a `SpatialImage`:
-    try:
-        assert isinstance(image, SpatialImage)
-    except AssertionError:
-        raise ValueError("Parameter 'image' is not a SpatialImage")
+    try_spatial_image(image)
     # - Check seeds is a `SpatialImage`:
-    try:
-        assert isinstance(seeds, SpatialImage)
-    except AssertionError:
-        raise ValueError("Parameter 'seeds' is not a SpatialImage")
+    try_spatial_image(seeds)
 
     if dtype is None:
         dtype = seeds.dtype

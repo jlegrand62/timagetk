@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -168,17 +168,17 @@ def morphology_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    radius : int, optional
-         radius to use for structuring element, default is 1
-    iterations : int, optional
-         number of iterations to performs with structuring element, default is 1
+    input_image: SpatialImage
+valueinput image to transform
+    radius: int, optional
+valueradius to use for structuring element, default is 1
+    iterations: int, optional
+valuenumber of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     params = '-erosion'
     params += _morpho_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -192,15 +192,15 @@ def morphology_dilation(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    radius : int, optional
+    input_image: SpatialImage
+valueinput image to transform
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -216,15 +216,15 @@ def morphology_opening(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -240,15 +240,15 @@ def morphology_closing(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -264,15 +264,15 @@ def morphology_hat_transform(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -289,15 +289,15 @@ def morphology_inverse_hat_transform(input_image, radius=DEF_RADIUS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -313,15 +313,15 @@ def morphology_gradient(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -337,15 +337,15 @@ def morphology_contrast(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
          input image to transform
-    radius : int, optional
+    radius: int, optional
          radius to use for structuring element, default is 1
-    iterations : int, optional
+    iterations: int, optional
          number of iterations to performs with structuring element, default is 1
 
     Returns
-    ----------
+    -------
     SpatialImage
          transformed image with its metadata
     """
@@ -361,13 +361,13 @@ def morphology_oc_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """
@@ -391,13 +391,13 @@ def morphology_co_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
 
@@ -422,13 +422,13 @@ def morphology_coc_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """
@@ -453,13 +453,13 @@ def morphology_oco_alternate_sequential_filter(input_image, max_radius=None,
 
     Parameters
     ----------
-    input_image : SpatialImage
+    input_image: SpatialImage
         input image to transform
-    max_radius : int, optional
+    max_radius: int, optional
         maximum radius to use, starting at 1
 
     Returns
-    ----------
+    -------
     SpatialImage
         transformed image and its metadata
     """

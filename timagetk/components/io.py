@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #       Copyright 2016-2018 INRIA
 #
@@ -14,7 +14,7 @@
 """
 This module allows a management of inputs and outputs (2D/3D images and metadata)
 through the functions ``imread`` and ``imsave``.
-Supported formats are : ['.tif', '.tiff', '.mha', '.mha.gz', '.inr', '.inr.gz', '.inr.zip'].
+Supported formats are: ['.tif', '.tiff', '.mha', '.mha.gz', '.inr', '.inr.gz', '.inr.zip'].
 """
 
 from __future__ import division
@@ -37,15 +37,16 @@ POSS_EXT = ['.inr', '.inr.gz', '.inr.zip', '.mha', '.mha.gz', '.tiff', '.tif']
 def imread(img_file):
     """
     Read an image (2D/3D).
-    The supported formats are : ['.tif', '.tiff', '.inr', '.inr.gz', '.inr.zip']
+    The supported formats are: ['.tif', '.tiff', '.inr', '.inr.gz', '.inr.zip']
 
     Parameters
     ----------
-    :param str img_file: path to the image
+    img_file: str
+        path to the image
 
     Returns
-    ----------
-    :returns: sp_image (*SpatialImage*) -- image and metadata (such as voxelsize, extent, type, etc.)
+    -------
+    :returns: sp_image (``SpatialImage``) -- image and metadata (such as voxelsize, extent, type, etc.)
 
     Example
     ---------
@@ -130,12 +131,14 @@ def imread(img_file):
 def imsave(img_file, sp_img):
     """
     Save an image (2D/3D).
-    The supported formats are : ['.tif', '.tiff', '.inr', '.inr.gz', '.inr.zip']
+    The supported formats are: ['.tif', '.tiff', '.inr', '.inr.gz', '.inr.zip']
 
     Parameters
     ----------
-    :param str img_file: save path
-    :param SpatialImage sp_img: *SpatialImage* instance
+    img_file: str
+        save path
+    sp_img: SpatialImage
+        ``SpatialImage`` instance
 
     Example
     ---------
@@ -204,19 +207,19 @@ def apply_mask(img, mask_filename, masking_value=0, crop_mask=False):
 
     Parameters
     ----------
-    img : SpatialImage
+    img: SpatialImage
         SpatialImage to modify with the mask
-    mask_filename : str
+    mask_filename: str
         string giving the location of the mask file
-    masking_value : int, optional
+    masking_value: int, optional
         value (default 0) defining the masked region
-    crop_mask : bool, optional
+    crop_mask: bool, optional
         if True (default False), the returned SpatialImage is cropped around the
         non-masked region
 
     Returns
     -------
-    masked_image : SpatialImage
+    masked_image: SpatialImage
         the masked SpatialImage.
     """
     try:

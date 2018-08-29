@@ -23,8 +23,8 @@ list_images = [imread(data_path('time_' + str(time) + '.inr'))
                for time in times]
 
 # Rigid registration along the whole sequence:
-# list_compo_trsf : list of transformations
-# list_res_img : list of resulting images
+# list_compo_trsf: list of transformations
+# list_res_img: list of resulting images
 # the primitive embeds an iterative registration
 list_compo_trsf, list_res_img = sequence_registration(list_images,
                           method='sequence_rigid_registration')

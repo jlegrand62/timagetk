@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -17,6 +17,7 @@ try:
     from timagetk.wrapping.clib import add_doc, return_value, libvtexec
     from timagetk.wrapping.vt_image import vt_image, new_vt_image
     from timagetk.components import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
@@ -31,19 +32,21 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
 
     Parameters
     ----------
-    :param *SpatialImage* image: *SpatialImage*, input image
-
-    :param *SpatialImage* seeds: *SpatialImage*, optional seeds image
-
-    :param str param_str_1: by default param_str_1 is equal to CONNEXE_DEFAULT.
+    image: ``SpatialImage``
+        ``SpatialImage``, input image
+    seeds: ``SpatialImage``
+        ``SpatialImage``, optional seeds image
+    param_str_1: str
+        by default param_str_1 is equal to CONNEXE_DEFAULT.
             By default thresholds are fixed, and one label is associated to
             each connected component
-
-    :param str param_str_2: optional str parameter
+    param_str_2: str
+        optional str parameter
 
     Returns
-    ----------
-    :return: ``SpatialImage`` instance -- output image and metadata
+    -------
+    ``SpatialImage``
+        output image and metadata
 
     Example
     -------
@@ -55,10 +58,7 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
     >>> regext_img = regionalext(input_image)
     >>> output_image = connexe(regext_img)
     """
-    try:
-        assert isinstance(image, SpatialImage)
-    except AssertionError:
-        raise TypeError('Input image must be a SpatialImage')
+    try_spatial_image(image)
 
     if dtype is None:
         dtype = image.dtype
@@ -82,5 +82,6 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
         vt_seeds.free()
 
     return out_sp_img
+
 
 add_doc(connexe, libvtexec.API_Help_connexe)

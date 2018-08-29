@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # -*- python -*-
+# -*- coding: utf-8 -*-
 #
 #
 #       Copyright 2016 INRIA
@@ -57,17 +57,17 @@ def segmentation(input_image, seeds_image, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    seeds_image : SpatialImage
-         seed image to use for initialisation of watershed algorithm
+    input_image: SpatialImage
+valueinput image to transform
+    seeds_image: SpatialImage
+valueseed image to use for initialisation of watershed algorithm
     method: str, optional
         used method, by default 'seeded_watershed'
 
     Returns
     -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
 
     Example
     -------
@@ -110,18 +110,18 @@ def seeded_watershed(input_image, seeds_image, control=None, **kwargs):
 
     Parameters
     ----------
-    input_image : SpatialImage
-         input image to transform
-    seeds_image : SpatialImage
-         seed image to use for initialisation of watershed algorithm
+    input_image: SpatialImage
+valueinput image to transform
+    seeds_image: SpatialImage
+valueseed image to use for initialisation of watershed algorithm
     control: str, optional
         used control to deal with watershed conflicts, default='most', ie. the
         most represented label
 
     Returns
-    ----------
+    -------
     SpatialImage
-         transformed image with its metadata
+valuetransformed image with its metadata
     """
     # - Set method if None and check it is a valid method:
     control = _method_check(control, POSS_CONTROLS, DEFAULT_CONTROL)
