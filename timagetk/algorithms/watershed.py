@@ -71,7 +71,7 @@ def watershed(image, seeds, param_str_1=WATERSHED_DEFAULT, param_str_2=None,
     # - Initialise objects:
     vt_img = vt_image(image)
     vt_seeds = vt_image(seeds)
-    vt_res = new_vt_image(seeds, dtype=dtype)
+    vt_res = new_vt_image(seeds, type=dtype)
     # - Run watershed algorithm:
     rvalue = libvtexec.API_watershed(vt_img.c_ptr, vt_seeds.c_ptr, vt_res.c_ptr,
                                      param_str_1, param_str_2)

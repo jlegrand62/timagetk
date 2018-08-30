@@ -23,7 +23,7 @@ __all__ = ['np_type_to_vt_type',
            'vt_type_to_c_type',
            'vt_type',
            'np_type',
-           'morpheme_dtype_arg']
+           'morpheme_type_arg']
 
 
 def np_type_to_vt_type(dtype):
@@ -144,7 +144,7 @@ def np_type(np_type=None, vt_type=None):
         return None
 
 
-def morpheme_dtype_arg(image):
+def morpheme_type_arg(image):
     vt_type = np_type_to_vt_type(image.dtype)
     if vt_type in VT_TO_ARG:
         return VT_TO_ARG[vt_type]

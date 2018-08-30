@@ -150,7 +150,7 @@ def morpho(image, struct_elt_vt=None, param_str_1=MORPHO_DEFAULT, param_str_2=No
         warnings.formatwarning = clean_warning
         warnings.warn(msg, SyntaxWarning)
 
-    vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
+    vt_input, vt_res = vt_image(image), new_vt_image(image, type=dtype)
     rvalue = libvtexec.API_morpho(vt_input.c_ptr, vt_res.c_ptr, struct_elt_vt,
                                   param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)
@@ -203,7 +203,7 @@ def cell_filter(image, struct_elt_vt=None, param_str_1=CELL_FILTER_DEFAULT,
         warnings.formatwarning = clean_warning
         warnings.warn(msg, SyntaxWarning)
 
-    vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
+    vt_input, vt_res = vt_image(image), new_vt_image(image, type=dtype)
     rvalue = libvp.API_cellfilter(vt_input.c_ptr, vt_res.c_ptr, struct_elt_vt,
                                   param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)

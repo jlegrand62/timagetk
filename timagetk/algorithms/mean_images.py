@@ -82,7 +82,7 @@ def mean_images(list_spatial_images, list_spatial_masks=None,
         c_input_images.append(vt_input.get_vt_image())
     sp_img_ptr = list_c_vt_images(*[pointer(c_input)
                                     for c_input in c_input_images])
-    vt_res = new_vt_image(list_spatial_images[0], dtype=comm_type)
+    vt_res = new_vt_image(list_spatial_images[0], type=comm_type)
     rvalue = libvtexec.API_meanImages(sp_img_ptr, mask_ptr,
                                       len(list_spatial_images), vt_res.c_ptr,
                                       param_str_1, param_str_2)

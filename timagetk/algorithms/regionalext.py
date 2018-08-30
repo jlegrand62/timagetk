@@ -61,7 +61,7 @@ def regionalext(image, param_str_1=REGIONALEXT_DEFAULT, param_str_2=None,
 
     if dtype is None:
         dtype = image.dtype
-    vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
+    vt_input, vt_res = vt_image(image), new_vt_image(image, type=dtype)
     rvalue = libvtexec.API_regionalext(vt_input.c_ptr, vt_res.c_ptr,
                                        param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)

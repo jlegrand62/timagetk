@@ -65,7 +65,7 @@ def vt_img_to_sp_img(vt_image):
     """
     _VT_IMAGE structure to SpatialImage
     """
-    dt = vt_type_to_c_type(vt_image.dtype)
+    dt = vt_type_to_c_type(vt_image.type)
     x, y, z, v = vt_image.dim.x, vt_image.dim.y, vt_image.dim.z, vt_image.dim.v
     size = x * y * z * v
     vx, vy, vz = vt_image.siz.x, vt_image.siz.z, vt_image.siz.z
@@ -95,7 +95,7 @@ def vt_image(sp_img):
     return vt_image
 
 
-def new_vt_image(sp_img_in, dtype=None):
+def new_vt_image(sp_img_in, type=None):
     """
     """
     try:
@@ -103,13 +103,13 @@ def new_vt_image(sp_img_in, dtype=None):
     except AssertionError:
         raise TypeError('Input image must be a SpatialImage')
 
-    if not dtype:
-        dtype = sp_img_in.dtype
+    if not type:
+        type = sp_img_in.dtype
 
     ori = sp_img_in.origin
     vxs = sp_img_in.voxelsize
     shape = sp_img_in.shape
-    sp_img_out = SpatialImage(np.zeros(shape, dtype=dtype), voxelsize=vxs,
+    sp_img_out = SpatialImage(np.zeros(shape, dtype=type), voxelsize=vxs,
                               origin=ori)
     vt_res = VT_Image(sp_img_out)
     return vt_res
@@ -135,7 +135,7 @@ class VT_Image(object):
             sp_img = SpatialImage(sp_img, voxelsize=[1.] * ndim,
                                   origin=[0.] * ndim)
 
-        if sp_img.get_dim() == 2:  # 2D management
+        if sp_img.is2D():  # 2D management
             sp_img = sp_img.to_3D()
 
         self._data = sp_img

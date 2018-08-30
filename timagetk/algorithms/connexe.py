@@ -73,7 +73,7 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
             vt_seeds = vt_image(seeds)
             pt_seeds = vt_seeds.c_ptr
 
-    vt_input, vt_res = vt_image(image), new_vt_image(image, dtype=dtype)
+    vt_input, vt_res = vt_image(image), new_vt_image(image, type=dtype)
     rvalue = libvtexec.API_connexe(vt_input.c_ptr, pt_seeds, vt_res.c_ptr,
                                    param_str_1, param_str_2)
     out_sp_img = return_value(vt_res.get_spatial_image(), rvalue)

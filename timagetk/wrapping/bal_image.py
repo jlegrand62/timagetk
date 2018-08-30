@@ -277,9 +277,9 @@ def bal_image_to_spatial_image(c_or_bal_image, **kwargs):
     size = x * y * z * v
     resolution = (b.vx, b.vy, b.vz)
 
-    _cdtype = vt_type_to_c_type(b.dtype)
+    _cdtype = vt_type_to_c_type(b.type)
     # SR 21/03
-    _nptype = vt_type_to_np_type(b.dtype)
+    _nptype = vt_type_to_np_type(b.type)
 
     if b.data is None:
         _np_array = np.ndarray(size)
