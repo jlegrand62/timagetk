@@ -138,7 +138,7 @@ def apply_trsf(image, trsf=None, template_img=None,
     -------
     >>> output_image = apply_trsf(input_image, input_trsf)
     """
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     if trsf is not None:
         try:

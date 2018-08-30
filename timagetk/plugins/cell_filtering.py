@@ -63,9 +63,9 @@ def _cellfilter_kwargs(**kwargs):
 
 def cell_filtering(input_image, method=None, **kwargs):
     """
-    Grayscale cell_filtering plugin
-    Available methods are:
+    Grayscale cell_filtering plugin.
 
+    Available methods are:
       * erosion
       * dilation
       * opening
@@ -82,18 +82,17 @@ def cell_filtering(input_image, method=None, **kwargs):
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
-
-    method: used method (example: str
-        'erosion')
+        input image to transform
+    method: srt
+        used method (example: 'erosion')
 
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
 
     Example
-    ----------
+    -------
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imread
     >>> from timagetk.plugins import cell_filtering

@@ -91,8 +91,8 @@ def blockmatching(floating_image, reference_image,
                                           param_str_2=param_str_2) # deformable registration
     """
     # - Check if both input images are `SpatialImage`:
-    try_spatial_image(floating_image)
-    try_spatial_image(reference_image)
+    try_spatial_image(floating_image, obj_name='floating_image')
+    try_spatial_image(reference_image, obj_name='reference_image')
 
     # - Initialise BalImage:
     bal_floating_image = BalImage(floating_image)

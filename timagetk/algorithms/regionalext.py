@@ -57,7 +57,7 @@ def regionalext(image, param_str_1=REGIONALEXT_DEFAULT, param_str_2=None,
     >>> param_str_2 = '-minima -connectivity 26 -h 5'
     >>> output_image = regionalext(input_image, param_str_2=param_str_2)
     """
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     if dtype is None:
         dtype = image.dtype

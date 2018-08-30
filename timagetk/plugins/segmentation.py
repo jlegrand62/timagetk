@@ -40,12 +40,10 @@ def _seg_kwargs(**kwargs):
     Set parameters default values and make sure they are of the right type.
     """
     str_param = ""
-
     # - Parse general kwargs:
     str_param += _general_kwargs(**kwargs)
     # - Parse parallelism kwargs:
     str_param += _parallel_kwargs(**kwargs)
-
     return str_param
 
 
@@ -58,16 +56,16 @@ def segmentation(input_image, seeds_image, method=None, **kwargs):
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
+        input image to transform
     seeds_image: SpatialImage
-valueseed image to use for initialisation of watershed algorithm
+        seed image to use for initialisation of watershed algorithm
     method: str, optional
         used method, by default 'seeded_watershed'
 
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
 
     Example
     -------
@@ -111,9 +109,9 @@ def seeded_watershed(input_image, seeds_image, control=None, **kwargs):
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
+        input image to transform
     seeds_image: SpatialImage
-valueseed image to use for initialisation of watershed algorithm
+        seed image to use for initialisation of watershed algorithm
     control: str, optional
         used control to deal with watershed conflicts, default='most', ie. the
         most represented label
@@ -121,7 +119,7 @@ valueseed image to use for initialisation of watershed algorithm
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     # - Set method if None and check it is a valid method:
     control = _method_check(control, POSS_CONTROLS, DEFAULT_CONTROL)

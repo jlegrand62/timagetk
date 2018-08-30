@@ -24,6 +24,7 @@ except:
     from StringIO import StringIO  # Python version
 try:
     from timagetk.components import SpatialImage
+    from timagetk.util import try_spatial_image
 except ImportError:
     raise ImportError('Unable to import SpatialImage')
 
@@ -164,15 +165,14 @@ def write_inr_image(inr_file, sp_img):
     >>> write_inr_image(inr_file, sp_img)
     """
     # - Assert sp_img is a SpatialImage instance:
-    try:
-        assert isinstance(sp_img, SpatialImage)
-    except AssertionError:
-        raise TypeError("Parameter 'sp_img' is not a SpatialImage!")
+    try_spatial_image(sp_img, obj_name='sp_img')
+
     # - Assert SpatialImage is 2D or 3D:
     try:
-        assert sp_img.get_dim() in [2, 3]
+        assert sp_img.is2D() or sp_img.is3D()
     except AssertionError:
-        raise ValueError("Parameter 'sp_img' should have a dimensionality of 2 or 3, not '{}'.".format(sp_img.get_dim()))
+        raise ValueError("Parameter 'sp_img' should be 2D or 3D.")
+
     # - Get file extension and check its validity:
     (filepath, filename) = os.path.split(inr_file)
     (shortname, ext) = os.path.splitext(filename)

@@ -33,17 +33,29 @@ except ImportError as e:
 class TestSegmentation(unittest.TestCase):
 
     def test_segmentation(self):
+        """
+        Tests grayscale image segmentation using wrapped MORPHEME library VT.
+
+        Equivalent to following shell commands using compiled VT binaries:
+        ./linearFilter $DATA_PATH/segmentation_src.inr $DATA_PATH/smoothed_segmentation.mha -smoothing -sigma 2.0
+        ./regionalext $DATA_PATH/smoothed_segmentation.mha - -minima -connectivity 26 -h 5 | ./connexe - $DATA_PATH/segmentation_seeds.mha -low-threshold 1 -high-threshold 3 -labels -connectivity 26
+        ./watershed -gradient $DATA_PATH/smoothed_segmentation.mha -seeds $DATA_PATH/segmentation_seeds.mha $DATA_PATH/segmentation_seeded_watershed.mha -l most
+        """
         im = imread(data_path('segmentation_src.inr'))
-        im_ref = imread(data_path('segmentation_seeded_watershed.inr'))
+        im_ref = imread(data_path('segmentation_seeded_watershed.mha'))
         # - Smoothing:
         smooth_params = "-smoothing -sigma 2.0"
         smooth_img = linearfilter(im, param_str_2=smooth_params)
+
         # - Local minima:
         regext_params = "-minima -connectivity 26 -h 5"
         regext_img = regionalext(smooth_img, param_str_2=regext_params)
+        # ./linearFilter smoothed_segmentation.mha
+
         # - Connexe components labelling:
         conn_params = "-low-threshold 1 -high-threshold 3 -labels -connectivity 26"
         conn_img = connexe(regext_img, param_str_2=conn_params)
+
         # - Watershed:
         wat_img = watershed(smooth_img, conn_img)
         # Uncomment clean (rm -vf ...) in gen_image.sh script and uncomment next lines to test step results
@@ -53,8 +65,16 @@ class TestSegmentation(unittest.TestCase):
         np.testing.assert_array_equal(wat_img, im_ref)
 
     def test_plugin(self):
+        """
+        Tests grayscale image segmentation using linear_filtering, h_transform, region_labeling & segmentation plugins.
+
+        Equivalent to following shell commands using compiled VT binaries:
+        ./linearFilter $DATA_PATH/segmentation_src.inr $DATA_PATH/smoothed_segmentation.mha -smoothing -sigma 2.0
+        ./regionalext $DATA_PATH/smoothed_segmentation.mha - -minima -connectivity 26 -h 5 | ./connexe - $DATA_PATH/segmentation_seeds.mha -low-threshold 1 -high-threshold 3 -labels -connectivity 26
+        ./watershed -gradient $DATA_PATH/smoothed_segmentation.mha -seeds $DATA_PATH/segmentation_seeds.mha $DATA_PATH/segmentation_seeded_watershed.mha -l most
+        """
         im = imread(data_path('segmentation_src.inr'))
-        im_ref = imread(data_path('segmentation_seeded_watershed.inr'))
+        im_ref = imread(data_path('segmentation_seeded_watershed.mha'))
         # - Smoothing:
         smooth_img = linear_filtering(im, std_dev=2.0,
                                       method='gaussian_smoothing')
@@ -65,6 +85,6 @@ class TestSegmentation(unittest.TestCase):
                                    high_threshold=3,
                                    method='connected_components')
         # - Watershed:
-        wat_img = segmentation(smooth_img, conn_img, control='first',
+        wat_img = segmentation(smooth_img, conn_img, control='most',
                                method='seeded_watershed')
         np.testing.assert_array_equal(wat_img, im_ref)

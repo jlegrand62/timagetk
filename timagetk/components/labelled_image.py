@@ -1552,6 +1552,38 @@ class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
 #             return LabelledImage2D(image, **kwargs)
 #         else:
 #             return LabelledImage3D(image, **kwargs)
+#
+# class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
+#                     LabelledImage2D, LabelledImage3D):
+#
+#     def __init__(self, image, **kwargs):
+#         """
+#         """
+#         background = kwargs.get('background', None)
+#         is2d = False
+#         try:
+#             assert image.is2D()
+#         except:
+#             pass
+#         else:
+#             is2d = True
+#         try:
+#             assert image.ndim == 2
+#         except:
+#             pass
+#         else:
+#             is2d = True
+#         # - If declared value for 'background', return the class Epidermis
+#         if background is not None:
+#             if is2d:
+#                 EpidermisLabelledImage2D.__init__(self, image, **kwargs)
+#             else:
+#                 EpidermisLabelledImage3D.__init__(self, image, **kwargs)
+#         else:
+#             if is2d:
+#                 LabelledImage2D.__init__(self, image, **kwargs)
+#             else:
+#                 LabelledImage3D.__init__(self, image, **kwargs)
 
 class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
                     LabelledImage2D, LabelledImage3D):
@@ -1559,15 +1591,39 @@ class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
     def __init__(self, image, **kwargs):
         """
         """
+        # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
+        if isinstance(image, str):
+            print "here1"
+            image = imread(image)
+        elif isinstance(image, np.ndarray):
+            dtype = image.dtype
+            image = SpatialImage(image, dtype=dtype)
+        else:
+            try:
+                assert isinstance(image, SpatialImage)
+            except AssertionError:
+                raise TypeError(
+                    "Input image should be file path, a nupy array or a SpatialImage!")
+
         background = kwargs.get('background', None)
+        no_label_id = kwargs.get('no_label_id', None)
+
         # - If declared value for 'background', return the class Epidermis
         if background is not None:
             if image.is2D():
-                EpidermisLabelledImage2D.__init__(self, image, **kwargs)
+                obj = EpidermisLabelledImage2D(image, background=background,
+                                               no_label_id=no_label_id)
+                EpidermisLabelledImage2D.__init__(obj, image, **kwargs)
             else:
-                EpidermisLabelledImage3D.__init__(self, image, **kwargs)
+                obj = EpidermisLabelledImage3D(image, background=background,
+                                               no_label_id=no_label_id)
+                EpidermisLabelledImage3D.__init__(obj, image, **kwargs)
         else:
             if image.is2D():
-                LabelledImage2D.__init__(self, image, **kwargs)
+                obj = LabelledImage2D(image, background=background,
+                                      no_label_id=no_label_id)
+                LabelledImage2D.__init__(obj, image, **kwargs)
             else:
-                LabelledImage3D.__init__(self, image, **kwargs)
+                obj = LabelledImage3D(image, background=background,
+                                      no_label_id=no_label_id)
+                LabelledImage3D.__init__(obj, image, **kwargs)

@@ -39,8 +39,8 @@ def mean_squared_error(sp_img_1, sp_img_2):
         mean sqared error value
     """
     # - Check if both input images are `SpatialImage`:
-    try_spatial_image(sp_img_1)
-    try_spatial_image(sp_img_2)
+    try_spatial_image(sp_img_1, obj_name='sp_img_1')
+    try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
     if sp_img_1.shape == sp_img_2.shape:
         img_1 = sp_img_1.get_array().astype(np.float16)  # np.ndarray instance
@@ -71,8 +71,8 @@ def psnr(sp_img_1, sp_img_2):
         psnr value (dB)
     """
     # - Check if both input images are `SpatialImage`:
-    try_spatial_image(sp_img_1)
-    try_spatial_image(sp_img_2)
+    try_spatial_image(sp_img_1, obj_name='sp_img_1')
+    try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
     if sp_img_1.itemsize == sp_img_2.itemsize:
         maxi = 2 ** (sp_img_1.itemsize * 8) - 1

@@ -1095,51 +1095,47 @@ class SpatialImage(np.ndarray):
          'voxelsize': [1.0, 1.0]
          }
         """
-        # TODO: 'protect' keys linked to properties (such as 'extent', ...) to avoid missmatch ?
-        met_dict = self._metadata
+        md = self._metadata
         # - Test whether the metadata dict has been initialized:
         try:
-            assert met_dict.has_key('shape')
+            assert md.has_key('shape')
         except AssertionError:
-            met_dict = basic_metadata(self, None)
+            md = basic_metadata(self, md)
 
         # - If attribute and metadata 'shape' are not equal, update metadata
+        sh = self.shape
         try:
-            assert met_dict['shape'] == self.shape
+            assert md['shape'] == sh
         except AssertionError:
-            old_shape = met_dict['shape']
-            met_dict['shape'], met_dict['dim'], met_dict[
-                'type'] = self.shape, self.ndim, str(self.dtype)
-            if (self.ndim == 2 and old_shape[0] == self.shape[1] and old_shape[
-                1] == self.shape[0]):  # --- transposition
-                vox = [met_dict['voxelsize'][1], met_dict['voxelsize'][0]]
-                ext = [met_dict['extent'][1], met_dict['extent'][0]]
-                orig = [met_dict['origin'][1], met_dict['origin'][0]]
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self._voxelsize, self.extent, self._origin = vox, ext, orig
-            elif (self.ndim == 3 and old_shape[0] in self.shape and old_shape[
-                1] in self.shape and old_shape[2] in self.shape):
-                print(
-                    'Warning: possibly incorrect voxelsize, extent and origin')
+            old_shape = md['shape']
+            md['shape'] = self.shape
+            md['dim'] = self.ndim
+            md['type'] = str(self.dtype)
+            # --- transposition
+            if self.is2D() and old_shape[0] == sh[1] and old_shape[1] == sh[0]:
+                vox = [md['voxelsize'][1], md['voxelsize'][0]]
+                ext = [md['extent'][1], md['extent'][0]]
+                orig = [md['origin'][1], md['origin'][0]]
+                md['voxelsize'], md['extent'], md['origin'] = vox, ext, orig
+                self._voxelsize, self._extent, self._origin = vox, ext, orig
+            elif (self.is3D() and old_shape[0] in sh and old_shape[1] in sh and old_shape[2] in sh):
+                print('Warning: possibly incorrect voxelsize, extent and origin')
                 vox, ext, orig = [], [], []
                 for ind in range(0, self.ndim):
-                    tmp = old_shape.index(self.shape[ind])
-                    vox.append(met_dict['voxelsize'][tmp])
-                    ext.append(met_dict['extent'][tmp])
-                    orig.append(met_dict['origin'][tmp])
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self._voxelsize, self.extent, self._origin = vox, ext, orig
+                    tmp = old_shape.index(sh[ind])
+                    vox.append(md['voxelsize'][tmp])
+                    ext.append(md['extent'][tmp])
+                    orig.append(md['origin'][tmp])
+                md['voxelsize'], md['extent'], md['origin'] = vox, ext, orig
+                self._voxelsize, self._extent, self._origin = vox, ext, orig
             else:
                 print('Warning: incorrect voxelsize, extent and origin')
                 vox, ext, orig = [], [], []
-                met_dict['voxelsize'], met_dict['extent'], met_dict[
-                    'origin'] = vox, ext, orig
-                self._voxelsize, self.extent, self._origin = vox, ext, orig
-            # Update the metadata dictionary
-            self._metadata = met_dict
+                md['voxelsize'], md['extent'], md['origin'] = vox, ext, orig
+                self._voxelsize, self._extent, self._origin = vox, ext, orig
 
+        # Update the metadata dictionary
+        self._metadata = md
         return self._metadata
 
     @metadata.setter

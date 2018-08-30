@@ -52,7 +52,7 @@ class TestFiltering(unittest.TestCase):
         """
         Testing direction specific Gaussian filter algorithm.
         """
-        sp_img_ref = imread(data_path('filtering_linearfilter_sigma332.inr.gz'))
+        sp_img_ref = imread(data_path('filtering_linearfilter_sigma_332.inr.gz'))
         sp_img = imread(data_path('filtering_src.inr'))
         # Equivalent to VT library command:
         # $ linearfilter filtering_src.inr.gz filtering_linearfilter_sigma332.inr.gz -smoothing -sigma 3 3 2

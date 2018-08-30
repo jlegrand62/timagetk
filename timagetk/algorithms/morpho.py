@@ -105,18 +105,14 @@ def morpho(image, struct_elt_vt=None, param_str_1=MORPHO_DEFAULT, param_str_2=No
     Parameters
     ----------
     image: ``SpatialImage``
-        ``SpatialImage``, input image
-
-    :param struct_elt_vt: optional, structuring element.
-                    By default an approximation of an euclidean ball is used
-
-    param_str_1: str
+        input image
+    struct_elt_vt: optional,
+        structuring element, by default an approximation of an euclidean ball is used
+    param_str_1: str, optional
         MORPHO_DEFAULT, by default a dilation is applied
-
-    param_str_2: str
+    param_str_2: str, optional
         optional, optional parameters
-
-    dtype: *np.dtype*, optional,
+    dtype: *np.dtype*, optional
         output image type. By default, the output type is equal to the input type.
 
     Returns
@@ -170,18 +166,15 @@ def cell_filter(image, struct_elt_vt=None, param_str_1=CELL_FILTER_DEFAULT,
     Parameters
     ----------
     image: ``SpatialImage``
-        ``SpatialImage``, input image
-
-    :param struct_elt_vt: optional, structuring element.
-                    By default an approximation of an euclidean ball is used
-
-    param_str_1: str
+        input image
+    struct_elt_vt: optional,
+        structuring element, by default an approximation of an euclidean ball
+        is used
+    param_str_1: str, optional
         CELL_FILTER_DEFAULT, by default a dilation is applied
-
-    param_str_2: str
-        optional, optional parameters
-
-    dtype: *np.dtype*, optional,
+    param_str_2: str, optional
+        optional parameters
+    dtype: *np.dtype*, optional
         output image type. By default, the output type is equal to the input type.
 
     Returns

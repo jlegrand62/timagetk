@@ -254,7 +254,7 @@ def subsample(image, factor=[2, 2, 1], option='gray'):
     -------
     >>> output_image = subsample(input_image)
     """
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     poss_opt = ['gray', 'label']
     if option not in poss_opt:

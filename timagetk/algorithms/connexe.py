@@ -58,7 +58,7 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
     >>> regext_img = regionalext(input_image)
     >>> output_image = connexe(regext_img)
     """
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     if dtype is None:
         dtype = image.dtype

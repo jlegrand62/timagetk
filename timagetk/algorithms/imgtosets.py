@@ -45,7 +45,7 @@ def imgtosets(sp_img, label=[], background_id=None):
     -------
     >>> out_sets = image_to_sets(input_image, label=[2,3,4], background_id=1)
     """
-    try_spatial_image(sp_img)
+    try_spatial_image(sp_img, obj_name='sp_img')
 
     lab_max = np_unique(sp_img).tolist()
     if label is None or label == []:

@@ -69,8 +69,8 @@ def image_overlap(sp_img_1, sp_img_2, labels=[], background_id=None,
     >>> jacc_val, jacc_dict = image_overlap(sp_img_1, sp_img_2, criterion='Jaccard coefficient')
     """
     # - Check if both input images are `SpatialImage`:
-    try_spatial_image(sp_img_1)
-    try_spatial_image(sp_img_2)
+    try_spatial_image(sp_img_1, obj_name='sp_img_1')
+    try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
     possible_criteria = ['Jaccard coefficient', 'Mean overlap',
                          'Target overlap', 'Volume similarity',

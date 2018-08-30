@@ -46,7 +46,7 @@ def compute_res_sets(sp_img, nodes_list, bounding_box_dict=None):
     >>> glob_set = compute_res_sets(sp_img, nodes_list, bounding_box_dict)
     """
     # - Check if  input image is a `SpatialImage`:
-    try_spatial_image(sp_img)
+    try_spatial_image(sp_img, obj_name='sp_img')
 
     try:
         assert isinstance(nodes_list, list)

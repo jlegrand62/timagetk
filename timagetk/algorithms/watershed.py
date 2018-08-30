@@ -62,9 +62,9 @@ def watershed(image, seeds, param_str_1=WATERSHED_DEFAULT, param_str_2=None,
     >>> output_image = watershed(smooth_img, conn_img)
     """
     # - Check image is a `SpatialImage`:
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
     # - Check seeds is a `SpatialImage`:
-    try_spatial_image(seeds)
+    try_spatial_image(seeds, obj_name='seeds')
 
     if dtype is None:
         dtype = seeds.dtype

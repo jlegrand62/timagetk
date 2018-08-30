@@ -266,13 +266,13 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
+    msg = None
     # - If no initialisation trsf-matrix were provided, initialise affine deformation estimation with rigid trsf:
     if init_trsf is None and left_trsf is None:
         init_trsf, res_rig = rigid_registration(floating_img, reference_img,
                                                 **kwargs)
         del res_rig
     else:
-        msg = None
         # - Make sure the provided initialisation trsf matrix is linear:
         if left_trsf:
             try:
@@ -349,13 +349,13 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
+    msg = None
     # - If no initialisation trsf-matrix are provided, initialise non-linear deformation estimation with rigid trsf:
     if init_trsf is None and left_trsf is None:
         init_trsf, res_rig = rigid_registration(floating_img, reference_img,
                                                 **kwargs)
         del res_rig
     else:
-        msg = None
         # - Make sure the provided initialisation trsf matrix is linear:
         if left_trsf:
             try:

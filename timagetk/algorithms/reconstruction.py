@@ -157,7 +157,7 @@ def surface2im(points, altitude):
     coord: list
         list of points in the real world
     """
-    try_spatial_image(altitude)
+    try_spatial_image(altitude, obj_name='altitude')
     coord = list()
 
     vx = altitude.resolution[0]
@@ -192,7 +192,7 @@ def spatialise_matrix_points(points, image, mip_thresh=45):
     points3d: list [of tuple [of float, float, float]]
         3D points in REAL coordinates.
     """
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     if isinstance(points, (str, unicode)):
         points = np.loadtxt(points)
@@ -239,8 +239,8 @@ def surface_landmark_matching(ref_img, ref_pts, flo_img, flo_pts,
         The result is a 4x4 **resampling voxel matrix** (*i.e.* from ref_img to flo_img,
          from ref_space to flo_space and NOT from real_space to real_space).
     """
-    try_spatial_image(ref_img)
-    try_spatial_image(flo_img)
+    try_spatial_image(ref_img, obj_name='ref_img')
+    try_spatial_image(flo_img, obj_name='flo_img')
 
     if isinstance(ref_pts, (str, unicode)):
         ref_pts = np.loadtxt(ref_pts)

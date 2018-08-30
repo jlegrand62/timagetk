@@ -58,7 +58,7 @@ def linearfilter(image, param_str_1=LINEARFILTER_DEFAULT, param_str_2=None,
     >>> output_image = linearfilter(input_image, param_str_2=param_str_2)
     """
     # - Check if input image is indeed a `SpatialImage`:
-    try_spatial_image(image)
+    try_spatial_image(image, obj_name='image')
 
     if dtype is None:
         dtype = image.dtype
