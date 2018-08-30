@@ -5276,7 +5276,7 @@ CZ_DATA_TYPES = {
     5: '32 bit float',
 }
 
-# Description of cz_lsm_info.type_of_data
+# Description of cz_lsm_info.dtype_of_data
 CZ_TYPE_OF_DATA = {
     0: 'Original scan data',
     1: 'Calculated data',

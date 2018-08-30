@@ -207,7 +207,7 @@ def write_inr_image(inr_file, sp_img):
     info['#GEOMETRY'] = 'CARTESIAN'
     info['CPU'] = 'decm'
     info['VDIM'] = '1'
-    img_typ = str(sp_img.type)
+    img_typ = str(sp_img.dtype)
 
     if (img_typ[0:4] == 'uint'):
         info['TYPE'] = 'unsigned fixed'

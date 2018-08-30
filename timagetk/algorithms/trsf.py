@@ -497,6 +497,6 @@ def read_trsf(filename):
         trsf.vy = BalImage(spatial_image=vy)
         trsf.vz = BalImage(spatial_image=vz)
         trsf.trsf_unit = c_bal_trsf.transformation_unit
-        trsf.trsf_type = c_bal_trsf.type
+        trsf.trsf_type = c_bal_trsf.dtype
 
     return trsf

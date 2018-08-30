@@ -413,7 +413,7 @@ class AbstractLabelledImage(SpatialImage):
         input_array = image.get_array()
         origin = image.origin
         voxelsize = image.voxelsize
-        dtype = image.type
+        dtype = image.dtype
         metadata_dict = image.metadata
         # - Inherit SpatialImage class:
         SpatialImage.__init__(self, input_array, origin=origin,
@@ -520,13 +520,20 @@ class AbstractLabelledImage(SpatialImage):
 
         Parameters
         ----------
-        labels: None|list
+        labels: int|list, optional
+            if given, used to filter the returned list, else return all labels
+            defined in the image by default
 
         Returns
         -------
         labels: list
             list of label found in the image, except for 'background' and
-            'no_label_id' if defined!
+            'no_label_id' (if defined)
+
+        Notes
+        -----
+        Values defined for 'background' & 'no_label_id' are removed from the
+        returned list of labels since they do not relate to cells.
 
         Examples
         --------
@@ -543,14 +550,14 @@ class AbstractLabelledImage(SpatialImage):
         >>> im.labels()
         [2,3,4,5,6,7]
         """
-        if self._labels is None:
-            self._labels = np.unique(self.get_array())
-
-        unwanted_set = {self._background_id} - {self._no_label_id}
-        label_set = set(self._labels) - unwanted_set
-
         if isinstance(labels, int):
             labels = [labels]
+        # - If the hidden label attribute is None, list all labels in the array:
+        if self._labels is None:
+            self._labels = np.unique(self.get_array())
+        # - Remove values attributed to 'background' & 'no_label_id':
+        unwanted_set = {self.background, self.no_label_id}
+        label_set = set(self._labels) - unwanted_set
 
         if labels:
             return list(label_set & set(labels))
@@ -1055,16 +1062,16 @@ class AbstractLabelledImage(SpatialImage):
                                                                         no_bbox)
 
         # - Re-initialise the instance:
-        self._re_init_array(array, origin=self.origin,
-                            voxelsize=self.voxelsize,
-                            metadata_dict=self.metadata,
-                            background=self.background,
-                            no_label_id=self.no_label_id)
+
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
 
-        return array
+        array = SpatialImage(array, origin=self.origin,
+                             voxelsize=self.voxelsize,
+                             metadata_dict=self.metadata)
+        return LabelledImage(array, background=self.background,
+                             no_label_id=self.no_label_id)
 
     def relabel_from_mapping(self, mapping, clear_unmapped=False, **kwargs):
         """
@@ -1133,7 +1140,7 @@ class AbstractLabelledImage(SpatialImage):
 
         # - Make a copy of the image to relabel:
         relab_img = self.get_array()
-        dtype = self.type
+        dtype = self.dtype
         if clear_unmapped:
             # -- Reset every value to `self._no_label_id` value:
             relab_img.fill(self._no_label_id)
@@ -1161,33 +1168,15 @@ class AbstractLabelledImage(SpatialImage):
             mask = self.get_array()[bbox] == new_lab
             relab_img[bbox] += np.array(mask * new_lab, dtype=dtype)
 
-        # - Re-initialise the instance:
-        self._re_init_array(relab_img, origin=self.origin,
-                            voxelsize=self.voxelsize,
-                            metadata_dict=self.metadata,
-                            background=self.background,
-                            no_label_id=self.no_label_id)
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
 
-        return
-
-    def _re_init_array(self, array, **kwargs):
-        """
-        Hidden function rebuilding the object when labelled image is modified.
-
-        Parameters
-        ----------
-        array: np.array
-            the new labelled array to use
-        """
-
-        # - Make a SpatialImage out of the array:
-        array = SpatialImage(array, **kwargs)
-        # - Re-initialisation of the object with the relabelled LabelledImage:
-        self.__init__(array, **kwargs)
-        return
+        relab_img = SpatialImage(relab_img, origin=self.origin,
+                                 voxelsize=self.voxelsize,
+                                 metadata_dict=self.metadata)
+        return LabelledImage(relab_img, background=self.background,
+                             no_label_id=self.no_label_id)
 
 
 class LabelledImage2D(AbstractLabelledImage):
@@ -1552,78 +1541,40 @@ class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
 #             return LabelledImage2D(image, **kwargs)
 #         else:
 #             return LabelledImage3D(image, **kwargs)
-#
-# class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
-#                     LabelledImage2D, LabelledImage3D):
-#
-#     def __init__(self, image, **kwargs):
-#         """
-#         """
-#         background = kwargs.get('background', None)
-#         is2d = False
-#         try:
-#             assert image.is2D()
-#         except:
-#             pass
-#         else:
-#             is2d = True
-#         try:
-#             assert image.ndim == 2
-#         except:
-#             pass
-#         else:
-#             is2d = True
-#         # - If declared value for 'background', return the class Epidermis
-#         if background is not None:
-#             if is2d:
-#                 EpidermisLabelledImage2D.__init__(self, image, **kwargs)
-#             else:
-#                 EpidermisLabelledImage3D.__init__(self, image, **kwargs)
-#         else:
-#             if is2d:
-#                 LabelledImage2D.__init__(self, image, **kwargs)
-#             else:
-#                 LabelledImage3D.__init__(self, image, **kwargs)
+
 
 class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
                     LabelledImage2D, LabelledImage3D):
+    """
+    Class dedicated to segmented tissue.
+
+    Image dimensionality (2D/3D) will change some accessible methods.
+    Definition of a background id allows to access cell layers list.
+    """
 
     def __init__(self, image, **kwargs):
         """
+        LabelledImage constructor.
+
+        Parameters
+        ----------
+        image: SpatialImage
+            input image
+        background: int, optional
+            if given define the label of the background (ie. space surrounding
+            the tissue)
+        no_label_id: int, optional
+            if given define the "unknown label" (ie. not a cell)
         """
-        # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
-        if isinstance(image, str):
-            print "here1"
-            image = imread(image)
-        elif isinstance(image, np.ndarray):
-            dtype = image.dtype
-            image = SpatialImage(image, dtype=dtype)
-        else:
-            try:
-                assert isinstance(image, SpatialImage)
-            except AssertionError:
-                raise TypeError(
-                    "Input image should be file path, a nupy array or a SpatialImage!")
-
         background = kwargs.get('background', None)
-        no_label_id = kwargs.get('no_label_id', None)
-
         # - If declared value for 'background', return the class Epidermis
         if background is not None:
             if image.is2D():
-                obj = EpidermisLabelledImage2D(image, background=background,
-                                               no_label_id=no_label_id)
-                EpidermisLabelledImage2D.__init__(obj, image, **kwargs)
+                EpidermisLabelledImage2D.__init__(self, image, **kwargs)
             else:
-                obj = EpidermisLabelledImage3D(image, background=background,
-                                               no_label_id=no_label_id)
-                EpidermisLabelledImage3D.__init__(obj, image, **kwargs)
+                EpidermisLabelledImage3D.__init__(self, image, **kwargs)
         else:
             if image.is2D():
-                obj = LabelledImage2D(image, background=background,
-                                      no_label_id=no_label_id)
-                LabelledImage2D.__init__(obj, image, **kwargs)
+                LabelledImage2D.__init__(self, image, **kwargs)
             else:
-                obj = LabelledImage3D(image, background=background,
-                                      no_label_id=no_label_id)
-                LabelledImage3D.__init__(obj, image, **kwargs)
+                LabelledImage3D.__init__(self, image, **kwargs)

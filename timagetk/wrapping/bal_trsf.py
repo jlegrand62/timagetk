@@ -123,17 +123,17 @@ class BalTransformation(object, enumTypeTransfo, enumUnitTransfo):
             if trsf_unit is not None:
                 self._c_bal_trsf.transformation_unit = trsf_unit
             if trsf_type is not None:
-                self._c_bal_trsf.type = trsf_type
+                self._c_bal_trsf.dtype = trsf_type
         else:
             if isinstance(c_bal_trsf, BAL_TRSF):
                 libblockmatching.BAL_AllocTransformation(self.c_ptr,
-                                                         c_bal_trsf.type,
+                                                         c_bal_trsf.dtype,
                                                          pointer(c_bal_trsf.vx))
                 libblockmatching.BAL_CopyTransformation(pointer(c_bal_trsf),
                                                         self.c_ptr)
             elif isinstance(c_bal_trsf, BalTransformation):
                 libblockmatching.BAL_AllocTransformation(self.c_ptr,
-                                                         c_bal_trsf._c_bal_trsf.type,
+                                                         c_bal_trsf._c_bal_trsf.dtype,
                                                          c_bal_trsf.vx.c_ptr)
                 libblockmatching.BAL_CopyTransformation(
                     pointer(c_bal_trsf._c_bal_trsf), self.c_ptr)
@@ -155,11 +155,11 @@ class BalTransformation(object, enumTypeTransfo, enumUnitTransfo):
             self.vx = None
             self.vy = None
             self.vz = None
-        self.trsf_type = self._c_bal_trsf.type
+        self.trsf_type = self._c_bal_trsf.dtype
 
     def read(self, path):
         libblockmatching.BAL_ReadTransformation(self.c_ptr, str(path))
-        self.trsf_type = self._c_bal_trsf.type
+        self.trsf_type = self._c_bal_trsf.dtype
         self.trsf_unit = self._c_bal_trsf.transformation_unit
 
     def write(self, path):

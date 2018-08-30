@@ -65,7 +65,7 @@ def vt_img_to_sp_img(vt_image):
     """
     _VT_IMAGE structure to SpatialImage
     """
-    dt = vt_type_to_c_type(vt_image.type)
+    dt = vt_type_to_c_type(vt_image.dtype)
     x, y, z, v = vt_image.dim.x, vt_image.dim.y, vt_image.dim.z, vt_image.dim.v
     size = x * y * z * v
     vx, vy, vz = vt_image.siz.x, vt_image.siz.z, vt_image.siz.z

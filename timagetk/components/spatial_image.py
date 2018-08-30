@@ -372,6 +372,33 @@ class SpatialImage(np.ndarray):
         print  self._metadata
         return
 
+    def astype(self, type, **kwargs):
+        """
+        Copy of the SpatialImage with updated data type.
+
+        Parameters
+        ----------
+        type: str
+            new type of data to apply
+        kwargs: dict
+            given to numpy array 'astype()' method
+
+        Returns
+        -------
+        SpatialImage
+            image with the new data type
+        """
+        # - Convert the numpy array:
+        array = self.get_array().astype(type, **kwargs)
+        # - Get 'origin', 'voxelsize' & 'metadata':
+        origin = self.origin
+        voxelsize = self.voxelsize
+        md = self.metadata
+        # - Update metadata 'type' to new type:
+        md['type'] = type
+        return SpatialImage(array, origin=origin, voxelsize=voxelsize,
+                            metadata_dict=md)
+
     def is_isometric(self):
         """
         Test if the image is isometric, meaning the voxelsize value is the same
@@ -586,7 +613,7 @@ class SpatialImage(np.ndarray):
             return False
 
         # - Test array equality:
-        ori_type = self.type
+        ori_type = self.dtype
         if ori_type.startswith(
                 'u'):  # unsigned case is problematic for 'np.subtract'
             tmp_type = DICT_TYPES[ori_type[1:]]
@@ -741,7 +768,7 @@ class SpatialImage(np.ndarray):
 
         Returns
         -------
-        *self.type*
+        *self.dtype*
             pixel value
 
         Example
@@ -1118,8 +1145,10 @@ class SpatialImage(np.ndarray):
                 orig = [md['origin'][1], md['origin'][0]]
                 md['voxelsize'], md['extent'], md['origin'] = vox, ext, orig
                 self._voxelsize, self._extent, self._origin = vox, ext, orig
-            elif (self.is3D() and old_shape[0] in sh and old_shape[1] in sh and old_shape[2] in sh):
-                print('Warning: possibly incorrect voxelsize, extent and origin')
+            elif (self.is3D() and old_shape[0] in sh and old_shape[1] in sh and
+                  old_shape[2] in sh):
+                print(
+                    'Warning: possibly incorrect voxelsize, extent and origin')
                 vox, ext, orig = [], [], []
                 for ind in range(0, self.ndim):
                     tmp = old_shape.index(sh[ind])
@@ -1214,8 +1243,8 @@ class SpatialImage(np.ndarray):
         if img_metadata.has_key('voxelsize') and img_metadata[
             'voxelsize'] != self.voxelsize:
             self.voxelsize = around_list(img_metadata['voxelsize'])
-        if img_metadata.has_key('type') and img_metadata['type'] != self.type:
-            self.type = img_metadata['type']
+        if img_metadata.has_key('type') and img_metadata['type'] != self.dtype:
+            self.dtype = img_metadata['type']
 
         return
 
@@ -1269,66 +1298,66 @@ class SpatialImage(np.ndarray):
         print "Set origin to '{}'".format(self.origin)
         return
 
-    @property
-    def type(self):
-        """
-        Get ``SpatialImage`` type.
+    # Deprecated, use Numpy attribute 'dtype'
+    # @property
+    # def type(self):
+    #     """
+    #     Get ``SpatialImage`` type.
+    #
+    #     Returns
+    #     -------
+    #     str
+    #         ``SpatialImage`` type
+    #
+    #     Example
+    #     -------
+    #     >>> import numpy as np
+    #     >>> from timagetk.components import SpatialImage
+    #     >>> test_array = np.ones((5,5), dtype=np.uint8)
+    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> print image.dtype
+    #     uint8
+    #     """
+    #     return str(self.dtype)
 
-        Returns
-        -------
-        str
-            ``SpatialImage`` type
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> print image.type
-        uint8
-        """
-        return str(self.dtype)
-
-    @type.setter
-    def type(self, val):
-        """
-        Set ``SpatialImage`` type.
-
-        Parameters
-        ----------
-        image_type: str
-            image type (see numpy types).
-
-        Returns
-        -------
-        ``SpatialImage``
-            new instance of given type
-
-        Example
-        -------
-        >>> import numpy as np
-        >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
-        >>> image.type = np.uint16
-        >>> print image.type
-        uint16
-        """
-        if (val in DICT_TYPES.keys() or val in DICT_TYPES.values()):
-            for key in DICT_TYPES:
-                if (val == key or val == DICT_TYPES[key]):
-                    new_type = DICT_TYPES[key]
-
-            met_dict = self._metadata
-            self = self.astype(new_type)
-            met_dict['type'] = str(new_type)
-            self._metadata = met_dict
-        else:
-            raise ValueError(
-                "Unknown type '{}', possible types are: {}".format(val,
-                                                                   POSS_TYPES))
-        return self
+    # Deprecated, use overloaded NumPy method 'astype()' !!
+    # @type.setter
+    # def type(self, val):
+    #     """
+    #     Set ``SpatialImage`` type.
+    #
+    #     Parameters
+    #     ----------
+    #     image_type: str
+    #         image type (see numpy types).
+    #
+    #     Returns
+    #     -------
+    #     ``SpatialImage``
+    #         new instance of given type
+    #
+    #     Example
+    #     -------
+    #     >>> import numpy as np
+    #     >>> from timagetk.components import SpatialImage
+    #     >>> test_array = np.ones((5,5), dtype=np.uint8)
+    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> image.dtype = np.uint16
+    #     >>> print image.dtype
+    #     uint16
+    #     """
+    #     if (val in DICT_TYPES.keys() or val in DICT_TYPES.values()):
+    #         for key in DICT_TYPES:
+    #             if (val == key or val == DICT_TYPES[key]):
+    #                 new_type = DICT_TYPES[key]
+    #
+    #         self.__init__(self, self.get_array().astype(new_type),
+    #                               origin=self.origin, voxelsize=self.voxelsize,
+    #                               metadata_dict=self.metadata)
+    #     else:
+    #         msg = "Unknown type '{}', possible types are: {}"
+    #         raise ValueError(msg.format(val, POSS_TYPES))
+    #     return
 
     @property
     def voxelsize(self):
