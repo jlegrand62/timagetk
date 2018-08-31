@@ -399,6 +399,8 @@ class AbstractLabelledImage(SpatialImage):
 
     def __init__(self, image, background=None, no_label_id=None, **kwargs):
         """
+        AbstractLabelledImage constructor.
+
         Parameters
         ----------
         image: SpatialImage
@@ -417,8 +419,8 @@ class AbstractLabelledImage(SpatialImage):
         metadata_dict = image.metadata
         # - Inherit SpatialImage class:
         SpatialImage.__init__(self, input_array, origin=origin,
-                              voxelsize=voxelsize,
-                              dtype=dtype, metadata_dict=metadata_dict)
+                              voxelsize=voxelsize, dtype=dtype,
+                              metadata_dict=metadata_dict)
         # - Initializing EMPTY hidden attributes:
         # -- Useful label lists:
         self._labels = None  # list of image-labels referring to cell-labels
