@@ -19,8 +19,7 @@ from timagetk.util import elapsed_time
 from timagetk.util import percent_progress
 
 from timagetk.components import SpatialImage
-from timagetk.components import imread
-from timagetk.components.slices import dilation
+from timagetk.components.slices import dilation_by
 from timagetk.components.slices import real_indices
 
 __all__ = ['LabelledImage']
@@ -137,6 +136,26 @@ def default_structuring_element3d():
     return connectivity_26()
 
 
+def test_structuring_element(array, struct):
+    """
+    Test if the array and the strucutring element are compatible, ie. of same
+    dimensionality.
+
+    Parameters
+    ----------
+    array : np.array
+        array on wich the structuring element should be applied
+    struct : np.array
+        array defining the structuring element
+
+    Returns
+    -------
+    bool
+        True if compatible, False otherwise
+    """
+    return array.ndim == struct.ndim
+
+
 # ------------------------------------------------------------------------------
 #
 # LABEL based functions:
@@ -156,8 +175,9 @@ def label_inner_wall(labelled_img, label_id, struct=None, connectivity_order=1):
     struct: np.array, optional
         a binary structure to use for erosion
     connectivity_order: int, optional
-        connectivity order determines which elements of the output array belong to the
-        structure, i.e. are considered as neighbors of the central element.
+        connectivity order determines which elements of the output array belong
+        to the structure, i.e. are considered as neighbors of the central
+        element.
         Elements up to a squared distance of connectivity from the center are
         considered neighbors, thus it may range from 1 (no diagonal elements are
         neighbors) to rank (all elements are neighbors), with rank the number of
@@ -165,8 +185,8 @@ def label_inner_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Returns
     -------
-    np.array|LabelledImage: a labelled array with only the inner-wall position
-    as non-null value
+    np.array|LabelledImage
+        a labelled array with only the inner-wall position as non-null value
     """
     if struct is None:
         rank = labelled_img.ndim
@@ -195,8 +215,9 @@ def label_outer_wall(labelled_img, label_id, struct=None, connectivity_order=1):
     struct: np.array, optional
         a binary structure to use for dilation
     connectivity_order: int, optional
-        connectivity order determines which elements of the output array belong to the
-        structure, i.e. are considered as neighbors of the central element.
+        connectivity order determines which elements of the output array belong
+        to the structure, i.e. are considered as neighbors of the central
+        element.
         Elements up to a squared distance of connectivity from the center are
         considered neighbors, thus it may range from 1 (no diagonal elements are
         neighbors) to rank (all elements are neighbors), with rank the number of
@@ -204,8 +225,8 @@ def label_outer_wall(labelled_img, label_id, struct=None, connectivity_order=1):
 
     Returns
     -------
-    np.array|LabelledImage: a labelled array with only the outer-wall position
-    as non-null value
+    np.array|LabelledImage
+        a labelled array with only the outer-wall position as non-null value
     """
     if struct is None:
         dim = labelled_img.ndim
@@ -233,7 +254,8 @@ def neighbors_from_image(labelled_img, label_id):
 
     Returns
     -------
-    list: neighbors label of 'label_id'
+    list
+        neighbors label of 'label_id'
     """
     if isinstance(label_id, int):
         # Get outer-wall position & return unique list of labels:
@@ -242,9 +264,8 @@ def neighbors_from_image(labelled_img, label_id):
         return {l: list(np.unique(label_outer_wall(labelled_img, l))) for l in
                 label_id}
     else:
-        raise TypeError(
-            "Parameter 'label_id' should be an integer or a list, got '{}'.".format(
-                type(label_id)))
+        msg = "Parameter 'label_id' should be an integer or a list, got '{}'."
+        raise TypeError(msg.format(type(label_id)))
 
 
 # ------------------------------------------------------------------------------
@@ -252,37 +273,36 @@ def neighbors_from_image(labelled_img, label_id):
 # WHOLE LABELLED IMAGE functions:
 #
 # ------------------------------------------------------------------------------
-def image_with_labels(image, labels, boundingbox, erase_value=0):
+def image_with_labels(image, labels):
     """
     Create a new image containing only the given labels.
     Use image as template (shape, origin, voxelsize & metadata).
 
     Parameters
     ----------
-    image: SpatialImage
+    image : LabelledImage
         labelled spatial image to use as template for labels extraction
-    labels: list
+    labels : list
         list of labels to keep in the image
-    boundingbox: dict
-        dictionary of labels' boundingbox
-    erase_value: int, optional
+    erase_value : int, optional
         value use to use in place of discarded labels
 
     Returns
     -------
-    template_im: SpatialImage
+    LabelledImage
         the image containing only the given 'labels'
     """
+    erase_value = image.no_label_id
+    # - Initialising empty template image
     print "Initialising empty template image..."
     if erase_value == 0:
         template_im = np.zeros_like(image.get_array())
     else:
         template_im = np.ones_like(image.get_array()) * erase_value
 
-    # - Now we can add 'labels' using bounding boxes to speed-up computation:
     nb_labels = len(labels)
-    array = image.get_array()
-    ndim = image.get_dim()
+    boundingbox = image.boundingbox(labels)
+    # - Add selected 'labels' to the empty image:
     no_bbox = []
     progress = 0
     print "Adding {} labels to the empty template image...".format(nb_labels)
@@ -290,48 +310,48 @@ def image_with_labels(image, labels, boundingbox, erase_value=0):
         progress = percent_progress(progress, n, nb_labels)
         try:
             bbox = boundingbox[label]
-            xyz = np.array(np.where((array[bbox]) == label)).T
-            xyz = tuple([xyz[:, n] + bbox[n].start for n in range(ndim)])
+            xyz = np.array(np.where((image[bbox]) == label)).T
+            xyz = tuple([xyz[:, n] + bbox[n].start for n in range(image.ndim)])
             template_im[xyz] = label
         except ValueError:
             no_bbox.append(label)
-            template_im[array == label] = label
+            template_im[image == label] = label
 
     # - If some boundingbox were missing, print about it:
     if no_bbox:
         n = len(no_bbox)
         print "Could not find boundingbox for {} labels: {}".format(n, no_bbox)
 
-    return SpatialImage(template_im, voxelsize=image.voxelsize,
-                        origin=image.origin,
-                        metadata_dict=image.metadata)
+    return LabelledImage(template_im, voxelsize=image.voxelsize,
+                         origin=image.origin, metadata_dict=image.metadata,
+                         no_label_id=image.no_label_id)
 
 
-def image_without_labels(image, labels, boundingbox, erase_value=0):
+def image_without_labels(image, labels):
     """
     Create a new image without the given labels.
     Use self.image as template (shape, origin, voxelsize & metadata).
 
     Parameters
     ----------
-    image: SpatialImage
+    image: LabelledImage
         labelled spatial image to use as template for labels deletion
     labels: list
         list of labels to remove from the image
-    boundingbox: dict
-        dictionary of labels' boundingbox
-    erase_value: int, optional
-        value use to use in place of discarded labels
 
     Returns
     -------
-    template_im: SpatialImage
+    LabelledImage
         an image without the given 'labels'
     """
+    erase_value = image.no_label_id
+    # - Initialising template image:
     print "Initialising template image from self.image..."
     template_im = image.get_array()
-    # - Now we can add 'labels' using bounding boxes to speed-up computation:
+
     nb_labels = len(labels)
+    boundingbox = image.boundingbox(labels)
+    # - Remove selected 'labels' from the empty image:
     no_bbox = []
     progress = 0
     print "Removing the {} labels from the template image...".format(
@@ -352,9 +372,9 @@ def image_without_labels(image, labels, boundingbox, erase_value=0):
         n = len(no_bbox)
         print "Could not find boundingbox for {} labels: {}".format(n, no_bbox)
 
-    return SpatialImage(template_im, voxelsize=image.voxelsize,
-                        origin=image.origin,
-                        metadata_dict=image.metadata)
+    return LabelledImage(template_im, voxelsize=image.voxelsize,
+                         origin=image.origin, metadata_dict=image.metadata,
+                         no_label_id=image.no_label_id)
 
 
 def array_replace_label(array, label, new_label, bbox=None):
@@ -387,102 +407,110 @@ def array_replace_label(array, label, new_label, bbox=None):
     return array
 
 
+def hollow_out_labels(image, **kwargs):
+    """
+    Returns a labelled image containing only the wall, the rest is set to
+    'image.no_label_id'.
+
+    Parameters
+    ----------
+    image : LabelledImage
+        labelled image to transform
+
+    Returns
+    -------
+    LabelledImage
+        labelled image containing hollowed out cells (only walls).
+
+    Notes
+    -----
+    The Laplacian filter is used to detect wall positions, as it highlights
+    regions of rapid intensity change.
+    """
+    verbose = kwargs.get('verbose', True)
+    if verbose:
+        print '\nHollowing out labelled numpy array... ',
+
+    t_start = time.time()
+    # - The laplacian allows to quickly get a mask with all the walls:
+    wall_mask = np.array(nd.laplace(image))
+    wall_mask = wall_mask != 0  # mask of "wall image"
+    # - Get the label values:
+    image *= wall_mask
+
+    if verbose:
+        elapsed_time(t_start)
+
+    return image
+
+
 # - GLOBAL VARIABLES:
 MISS_LABEL = "The following label{} {} not found in the image: {}"  # ''/'s'; 'is'/'are'; labels
 
 
-class AbstractLabelledImage(SpatialImage):
+class LabelledImage(SpatialImage):
     """
-    This class allows to manipulate labelled SpatialImage, eg. segmented image
-    of a biological tissue where each cell has a different label or id.
+    Class to manipulate labelled SpatialImage, eg. a segmented image.
     """
 
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
+    def __init__(self, image, no_label_id=None, **kwargs):
         """
-        AbstractLabelledImage constructor.
+        LabelledImage constructor.
 
         Parameters
         ----------
-        image: SpatialImage
-            the SpatialImage containing the labelled tissue
-        background: int, optional
-            if given define the label of the background (ie. space surrounding
-            the tissue)
+        image: np.array|SpatialImage
+            a numpy array or a SpatialImage containing a labelled array
         no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
+            if given define the "unknown label" (ie. not a label)
+
+        kwargs
+        ------
+        origin: list, optional
+            coordinates of the origin in the image, default: [0,0] or [0,0,0]
+        voxelsize: list, optional.
+            image voxelsize, default: [1.0,1.0] or [1.0,1.0,1.0]
+        dtype: str, optional
+            image type, default dtype = input_array.dtype
+        metadata_dict: dict, optional
+            dictionary of image metadata, default is an empty dict
         """
         # - Get variable for SpatialImage initialisation:
-        input_array = image.get_array()
-        origin = image.origin
-        voxelsize = image.voxelsize
-        dtype = image.dtype
-        metadata_dict = image.metadata
+        if isinstance(image, SpatialImage):
+            input_array = image.get_array()
+            origin = image.origin
+            voxelsize = image.voxelsize
+            dtype = image.dtype
+            metadata_dict = image.metadata
+        else:
+            input_array = image
+            origin = kwargs.get('origin', None)
+            voxelsize = kwargs.get('voxelsize', None)
+            dtype = kwargs.get('voxelsize', image.dtype)
+            metadata_dict = kwargs.get('metadata_dict', None)
+
         # - Inherit SpatialImage class:
         SpatialImage.__init__(self, input_array, origin=origin,
                               voxelsize=voxelsize, dtype=dtype,
                               metadata_dict=metadata_dict)
+
         # - Initializing EMPTY hidden attributes:
+        # -- Property hidden attributes:
+        self._no_label_id = None  # id refering to the absence of label
         # -- Useful label lists:
         self._labels = None  # list of image-labels referring to cell-labels
-        self._cell_layer1 = None  # contain the list of L1 cells
-        self._cell_layer2 = None  # contain the list of L2 cells
-
         # -- Useful & recurrent label properties:
         self._bbox = []  # list of bounding boxes (indexed 'self._labels - 1')
         self._bbox_dict = {}  # dict of bounding boxes
         self._neighbors = {}  # unfiltered neighborhood label-dict {vid_i: neighbors(vid_i)}
 
-        # - Define object hidden attributes:
-        # -- Define the background value, if any (can be None):
-        self._background_id = background
-        if self._background_id is not None:
-            print "The background position is defined by value '{}'!".format(
-                self._background_id)
-
+        # - Initialise object property and most used hidden attributes:
         # -- Define the "no_label_id" value, if any (can be None):
-        self._no_label_id = no_label_id
-        if self._no_label_id is not None:
-            print "The absence of label is defined by value '{}'!".format(
-                self._no_label_id)
-
-        # - Compute useful & recurrent label properties
+        self.no_label_id = no_label_id
         # -- Get the list of labels found in the image:
-        self._labels = self.labels()
+        self.labels()
         # -- Get the boundingbox dictionary:
         self.boundingbox()
-
-    @property
-    def background(self):
-        """
-        Get the background label, can be None.
-
-        Returns
-        -------
-        background: int
-            the label value for the background
-        """
-        if self._background_id is None:
-            print "WARNING: no value defined for the background id!"
-        return self._background_id
-
-    @background.setter
-    def background(self, label):
-        """
-        Set the background label.
-
-        Parameters
-        ----------
-        label: int
-            integer defining the background id in the image.
-        """
-        if not isinstance(label, int):
-            print "Provided label '{}' is not an integer!".format(label)
-            return
-        elif label not in self._labels:
-            print "Provided label '{}' is not found in the image!".format(label)
-            return
-        else:
-            self._background_id = label
 
     @property
     def no_label_id(self):
@@ -494,6 +522,25 @@ class AbstractLabelledImage(SpatialImage):
         -------
         no_label_id: int
             the value defined as the "no_label_id"
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a)
+        >>> im.labels()
+        [1, 2, 3, 4, 5, 6, 7]
+        >>> im.no_label_id
+        WARNING: no value defined for the 'no label' id!
+        >>> im = LabelledImage(a, no_label_id=1)
+        >>> im.labels()
+        [2, 3, 4, 5, 6, 7]
+        >>> im.no_label_id
+        1
         """
         if self._no_label_id is None:
             print "WARNING: no value defined for the 'no label' id!"
@@ -508,12 +555,43 @@ class AbstractLabelledImage(SpatialImage):
         ----------
         value: int
             value to be defined as the "no_label_id"
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a)
+        >>> im.labels()
+        [1, 2, 3, 4, 5, 6, 7]
+        >>> im.no_label_id
+        WARNING: no value defined for the 'no label' id!
+        >>> im.no_label_id = 1
+        >>> im.labels()
+        [2, 3, 4, 5, 6, 7]
+        >>> im.no_label_id
+        1
         """
         if not isinstance(value, int):
             print "Provided value '{}' is not an integer!".format(value)
             return
         else:
             self._no_label_id = value
+
+    def _defined_no_label_id(self):
+        """
+        Tests if '_no_label_id' attribute is defined, if not raise a ValueError.
+        """
+        try:
+            assert self._no_label_id is not None
+        except AssertionError:
+            msg = "Attribute 'no_label_id' is not defined (None)."
+            msg += "Please set it (integer) before calling this function!"
+            raise ValueError(msg)
+        return
 
     def labels(self, labels=None):
         """
@@ -528,14 +606,14 @@ class AbstractLabelledImage(SpatialImage):
 
         Returns
         -------
-        labels: list
-            list of label found in the image, except for 'background' and
-            'no_label_id' (if defined)
+        list
+            list of label found in the image, except for 'no_label_id'
+            (if defined)
 
         Notes
         -----
-        Values defined for 'background' & 'no_label_id' are removed from the
-        returned list of labels since they do not relate to cells.
+        Value defined for 'no_label_id' is removed from the returned list of
+        labels since it does not refer to one.
 
         Examples
         --------
@@ -544,21 +622,18 @@ class AbstractLabelledImage(SpatialImage):
                           [1, 6, 5, 7, 3, 3],
                           [2, 2, 1, 7, 3, 3],
                           [1, 1, 1, 4, 1, 1]])
-        >>> from timagetk.components.labelled_image import LabelledImage
+        >>> from timagetk.components import LabelledImage
         >>> im = LabelledImage(a)
         >>> im.labels()
-        [1,2,3,4,5,6,7]
-        >>> im = LabelledImage(a, background=1)
-        >>> im.labels()
-        [2,3,4,5,6,7]
+        [1, 2, 3, 4, 5, 6, 7]
         """
         if isinstance(labels, int):
             labels = [labels]
         # - If the hidden label attribute is None, list all labels in the array:
         if self._labels is None:
             self._labels = np.unique(self.get_array())
-        # - Remove values attributed to 'background' & 'no_label_id':
-        unwanted_set = {self.background, self.no_label_id}
+        # - Remove value attributed to 'no_label_id':
+        unwanted_set = {self.no_label_id}
         label_set = set(self._labels) - unwanted_set
 
         if labels:
@@ -578,11 +653,11 @@ class AbstractLabelledImage(SpatialImage):
                           [2, 2, 1, 7, 3, 3],
                           [1, 1, 1, 4, 1, 1]])
 
-        >>> from timagetk.components.labelled_image import LabelledImage
+        >>> from timagetk.components import LabelledImage
         >>> im = LabelledImage(a)
         >>> im.nb_labels()
         7
-        >>> im = LabelledImage(a, background=1)
+        >>> im = LabelledImage(a, no_label_id=1)
         >>> im.nb_labels()
         6
         """
@@ -596,6 +671,21 @@ class AbstractLabelledImage(SpatialImage):
         ----------
         label: int
             label to check
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a)
+        >>> im.is_label_in_image(7)
+        True
+        >>> im.is_label_in_image(10)
+        False
         """
         return label in self.get_array()
 
@@ -625,15 +715,12 @@ class AbstractLabelledImage(SpatialImage):
                           [2, 2, 1, 7, 3, 3],
                           [1, 1, 1, 4, 1, 1]])
 
-        >>> from timagetk.components.labelled_image import LabelledImage
+        >>> from timagetk.components import LabelledImage
         >>> im = LabelledImage(a)
-
         >>> im.boundingbox(7)
         (slice(0, 3), slice(2, 4), slice(0, 1))
-
         >>> im.boundingbox([7,2])
         [(slice(0, 3), slice(2, 4), slice(0, 1)), (slice(0, 3), slice(0, 2), slice(0, 1))]
-
         >>> im.boundingbox()
         [(slice(0, 4), slice(0, 6), slice(0, 1)),
         (slice(0, 3), slice(0, 2), slice(0, 1)),
@@ -643,7 +730,6 @@ class AbstractLabelledImage(SpatialImage):
         (slice(1, 2), slice(1, 2), slice(0, 1)),
         (slice(0, 3), slice(2, 4), slice(0, 1))]
         """
-
         # - Starts with integer case since it is the easiest:
         if isinstance(labels, int):
             try:
@@ -654,7 +740,7 @@ class AbstractLabelledImage(SpatialImage):
                 self._bbox_dict[labels] = bbox
             return self._bbox_dict[labels]
         else:
-            # !! remove 'self._background_id' & 'self._no_label_id'
+            # !! remove 'self._no_label_id'
             labels = self.labels()
 
         # - Create a dict of bounding-boxes using 'scipy.ndimage.find_objects':
@@ -676,7 +762,7 @@ class AbstractLabelledImage(SpatialImage):
 
         return bboxes
 
-    def label_array(self, label):
+    def label_array(self, label, dilation=None):
         """
         Returns an array made from the labelled image cropped around the label
         bounding box.
@@ -685,20 +771,44 @@ class AbstractLabelledImage(SpatialImage):
         ----------
         label: int
             label for which to extract the neighbors
+        dilation: int, optional
+            if defined (default is None), use this value as a dilation factor
+            (in every directions) to be applied to the label boundingbox
 
         Returns
         -------
-        crop_im: np.array
+        np.array
             labelled array cropped around the label bounding box
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a)
+        >>> im.label_array(7)
+        array([[7, 7],
+               [5, 7],
+               [1, 7]])
+        >>> im.label_array(7, dilation=1)
+        array([[2, 7, 7, 1],
+               [6, 5, 7, 3],
+               [2, 1, 7, 3],
+               [1, 1, 4, 1]])
         """
         # - Get the slice for given label:
         slices = self.boundingbox(label)
         # - Create the cropped image when possible:
-        if slice is None:
+        if slices is None:
             crop_img = self.get_array()
         else:
-            ex_slices = dilation(slices)
-            crop_img = self.get_array()[ex_slices]
+            if dilation:
+                slices = dilation_by(slices, dilation)
+            crop_img = self.get_array()[slices]
+
         return crop_img
 
     def _neighbors_with_mask(self, label):
@@ -712,7 +822,7 @@ class AbstractLabelledImage(SpatialImage):
 
         Returns
         -------
-        neighbors: list
+        list
             list of neighbors for given label
         """
         # - Compute the neighbors and update the unfiltered neighbors dict:
@@ -733,7 +843,7 @@ class AbstractLabelledImage(SpatialImage):
 
         Returns
         -------
-        neighborhood: dict
+        dict
             neighborhood dictionary for given list of labels
         """
         verbose = kwargs.get('verbose', False)
@@ -786,16 +896,12 @@ class AbstractLabelledImage(SpatialImage):
                           [1, 6, 5, 7, 3, 3],
                           [2, 2, 1, 7, 3, 3],
                           [1, 1, 1, 4, 1, 1]])
-
-        >>> from timagetk.components.labelled_image import LabelledImage
+        >>> from timagetk.components import LabelledImage
         >>> im = LabelledImage(a)
-
         >>> im.neighbors(7)
         [1, 2, 3, 4, 5]
-
         >>> im.neighbors([7,2])
         {7: [1, 2, 3, 4, 5], 2: [1, 6, 7] }
-
         >>> im.neighbors()
         {1: [2, 3, 4, 5, 6, 7],
          2: [1, 6, 7],
@@ -812,17 +918,14 @@ class AbstractLabelledImage(SpatialImage):
         # - Neighborhood computing:
         if isinstance(labels, int):
             try:
-                assert labels in self.labels() or labels == self.background
+                assert self.is_label_in_image(labels)
             except AssertionError:
                 raise ValueError(MISS_LABEL.format('', 'is', labels))
             if verbose:
                 print "Extracting neighbors for label {}...".format(labels)
             return self._neighbors_with_mask(labels)
         else:  # list case:
-            if self.background in labels:
-                labels = [self.background] + self.labels(labels)
-            else:
-                labels = self.labels(labels)
+            labels = self.labels(labels)
             try:
                 assert labels != []
             except AssertionError:
@@ -838,7 +941,7 @@ class AbstractLabelledImage(SpatialImage):
     #
     # ##########################################################################
 
-    def get_image_with_labels(self, labels, keep_background=True):
+    def get_image_with_labels(self, labels):
         """
         Returns a LabelledImage with only the selected 'labels', the rest are
         replaced by "self._no_label_id".
@@ -851,36 +954,35 @@ class AbstractLabelledImage(SpatialImage):
             if a list of integers, make sure they are in self.labels()
             if a string, should be in LABEL_STR to get corresponding
             list of cells (case insensitive)
-        keep_background: bool, optional
-            indicate if background label should be kept in the returned image
 
         Returns
         -------
-        template_im: SpatialImage
+        LabelledImage
             labelled image with 'labels' only
-        """
-        try:
-            assert self._no_label_id is not None
-        except AssertionError:
-            raise ValueError(
-                "Attribute 'no_label_id' is not defined (None), please set it to an integer value before calling this function!")
 
+        Notes
+        -----
+        Require property 'no_label_id' to be defined!
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a, no_label_id=0)
+        >>> im.get_image_with_labels([2, 5])
+        LabelledImage([[0, 2, 0, 0, 0, 0],
+                       [0, 0, 5, 0, 0, 0],
+                       [2, 2, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0]])
+        """
+        self._defined_no_label_id()
         all_labels = self.labels()
         labels = self.labels(labels)
         off_labels = list(set(all_labels) - set(labels))
-
-        back_id = self.background
-        if keep_background:
-            try:
-                assert back_id is not None
-            except AssertionError:
-                raise ValueError(
-                    "You asked to keep the background position, but no backgroun label is defined!")
-            else:
-                labels.append(back_id)
-        else:
-            if back_id:
-                off_labels.append(back_id)
 
         if len(off_labels) == 0:
             print "WARNING: you selected ALL label!"
@@ -889,19 +991,16 @@ class AbstractLabelledImage(SpatialImage):
             print "WARNING: you selected NO label!"
             return
 
-        bbox_dict = self.boundingbox(labels)
-        no_value = self.no_label_id
         if len(labels) < len(off_labels):
-            template_im = image_with_labels(self, labels, bbox_dict, no_value)
+            template_im = image_with_labels(self, labels)
         else:
-            template_im = image_without_labels(self, off_labels, bbox_dict,
-                                               no_value)
+            template_im = image_without_labels(self, off_labels)
 
         return template_im
 
-    def get_image_without_labels(self, labels, keep_background=True):
+    def get_image_without_labels(self, labels):
         """
-        Returns a SpatialImage without the selected labels.
+        Returns a LabelledImage without the selected labels.
 
         Parameters
         ----------
@@ -910,31 +1009,70 @@ class AbstractLabelledImage(SpatialImage):
             if None, neighbors for all labels found in self.image will
             be returned.
             strings might be processed trough 'self.labels_checker()'
-        keep_background: bool, optional
-            indicate if background label should be kept in the returned image
-        no_label_value: int
-            value use to use in place of discarded labels
 
         Returns
         -------
-        template_im: SpatialImage
+        LabelledImage
             labelled image with 'labels' only
+
+        Notes
+        -----
+        Require property 'no_label_id' to be defined!
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a, no_label_id=0)
+        >>> im.get_image_without_labels([2, 5])
+        LabelledImage([[1, 0, 7, 7, 1, 1],
+                       [1, 6, 0, 7, 3, 3],
+                       [0, 0, 1, 7, 3, 3],
+                       [1, 1, 1, 4, 1, 1]])
         """
         all_labels = self.labels()
         labels = self.labels(labels)
         off_labels = list(set(all_labels) - set(labels))
+        return self.get_image_with_labels(off_labels)
 
-        return self.get_image_with_labels(off_labels, keep_background)
-
-    def fuse_labels_in_image(self, labels, value='min', verbose=True):
+    def get_wall_image(self, labels=None, **kwargs):
         """
-        Fuse the provided list of labels to its minimal value.
+        Get an image made of walls only (hollowed out cells).
+
+        Parameters
+        ----------
+        labels: list, optional
+            list of labels to return in the wall image, by default (None) return
+            all labels
+        kwargs: dict, optional
+            given to 'hollow_out_cells', 'verbose' accepted
+
+        Returns
+        -------
+        LabelledImage
+            the labelled wall image
+        """
+        if labels is not None:
+            image = self.get_image_with_labels(labels)
+        else:
+            image = self
+
+        return hollow_out_labels(image, **kwargs)
+
+    def fuse_labels_in_image(self, labels, new_value='min', verbose=True):
+        """
+        Fuse the provided list of labels to a given new_value, or the min or max
+        of the list of labels.
 
         Parameters
         ----------
         labels: list
             list of labels to fuse
-        value: str, optional
+        new_value: int|str, optional
             value used to replace the given list of labels, by default use the
             min value of the `labels` list. Can also be the max value.
         verbose: bool, optional
@@ -943,108 +1081,157 @@ class AbstractLabelledImage(SpatialImage):
         Returns
         -------
         Nothing, modify the LabelledImage array (re-instantiate the object)
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a, no_label_id=0)
+        >>> im.fuse_labels_in_image([6, 7], new_value=8)
+        LabelledImage([[1, 2, 8, 8, 1, 1],
+                       [1, 8, 5, 8, 3, 3],
+                       [2, 2, 1, 8, 3, 3],
+                       [1, 1, 1, 4, 1, 1]])
+        >>> im.fuse_labels_in_image([6, 7], new_value='min')
+        LabelledImage([[1, 2, 6, 6, 1, 1],
+                       [1, 6, 5, 6, 3, 3],
+                       [2, 2, 1, 6, 3, 3],
+                       [1, 1, 1, 4, 1, 1]])
+        >>> im.fuse_labels_in_image([6, 7], new_value='max')
+        LabelledImage([[1, 2, 7, 7, 1, 1],
+                       [1, 7, 5, 7, 3, 3],
+                       [2, 2, 1, 7, 3, 3],
+                       [1, 1, 1, 4, 1, 1]])
         """
-        if isinstance(labels, np.array):
+        if isinstance(labels, np.ndarray):
             labels = labels.tolist()
         elif isinstance(labels, set):
             labels = list(labels)
         else:
             assert isinstance(labels, list) and len(labels) >= 2
 
-        if value != 'min':
-            try:
-                assert self.background not in labels
-            except:
-                raise ValueError("Can not replace the background value!")
+        # - Make sure 'labels' is correctly formatted:
+        labels = self.labels(labels)
+        nb_labels = len(labels)
+        # - If no labels to remove, its over:
+        if nb_labels == 0:
+            print 'No labels to fuse!'
+            return
 
-        if value == "min":
-            value = min(labels)
-        elif value == "max":
-            value = max(labels)
+        # - Define the integer value of 'new_value':
+        if new_value == "min":
+            new_value = min(labels)
+            labels.remove(new_value)
+        elif new_value == "max":
+            new_value = max(labels)
+            labels.remove(new_value)
+        elif isinstance(new_value, int):
+            if self.is_label_in_image(new_value) and not new_value in labels:
+                msg = "Given new_value is in the image and not in the list of labels."
+                raise ValueError(msg)
+            if new_value in labels:
+                labels.remove(new_value)
         else:
             raise NotImplementedError(
-                "Unknown 'value' definition for '{}'".format(value))
+                "Unknown 'new_value' definition for '{}'".format(new_value))
 
-        labels.remove(value)
-        nb_labels = len(labels)
+        t_start = time.time()  # timer
         array = self.get_array()
         # - Label "fusion" loop:
         no_bbox = []
         progress = 0
         if verbose:
-            print "Fusing the following {} labels: {} to value '{}'.".format(
-                nb_labels, labels, value)
+            print "Fusing the following {} labels: {} to new_value '{}'.".format(
+                nb_labels, labels, new_value)
         for n, label in enumerate(labels):
             if verbose:
                 progress = percent_progress(progress, n, nb_labels)
-            # Try to get the label's boundingbox:
+            # - Try to get the label's boundingbox:
             try:
                 bbox = self.boundingbox(label)
             except KeyError:
                 no_bbox.append(label)
                 bbox = None
-            # Performs value replacement:
-            array = array_replace_label(array, label, self.no_label_id, bbox)
+            # - Performs value replacement:
+            array = array_replace_label(array, label, new_value, bbox)
 
         # - If some boundingbox were missing, print about it:
         if no_bbox:
             n = len(no_bbox)
             print "Could not find boundingbox for {} labels: {}".format(n,
                                                                         no_bbox)
+        # - May print about elapsed time:
+        if verbose:
+            elapsed_time(t_start)
 
-        # - Re-initialise the instance:
-        self._re_init_array(array, origin=self.origin,
-                            voxelsize=self.voxelsize,
-                            metadata_dict=self.metadata,
-                            background=self.background,
-                            no_label_id=self.no_label_id)
-
-        return
+        # TODO: re-instanciate the object !
+        return LabelledImage(array, origin=self.origin,
+                             voxelsize=self.voxelsize,
+                             metadata_dict=self.metadata,
+                             no_label_id=self.no_label_id)
 
     def remove_labels_from_image(self, labels, verbose=True):
         """
-        Remove 'labels' from self.image using 'erase_value'.
+        Remove 'labels' from self.image using 'no_label_id'.
 
         Parameters
         ----------
-        labels: list|str
+        labels: list
             list of labels to remove from the image
-            strings might be processed trough 'self.labels_checker()'
         verbose: bool, optional
             control verbosity
 
         Returns
         -------
         Nothing, modify the LabelledImage array (re-instantiate the object)
+
+        Notes
+        -----
+        Require property 'no_label_id' to be defined!
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> a = np.array([[1, 2, 7, 7, 1, 1],
+                          [1, 6, 5, 7, 3, 3],
+                          [2, 2, 1, 7, 3, 3],
+                          [1, 1, 1, 4, 1, 1]])
+        >>> from timagetk.components import LabelledImage
+        >>> im = LabelledImage(a, no_label_id=0)
+        >>> im.remove_labels_from_image([6, 7])
+        LabelledImage([[1, 2, 0, 0, 1, 1],
+                       [1, 0, 5, 0, 3, 3],
+                       [2, 2, 1, 0, 3, 3],
+                       [1, 1, 1, 4, 1, 1]])
         """
         if isinstance(labels, int):
             labels = [labels]
-        has_back_id = False
-        if self.background in labels:
-            has_back_id = True
+        elif isinstance(labels, np.ndarray):
+            labels = labels.tolist()
+        elif isinstance(labels, set):
+            labels = list(labels)
+        else:
+            assert isinstance(labels, list) and len(labels) >= 2
 
         # - Make sure 'labels' is correctly formatted:
         labels = self.labels(labels)
-
         nb_labels = len(labels)
-        # - If no labels and no background to remove, its over:
-        if nb_labels == 0 and not has_back_id:
-            print 'No labels found in the image to remove!'
+        # - If no labels to remove, its over:
+        if nb_labels == 0:
+            print 'No labels to remove!'
             return
 
         t_start = time.time()  # timer
         array = self.get_array()
-        ndim = self.get_dim()
-        # - Remove 'background' label:
-        if has_back_id:
-            if verbose:
-                print "Removing 'background' label..."
-            array[array == self.background] = self.no_label_id
         # - Remove 'labels' using bounding boxes to speed-up computation:
+        no_bbox = []
+        progress = 0
         if verbose:
             print "Removing {} cell labels.".format(nb_labels)
-        progress = 0
-        no_bbox = []
         for n, label in enumerate(labels):
             if verbose:
                 progress = percent_progress(progress, n, nb_labels)
@@ -1062,17 +1249,14 @@ class AbstractLabelledImage(SpatialImage):
             n = len(no_bbox)
             print "Could not find boundingbox for {} labels: {}".format(n,
                                                                         no_bbox)
-
-        # - Re-initialise the instance:
-
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
 
-        array = SpatialImage(array, origin=self.origin,
+        # TODO: re-instanciate the object !
+        return LabelledImage(array, origin=self.origin,
                              voxelsize=self.voxelsize,
-                             metadata_dict=self.metadata)
-        return LabelledImage(array, background=self.background,
+                             metadata_dict=self.metadata,
                              no_label_id=self.no_label_id)
 
     def relabel_from_mapping(self, mapping, clear_unmapped=False, **kwargs):
@@ -1100,14 +1284,9 @@ class AbstractLabelledImage(SpatialImage):
         -------
         Nothing, modify the LabelledImage array (re-instantiate the object)
         """
-        back_id = self.background
         # - **kwargs options:
         verbose = kwargs.get('verbose', False)
         # - Mapping dictionary inspection:
-        # -- Check the background is not there:
-        if back_id in mapping.keys():
-            msg = "The background id has been found in the mapping keys!"
-            raise ValueError(msg)
         # -- Check the mapping keys are integers:
         try:
             assert all([isinstance(k, int) for k in mapping.keys()])
@@ -1147,14 +1326,6 @@ class AbstractLabelledImage(SpatialImage):
             # -- Reset every value to `self._no_label_id` value:
             relab_img.fill(self._no_label_id)
             relab_img = relab_img.astype(dtype)
-            # - Get the background from the original image
-            if back_id is not None:
-                # Detect background location in the image
-                mask = self.get_array() == back_id
-                # Change the boolean mask to a 0/back_id array:
-                mask = mask * back_id
-                # Add it to the relabelled image:
-                relab_img += mask.astype(dtype)
 
         t_start = time.time()
         # - Relabelling loop:
@@ -1167,416 +1338,15 @@ class AbstractLabelledImage(SpatialImage):
             if verbose:
                 percent = percent_progress(percent, n, n_in, increment)
             bbox = self.boundingbox(old_lab)
-            mask = self.get_array()[bbox] == new_lab
+            mask = self.get_array()[bbox] == old_lab
             relab_img[bbox] += np.array(mask * new_lab, dtype=dtype)
 
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
 
-        relab_img = SpatialImage(relab_img, origin=self.origin,
-                                 voxelsize=self.voxelsize,
-                                 metadata_dict=self.metadata)
-        return LabelledImage(relab_img, background=self.background,
+        # TODO: re-instanciate the object !
+        return LabelledImage(relab_img, origin=self.origin,
+                             voxelsize=self.voxelsize,
+                             metadata_dict=self.metadata,
                              no_label_id=self.no_label_id)
-
-
-class LabelledImage2D(AbstractLabelledImage):
-    """
-    This class allows to manipulate 3D labelled SpatialImage, eg. segmented image
-    of a biological tissue where each cell has a different label or id.
-    """
-
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
-        AbstractLabelledImage.__init__(self, image, background=background,
-                                       no_label_id=no_label_id, **kwargs)
-
-
-class LabelledImage3D(AbstractLabelledImage):
-    """
-    This class allows to manipulate 3D labelled SpatialImage, eg. segmented image
-    of a biological tissue where each cell has a different label or id.
-    """
-
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
-        AbstractLabelledImage.__init__(self, image, background=background,
-                                       no_label_id=no_label_id, **kwargs)
-
-
-def voxel_n_layers(image, connectivity=18, n=1, **kwargs):
-    """
-    Extract the n-first layer of non-background voxels, ie. those in contact
-    with the background.
-
-    Parameters
-    ----------
-    image: LabelledImage
-        the SpatialImage containing the labelled tissue
-    connectivity: int, optional
-        connectivity or neighborhood of the structuring element, default is 18,
-        should be in [4, 6, 8, 18, 26], where 4 and 8 are 2D structuring
-        elements, the rest are 3D structuring elements.
-    n: int, optional
-        number of layer of voxels to extract, the first one being in contact
-        with the background
-
-    Returns
-    -------
-    LabelledImage
-        labelled image made of the selected number of voxel layers
-    """
-    verbose = kwargs.get('verbose', False)
-    if verbose:
-        print "Extracting the first layer of voxels...",
-    # Get background position (mask)
-    mask_img_1 = (image.get_array() == image.background)
-    # Dilate it by one voxel using a 18-connexe 3D structuring element:
-    struct = structuring_element(connectivity)
-    dil_1 = nd.binary_dilation(mask_img_1, structure=struct,
-                               iterations=n)
-    # Difference with background mask gives the first layer of voxels:
-    layer = dil_1 ^ mask_img_1
-    if verbose:
-        print "Done."
-
-    return image.get_array() * layer, mask_img_1
-
-
-class AbstractEpidermisLabelledImage(LabelledImage2D, LabelledImage3D):
-
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
-        """
-        Parameters
-        ----------
-        image: SpatialImage
-            the SpatialImage containing the labelled tissue
-        background: int, optional
-            if given define the label of the background (ie. space surrounding
-            the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
-        """
-        if image.is2D():
-            LabelledImage2D.__init__(self, image, background=background,
-                                     no_label_id=no_label_id)
-        else:
-            LabelledImage3D.__init__(self, image, background=background,
-                                     no_label_id=no_label_id)
-
-    def voxel_n_first_layer(self, n_voxel_layer, connectivity,
-                            keep_background=True, **kwargs):
-        """
-        Extract the n-first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        n_voxel_layer: int
-            number of layer of voxel from the background to get
-        connectivity: int
-            connectivity or neighborhood of the structuring element
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the selected number of voxel layers
-        """
-        mask_img_1 = None
-        if self._voxel_layer1 is None:
-            self._voxel_layer1, mask_img_1 = voxel_n_layers(self,
-                                                            iter=n_voxel_layer,
-                                                            connectivity=connectivity,
-                                                            **kwargs)
-
-        if keep_background:
-            if mask_img_1 is None:
-                mask_img_1 = (self.get_array() == self.background)
-            return self._voxel_layer1 + mask_img_1
-        else:
-            return self._voxel_layer1
-
-    def voxel_first_layer(self, connectivity, keep_background=True,
-                          **kwargs):
-        """
-        Extract the first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        connectivity: int
-            connectivity or neighborhood of the structuring element
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the first layer of voxel in contact with the
-            background
-        """
-        mask_img_1 = None
-        if self._voxel_layer1 is None:
-            self._voxel_layer1, mask_img_1 = voxel_n_layers(self,
-                                                            connectivity=connectivity,
-                                                            **kwargs)
-
-        if keep_background:
-            if mask_img_1 is None:
-                mask_img_1 = (self.get_array() == self.background)
-            return self._voxel_layer1 + mask_img_1
-        else:
-            return self._voxel_layer1
-
-    def voxel_first_layer_coordinates(self, **kwargs):
-        """
-        Returns an (Nxd) array of coordinates indicating voxels first layer
-        position.
-        """
-        vfl = self.voxel_first_layer(keep_background=False, **kwargs)
-        return np.array(np.where(vfl != 0)).T
-
-    def cell_first_layer(self, **kwargs):
-        """
-        List labels corresponding to the first layer of cells (epidermis).
-        It is possible to provide an epidermal area threshold (minimum area in
-        contact with the background) to consider a label as in the first layer.
-
-
-        Returns
-        -------
-        list of L1-cells
-
-        Notes
-        ----
-        The returned list does not contain 'self._ignoredlabels'.
-        However 'self._cell_layer1' is not filtered against 'self._ignoredlabels'
-        """
-        verbose = kwargs.get('verbose', False)
-        if verbose:
-            print "Generating list of L1 labels..."
-
-        integers = lambda x: map(int, x)
-        bkgd_id = self.background
-        # - Create unfiltered list of ALL neighbors to the background:
-        # 'self._cell_layer1'will thus contains ALL L1 labels (not filtered by area) even those in 'self._ignoredlabels'.
-        if self._cell_layer1 is None:
-            background_nei = self.neighbors(bkgd_id, verbose=False)
-            self._cell_layer1 = set(integers(background_nei))
-
-        return list(self._cell_layer1)
-
-
-class EpidermisLabelledImage2D(AbstractEpidermisLabelledImage):
-
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
-        """
-        Parameters
-        ----------
-        image: SpatialImage
-            the SpatialImage containing the labelled tissue
-        background: int, optional
-            if given define the label of the background (ie. space surrounding
-            the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
-        """
-        AbstractEpidermisLabelledImage.__init__(self, image,
-                                                background=background,
-                                                no_label_id=no_label_id,
-                                                **kwargs)
-
-    def voxel_n_first_layer(self, n_voxel_layer, connectivity=4,
-                            keep_background=True, **kwargs):
-        """
-        Extract the n-first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        n_voxel_layer: int
-            number of layer of voxel from the background to get
-        connectivity: int
-            connectivity of the 2D structuring element, default 4
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the selected number of voxel layers
-        """
-        return AbstractEpidermisLabelledImage.voxel_n_first_layer(self,
-                                                                  n_voxel_layer,
-                                                                  connectivity=connectivity,
-                                                                  keep_background=keep_background,
-                                                                  **kwargs)
-
-    def voxel_first_layer(self, connectivity=4, keep_background=True,
-                          **kwargs):
-        """
-        Extract the first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        connectivity: int, optional
-            connectivity of the 2D structuring element, default 4
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the first layer of voxel in contact with the
-            background
-        """
-        return AbstractEpidermisLabelledImage.voxel_first_layer(self,
-                                                                connectivity=connectivity,
-                                                                keep_background=keep_background,
-                                                                **kwargs)
-
-
-class EpidermisLabelledImage3D(AbstractEpidermisLabelledImage):
-
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
-        """
-        Parameters
-        ----------
-        image: SpatialImage
-            the SpatialImage containing the labelled tissue
-        background: int, optional
-            if given define the label of the background (ie. space surrounding
-            the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
-        """
-        AbstractEpidermisLabelledImage.__init__(self, image,
-                                                background=background,
-                                                no_label_id=no_label_id,
-                                                **kwargs)
-
-    def voxel_n_first_layer(self, n_voxel_layer, connectivity=18,
-                            keep_background=True, **kwargs):
-        """
-        Extract the n-first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        n_voxel_layer: int
-            number of layer of voxel from the background to get
-        connectivity: int
-            connectivity of the 3D structuring element, default 18
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the selected number of voxel layers
-        """
-        return AbstractEpidermisLabelledImage.voxel_n_first_layer(self,
-                                                                  n_voxel_layer,
-                                                                  connectivity=connectivity,
-                                                                  keep_background=keep_background,
-                                                                  **kwargs)
-
-    def voxel_first_layer(self, connectivity=18, keep_background=True,
-                          **kwargs):
-        """
-        Extract the first layer of non-background voxels in contact with the
-        background as a LabelledImage.
-
-        Parameters
-        ----------
-        connectivity: int, optional
-            connectivity of the 3D structuring element, default 18
-        keep_background: bool, optional
-            if true the LabelledImage returned contains the background in addition
-            of the first layer of labelled voxels
-
-        Returns
-        -------
-        LabelledImage
-            labelled image made of the first layer of voxel in contact with the
-            background
-        """
-        return AbstractEpidermisLabelledImage.voxel_first_layer(self,
-                                                                connectivity=connectivity,
-                                                                keep_background=keep_background,
-                                                                **kwargs)
-
-
-# def LabelledImage(image, **kwargs):
-#     """
-#     Constructor.
-#     """
-#     # -- If 'image' is a string, it should relate to the filename and we try to load it using imread:
-#     if isinstance(image, str):
-#         image = imread(image)
-#     elif isinstance(image, np.ndarray):
-#         dtype = image.dtype
-#         image = SpatialImage(image, dtype=dtype)
-#     else:
-#         try:
-#             assert isinstance(image, SpatialImage)
-#         except AssertionError:
-#             raise TypeError(
-#                 "Input image should be file path, a nupy array or a SpatialImage!")
-#
-#     background = kwargs.get('background', None)
-#     # - If declared value for 'background', return the class Epidermis
-#     if background is not None:
-#         if image.is2D():
-#             return EpidermisLabelledImage2D(image, **kwargs)
-#         else:
-#             return EpidermisLabelledImage3D(image, **kwargs)
-#     else:
-#         if image.is2D():
-#             return LabelledImage2D(image, **kwargs)
-#         else:
-#             return LabelledImage3D(image, **kwargs)
-
-
-class LabelledImage(EpidermisLabelledImage2D, EpidermisLabelledImage3D,
-                    LabelledImage2D, LabelledImage3D):
-    """
-    Class dedicated to segmented tissue.
-
-    Image dimensionality (2D/3D) will change some accessible methods.
-    Definition of a background id allows to access cell layers list.
-    """
-
-    def __init__(self, image, **kwargs):
-        """
-        LabelledImage constructor.
-
-        Parameters
-        ----------
-        image: SpatialImage
-            input image
-        background: int, optional
-            if given define the label of the background (ie. space surrounding
-            the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
-        """
-        background = kwargs.get('background', None)
-        # - If declared value for 'background', return the class Epidermis
-        if background is not None:
-            if image.is2D():
-                EpidermisLabelledImage2D.__init__(self, image, **kwargs)
-            else:
-                EpidermisLabelledImage3D.__init__(self, image, **kwargs)
-        else:
-            if image.is2D():
-                LabelledImage2D.__init__(self, image, **kwargs)
-            else:
-                LabelledImage3D.__init__(self, image, **kwargs)

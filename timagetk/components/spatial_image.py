@@ -212,7 +212,7 @@ class SpatialImage(np.ndarray):
             image type, default dtype = input_array.dtype
         metadata_dict: dict, optional
             dictionary of image metadata, default is an empty dict
-0
+
         Returns
         -------
         SpatialImage

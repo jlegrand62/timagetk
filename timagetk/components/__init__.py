@@ -15,10 +15,10 @@ try:
 except ImportError:
     raise ImportError('Unable to import SpatialImage class.')
 
-# try:
-#     from timagetk.components.labelled_image import LabelledImage
-# except ImportError:
-#     raise ImportError('Unable to import LabelledImage class.')
+try:
+    from timagetk.components.labelled_image import LabelledImage
+except ImportError:
+    raise ImportError('Unable to import LabelledImage class.')
 
 try:
     from timagetk.components.io import imread, imsave

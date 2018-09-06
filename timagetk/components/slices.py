@@ -224,6 +224,7 @@ def combine_slices(slices):
 
     Example
     -------
+    >>> from timagetk.components.slices import combine_slices
     >>> sliceA = [slice(2, 5), slice(1, 3)]
     >>> sliceB = [slice(2, 4), slice(0, 2)]
     >>> sliceC = [slice(3, 8), slice(1, 6)]
