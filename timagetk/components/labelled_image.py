@@ -575,7 +575,7 @@ class LabelledImage(SpatialImage):
         >>> im.no_label_id
         1
         """
-        if not isinstance(value, int):
+        if not isinstance(value, int) and value is not None:
             print "Provided value '{}' is not an integer!".format(value)
             return
         else:
@@ -633,7 +633,7 @@ class LabelledImage(SpatialImage):
         if self._labels is None:
             self._labels = np.unique(self.get_array())
         # - Remove value attributed to 'no_label_id':
-        unwanted_set = {self.no_label_id}
+        unwanted_set = {self._no_label_id}
         label_set = set(self._labels) - unwanted_set
 
         if labels:

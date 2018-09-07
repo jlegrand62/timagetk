@@ -29,8 +29,8 @@ __all__ = ['SpatialImage']
 # - Define default values:
 EPS = 1e-9
 DEC_VAL = 6
-DEF_VXS_2D, DEF_VXS_3D = [1.0, 1.0], [1.0, 1.0, 1.0]
-DEF_ORIG_2D, DEF_ORIG_3D = [0, 0], [0, 0, 0]
+DEFAULT_VXS_2D, DEFAULT_VXS_3D = [1.0, 1.0], [1.0, 1.0, 1.0]
+DEFAULT_ORIG_2D, DEFAULT_ORIG_3D = [0, 0], [0, 0, 0]
 
 # - Define possible values for 'dtype':
 DICT_TYPES = {0: np.uint8, 1: np.int8, 2: np.uint16, 3: np.int16, 4: np.uint32,
@@ -50,9 +50,9 @@ DICT_TYPES = {0: np.uint8, 1: np.int8, 2: np.uint16, 3: np.int16, 4: np.uint32,
               'cfloat': np.complex128, 'complex': np.complex128,
               'complex256': np.complex_, 'clongdouble': np.complex_,
               'clongfloat': np.complex_, 'longcomplex': np.complex_}
-POSS_TYPES = sorted([k for k in DICT_TYPES.keys() if isinstance(k, str)])
+AVAIL_TYPES = sorted([k for k in DICT_TYPES.keys() if isinstance(k, str)])
 # - Define default type:
-DEF_TYPE = DICT_TYPES[0]
+DEFAULT_DTYPE = DICT_TYPES[0]
 # - List of protected attribute or poperties:
 PROTECT_PPTY = ['shape', 'min', 'max', 'mean']
 # - Array equality testing methods:
@@ -83,9 +83,8 @@ def dimensionality_test(dim, list2test):
     try:
         assert d == dim
     except:
-        raise ValueError(
-            "Provided values dimensionality ({}) is not of the same than the array ({})!".format(
-                d, dim))
+        msg = "Provided values ({}) is not of the same than the array ({})!"
+        raise ValueError(msg.format(d, dim))
 
 
 def tuple_array_to_list(val):
@@ -101,8 +100,89 @@ def tuple_array_to_list(val):
     else:
         return val
 
+def check_dimensionality(dim, list2test):
+    """
+    Tests list dimensionality against array dimensionality.
+    """
+    try:
+        dimensionality_test(dim, list2test)
+    except ValueError:
+        return None
+    else:
+        return list2test
 
-def basic_metadata(obj, metadata_dict=None):
+def compare_kwargs_metadata(kwd_val, md_val, dim):
+    """
+    Compare two values, usually keyword or attribute against metadata.
+    If they are not similar, return kwd_val.
+    
+    Parameters
+    ----------
+    kwd_val : any
+        keyword or attribute value
+    md_val : any
+        metadata value
+
+    Returns
+    -------
+    any|None
+        value
+    """
+    if kwd_val == md_val:
+        return check_dimensionality(dim, kwd_val)
+    else:
+        return check_dimensionality(dim, kwd_val)
+
+
+def set_default_origin(input_array):
+    """
+    Return the default origin depending on the array dimensionality.
+
+    Parameters
+    ----------
+    input_array : numpy.ndarray
+        2D or 3D array defining an image, eg. intensity or labelled image
+
+    Returns
+    -------
+    list
+        default origin coordinates
+    """
+    print "Warning: incorrect 'origin' specification,",
+    if input_array.ndim == 2:
+        orig = DEFAULT_ORIG_2D
+    else:
+        orig = DEFAULT_ORIG_3D
+    print "set to default value:", orig
+
+    return orig
+
+
+def set_default_voxelsize(input_array):
+    """
+    Return the default voxelsize depending on the array dimensionality.
+
+    Parameters
+    ----------
+    input_array : numpy.ndarray
+        2D or 3D array defining an image, eg. intensity or labelled image
+
+    Returns
+    -------
+    list
+        default voxelsize value
+    """
+    print "Warning: incorrect 'voxelsize' specification,",
+    if input_array.ndim == 2:
+        orig = DEFAULT_VXS_2D
+    else:
+        orig = DEFAULT_VXS_3D
+    print "set to default value:", orig
+
+    return orig
+
+
+def obj_metadata(obj, metadata_dict=None):
     """
     Build the metadata dictionary for basics image array infos.
     Can compare it to a existing one.
@@ -236,7 +316,6 @@ class SpatialImage(np.ndarray):
         >>> print image_2.voxelsize
         [0.5, 0.5]
         """
-        # TODO: SpatialImage should have 'filename' attribute or metadata!
         # - Test input array: should be a numpy array of dimension 2 or 3:
         try:
             assert isinstance(input_array, np.ndarray)
@@ -245,98 +324,132 @@ class SpatialImage(np.ndarray):
         try:
             assert input_array.ndim in [2, 3]
         except AssertionError:
-            print ValueError(
-                "Input array must have a dimensionality equal to 2 or 3")
+            msg = "Input array must have a dimensionality equal to 2 or 3"
+            print ValueError(msg)
             return None  # WEIRD behavior... seems required by some functions
             # Original behavior was to test if the dim was 2D or 3D but was not
             # doing anything otherwise (no else declared!).
+        else:
+            ndim = input_array.ndim
 
-        # - Create the metadata dictionary:
+        # - Initialize or use given metadata dictionary:
         if metadata_dict is None or metadata_dict == []:
             metadata_dict = {}
         else:
             try:
                 assert isinstance(metadata_dict, dict)
             except:
-                raise TypeError(
-                    "Parameter 'metadata_dict' should be a dictionary!")
+                msg = "Parameter 'metadata_dict' should be a dictionary!"
+                raise TypeError(msg)
 
-        # - Check or set the type of data from 'dtype':
+        # ----------------------------------------------------------------------
+        # DTYPE:
+        # ----------------------------------------------------------------------
+        # -- Check or set the type of data from 'dtype':
         if dtype is not None:
+            # Check it is a known 'dtype':
             try:
-                assert dtype in POSS_TYPES
+                assert dtype in AVAIL_TYPES
             except AssertionError:
-                raise ValueError(
-                    "Unknown 'dtype' value '{}', available types are: {}".format(
-                        dtype, POSS_TYPES))
+                msg = "Unknown 'dtype' value '{}', available types are: {}"
+                raise ValueError(msg.format(dtype, AVAIL_TYPES))
             else:
                 if isinstance(dtype, np.dtype):
                     dtype = str(dtype)
                 dtype = DICT_TYPES[dtype]
         else:
             # Convert instance 'np.dtype' into a string:
-            if input_array.dtype is not None:
-                dtype = input_array.dtype
-            else:
-                print "Warning: undefined 'dtype',"
-                print "set to default value:", DEF_TYPE
-                dtype = DEF_TYPE
+            dtype = input_array.dtype
+            dtype = str(dtype)
 
+        # ----------------------------------------------------------------------
+        # ARRAY:
+        # ----------------------------------------------------------------------
         # - Check input array 'flags' attribute, use 'dtype' value:
         if input_array.flags.f_contiguous:
             obj = np.asarray(input_array, dtype=dtype).view(cls)
         else:
             obj = np.asarray(input_array, dtype=dtype, order='F').view(cls)
 
-        # - Check & set 'origins' value:
-        if (origin is not None) and (input_array.ndim == len(origin)):
-            orig = origin
-            # - Update metadata in case voxelsize parameter is correctly
-            # specified (to avoid potential missmatch against metadata_dict)
-            metadata_dict['origin'] = orig
+        # ----------------------------------------------------------------------
+        # ORIGIN:
+        # ----------------------------------------------------------------------
+        # -- Get 'origin' value in metadata:
+        try:
+            origin_md = metadata_dict['origin']
+        except KeyError:
+            origin_md = None
+        # -- Check 'origin' value using keyword argument and metadata:
+        if origin is None and origin_md is None:
+            # Neither keyword nor metadata defined:
+            orig = set_default_origin(input_array)
+        elif origin is not None and origin_md is not None:
+            # Both keyword and metadata defined:
+            orig = compare_kwargs_metadata(origin, origin_md, ndim)
         else:
-            # TODO: should check against metadata
-            print "Warning: incorrect origin specification,",
-            if input_array.ndim == 2:
-                orig = DEF_ORIG_2D
+            # Only one of the two defined:
+            if origin is not None:
+                orig = origin
             else:
-                orig = DEF_ORIG_3D
-            print "set to default value:", orig
-        obj.origin = orig
+                orig = origin_md
+            orig = check_dimensionality(input_array.ndim, orig)
+        # -- Set 'origin' attribute and set|update metadata:
+        obj._origin = orig
+        metadata_dict['origin'] = orig
 
-        # - Check & set 'voxelsize' value:
+        # ----------------------------------------------------------------------
+        # VOXELSIZE:
+        # ----------------------------------------------------------------------
+        # -- Transform keyword argument 'voxelsize' into a list if possible,
+        #  else set to None:
         if isinstance(voxelsize, tuple):  # SR --- BACK COMPAT
-            voxelsize = tuple_to_list(voxelsize)
+            voxelsize = around_list(tuple_to_list(voxelsize))
         if isinstance(voxelsize, np.ndarray):
-            voxelsize = voxelsize.tolist()
+            voxelsize = around_list(voxelsize.tolist())
         if not isinstance(voxelsize, list):
             voxelsize = None
+
+        # -- Get 'voxelsize' value in metadata:
         try:
-            assert input_array.ndim == len(voxelsize)
-        except:
-            print "Warning: incorrect voxelsize specification,",
-            # TODO: should check against metadata
-            if input_array.ndim == 2:
-                vxs = DEF_VXS_2D
-            else:
-                vxs = DEF_VXS_3D
-            print "set to default value:", vxs
+            voxelsize_md = metadata_dict['voxelsize']
+        except KeyError:
+            voxelsize_md = None
+        # -- Check 'voxelsize' value using keyword argument and metadata:
+        if voxelsize is None and voxelsize_md is None:
+            # Neither keyword nor metadata defined:
+            vxs = set_default_voxelsize(input_array)
+        elif voxelsize is not None and voxelsize_md is not None:
+            # Both keyword and metadata defined:
+            vxs = compare_kwargs_metadata(voxelsize, voxelsize_md, ndim)
         else:
-            vxs = around_list(voxelsize)
-            # - Update metadata in case voxelsize parameter is correctly
-            # specified (to avoid potential missmatch against metadata_dict)
-            metadata_dict['voxelsize'] = vxs
+            # Only one of the two defined:
+            if voxelsize is not None:
+                vxs = voxelsize
+            else:
+                vxs = voxelsize_md
+                vxs = check_dimensionality(input_array.ndim, vxs)
+        # -- Set 'voxelsize' attribute and set|update metadata:
         obj._voxelsize = vxs
+        metadata_dict['voxelsize'] = vxs
 
-        # - Check & set 'extent' value:
-        ext = [obj._voxelsize[ind] * input_array.shape[ind] for ind in
-               xrange(input_array.ndim)]
+        # ----------------------------------------------------------------------
+        # EXTENT:
+        # ----------------------------------------------------------------------
+        shape = input_array.shape
+        dim = input_array.ndim
+        # -- Compute image 'extent' based on shape and voxelsize:
+        ext = [vxs[i] * shape[i] for i in xrange(dim)]
         ext = around_list(ext)
-        metadata_dict['extent'] = ext
+        # -- Set 'extent' attribute and set|update metadata:
         obj._extent = ext
+        metadata_dict['extent'] = ext
 
-        # - Save/update the metadata:
-        obj._metadata = basic_metadata(obj, metadata_dict)
+        # ----------------------------------------------------------------------
+        # METADATA:
+        # ----------------------------------------------------------------------
+        # TODO: SpatialImage could have 'filename' attribute or metadata ?
+        # -- Set/update the metadata:
+        obj._metadata = obj_metadata(obj, metadata_dict)
 
         return obj
 
@@ -363,7 +476,7 @@ class SpatialImage(np.ndarray):
             self.max = getattr(obj, 'max', [])
             self.mean = getattr(obj, 'mean', [])
         else:
-            return
+            pass
 
     def __str__(self):
         """
@@ -1127,7 +1240,7 @@ class SpatialImage(np.ndarray):
         try:
             assert md.has_key('shape')
         except AssertionError:
-            md = basic_metadata(self, md)
+            md = obj_metadata(self, md)
 
         # - If attribute and metadata 'shape' are not equal, update metadata
         sh = self.shape
@@ -1216,7 +1329,7 @@ class SpatialImage(np.ndarray):
             print "Attribute 'resolution' is deprecated, use 'voxelsize' instead!"
             img_metadata.pop('resolution')
         # - Protected attribute or properties:
-        msg = "'{}' is a protected attribute, it will not be updated!"
+        msg = "WARNING: '{}' is a protected attribute, it will not be updated!"
         for ppty in PROTECT_PPTY:
             try:
                 img_metadata.pop(ppty)
@@ -1356,7 +1469,7 @@ class SpatialImage(np.ndarray):
     #                               metadata_dict=self.metadata)
     #     else:
     #         msg = "Unknown type '{}', possible types are: {}"
-    #         raise ValueError(msg.format(val, POSS_TYPES))
+    #         raise ValueError(msg.format(val, AVAIL_TYPES))
     #     return
 
     @property
