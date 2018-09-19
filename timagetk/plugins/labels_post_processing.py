@@ -95,7 +95,7 @@ def labels_post_processing(input_image, method=None, **kwargs):
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
 
     *WARNING*: If your images are not isometric, the morphological
      operation will not be the same in every directions!
@@ -158,7 +158,7 @@ def labels_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     params = '-erosion'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -185,7 +185,7 @@ def labels_dilation(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     params = '-dilation'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -212,7 +212,7 @@ def labels_opening(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     params = '-opening'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -239,7 +239,7 @@ def labels_closing(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     params = '-closing'
     params += _lpp_kwargs(radius=radius, iterations=iterations, **kwargs)

@@ -37,33 +37,31 @@ def consecutive_registration(list_images, method=None, **kwargs):
     """
     Consecutive registration plugin
     Available methods are:
-
       * consecutive_rigid_registration
       * consecutive_affine_registration
       * consecutive_deformable_registration
 
     Parameters
     ----------
-    list_images: list
-        list of ``SpatialImage``
-
-    method: used method (example: str
-        'consecutive_registration_rigid')
+    list_images: list(SpatialImage)
+        list of image to register
+    method: str, optional
+        used method, by default 'consecutive_rigid_registration'
 
     Returns
     -------
-    :return: list_compo_trsf -- list of ``BalTransformation`` transformation
-
-    :return: list_res_img -- list of ``SpatialImage``
+    list_compo_trsf: list(BalTransformation)
+        list of BalTransformation, ie. transformation matrix or vectorfields
+    list_res_img: list(SpatialImage)
+        list of consecutively registered SpatialImage
 
     Example
-    ----------
+    -------
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imread
     >>> from timagetk.plugins import consecutive_registration
     >>> times = [0, 1, 2]
-    >>> list_images = [imread(data_path('time_' + str(time) + '.inr'))
-                        for time in times]
+    >>> list_images = [imread(data_path('time_' + str(time) + '.inr')) for time in times]
     >>> list_compo_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_rigid_registration')
     >>> list_compo_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_affine_registration')
     """

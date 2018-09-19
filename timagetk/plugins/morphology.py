@@ -79,12 +79,12 @@ def morphology(input_image, method=None, **kwargs):
     Parameters
     ----------
     input_image: SpatialImage
-        input SpatialImage to modify, should be a 'grayscale' (intensity) image
+        input image to modify, should be a 'grayscale' (intensity) image
     method: str, optional
         used method, by default 'erosion'
 
     **kwargs
-    ------
+    --------
     radius: int, optional
         radius of the structuring element, default is 1
     iterations: int, optional
@@ -98,7 +98,8 @@ def morphology(input_image, method=None, **kwargs):
 
     Returns
     -------
-    SpatialImage: image and metadata
+    SpatialImage
+        image and metadata
 
     Example
     -------
@@ -169,16 +170,16 @@ def morphology_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
+        input image to transform
     radius: int, optional
-valueradius to use for structuring element, default is 1
+        radius to use for structuring element, default is 1
     iterations: int, optional
-valuenumber of iterations to performs with structuring element, default is 1
+        number of iterations to performs with structuring element, default is 1
 
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
     """
     params = '-erosion'
     params += _morpho_kwargs(radius=radius, iterations=iterations, **kwargs)
@@ -193,7 +194,7 @@ def morphology_dilation(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
+        input image to transform
     radius: int, optional
          radius to use for structuring element, default is 1
     iterations: int, optional

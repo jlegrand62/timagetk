@@ -89,11 +89,8 @@ def structuring_element_vt(radius, iterations, connectivity=26):
     Note: not sure why there is an `iterations` parameter... given to Morpheme functions?
     """
     assert connectivity in [4, 6, 8, 10, 18, 26]
-    print "here"
     _list = pointer(_typeMorphoToolsPoint(0, 0, 0, 0))
-    print "here1"
     user_se = _typeMorphoToolsList(0, _list)
-    print "here2"
     return _typeStructuringElement(iterations, connectivity, user_se, radius)
 
 

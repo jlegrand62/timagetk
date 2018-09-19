@@ -44,12 +44,12 @@ def region_labeling(input_image, method=None, **kwargs):
     Parameters
     ----------
     input_image: SpatialImage
-valueinput image to transform
+        input image to transform
     method: str, optional
         used method, by default 'erosion'
 
     **kwargs
-    ------
+    --------
     low_threshold: int, optional
         low threshold
     high_threshold: int, optional
@@ -58,10 +58,10 @@ valueinput image to transform
     Returns
     -------
     SpatialImage
-valuetransformed image with its metadata
+        transformed image with its metadata
 
     Example
-    ----------
+    -------
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imread
     >>> from timagetk.plugins import h_transform, region_labeling

@@ -75,7 +75,7 @@ def registration(floating_img, reference_img, method=None, **kwargs):
         used method, eg. 'rigid_registration' (default)
 
     **kwargs
-    ------
+    --------
     pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
@@ -92,7 +92,7 @@ def registration(floating_img, reference_img, method=None, **kwargs):
         deformed image and metadata
 
     Example
-    ----------
+    -------
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imread
     >>> from timagetk.plugins import registration
@@ -175,7 +175,7 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
-    ------
+    --------
     pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
@@ -248,7 +248,7 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
-    ------
+    --------
     pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
@@ -331,7 +331,7 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
         blockmatching registration but returned trsf will NOT contain this trsf
 
     **kwargs
-    ------
+    --------
     pyramid_lowest_level: int, optional
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional

@@ -22,9 +22,19 @@ POSS_CRITERIA = ['Jaccard coefficient', 'Mean overlap', 'Target overlap',
 DEF_CRITERIA = POSS_CRITERIA[0]
 
 def sets_metrics(set_1, set_2, criterion=None):
-    # TODO add specificity, compound
+    # TODO: add specificity, compound
     """
-    Compute metrics between sets (overlap measurements for individual labeled region).
+    Compute metrics between sets (overlap measurements for individual labeled
+    region).
+    Available criterions are:
+        * 'Jaccard coefficient'
+        * 'Mean overlap'
+        * 'Target overlap'
+        * 'Volume similarity'
+        * 'False negative error'
+        * 'False positive error'
+        * 'Sensitivity'
+        * 'Conformity'
 
     Parameters
     ----------
@@ -32,12 +42,8 @@ def sets_metrics(set_1, set_2, criterion=None):
         set 1 (source)
     set_2: Set
         set 2 (target)
-    criterion: str
-        criterion, optional. Default is 'Jaccard coefficient'.
-                criterion can be either:
-                    ['Jaccard coefficient', 'Mean overlap', 'Target overlap',
-                     'Volume similarity', 'False negative error',
-                     'False positive error', 'Sensitivity', 'Conformity']
+    criterion: str, optional
+        criterion. Default is 'Jaccard coefficient'.
 
     Returns
     -------

@@ -42,10 +42,10 @@ def sequence_registration(list_images, method=None, **kwargs):
 
     Parameters
     ----------
-    input_image: SpatialImage
-valueinput image to transform
+    list_images: list(SpatialImage)
+        list of image to register
     method: str, optional
-        used method, by default 'sequence_registration_rigid'
+        used method, by default 'sequence_rigid_registration'
 
     Returns
     -------

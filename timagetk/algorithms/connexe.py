@@ -38,8 +38,8 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
         ``SpatialImage``, optional seeds image
     param_str_1: str
         by default param_str_1 is equal to CONNEXE_DEFAULT.
-            By default thresholds are fixed, and one label is associated to
-            each connected component
+        by default thresholds are fixed, and one label is associated to
+        each connected component
     param_str_2: str
         optional str parameter
 
@@ -59,9 +59,10 @@ def connexe(image, seeds=None, param_str_1=CONNEXE_DEFAULT, param_str_2=None,
     >>> output_image = connexe(regext_img)
     """
     try_spatial_image(image, obj_name='image')
-
+    # - Check 'dtype' parameter:
     if dtype is None:
         dtype = image.dtype
+    # - Check 'seeds' parameter:
     if seeds is None:
         pt_seeds = None
     else:

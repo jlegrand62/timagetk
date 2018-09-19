@@ -21,12 +21,13 @@ try:
     from timagetk.algorithms.compute_res_sets import compute_res_sets
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
-__all__ = ['TemporalMatching']
-av_number = 2
 
-"""
-This class allows the temporal matching of labeled objects.
-"""
+__all__ = ['TemporalMatching']
+
+POSS_CRITERIA = ['Euclidean distance', 'Jaccard coefficient', 'Mean overlap',
+                 'Target overlap', 'Volume similarity',
+                 'False negative error', 'False positive error',
+                 'Sensitivity', 'Conformity']
 
 # --- from numpy
 np_unique, np_ceil, np_around = np.unique, np.ceil, np.around
@@ -39,6 +40,9 @@ def around_val(input_val, DEC_VAL=3):
 
 
 class TemporalMatching(object):
+    """
+    This class allows the temporal matching of labeled objects.
+    """
 
     def __init__(self, segmentation_list, feature_space_list=None,
                  background_id_list=None):
@@ -368,7 +372,8 @@ class TemporalMatching(object):
             self.min_cost = norm_cost_list[0][1]['Min cost']
 
     # ---
-    def labels_to_nodes(self, feat_space_dict, min_node_val=1):
+    @staticmethod
+    def labels_to_nodes(feat_space_dict, min_node_val=1):
         """
         From dictionary of features to dictionary of contiguous nodes
 
@@ -457,7 +462,7 @@ class TemporalMatching(object):
                               enumerate(bbox_size_list)]
                     y_list = [bbox_size_list[ind][1] for ind, val in
                               enumerate(bbox_size_list)]
-                    if (img_dim == 3):
+                    if img_dim == 3:
                         z_list = [bbox_size_list[ind][2] for ind, val in
                                   enumerate(bbox_size_list)]
                     if (img_dim == 2):
@@ -583,36 +588,35 @@ class TemporalMatching(object):
     def compute_single_cost(self, adm_match_list, criterion=None):
         """
         Compute single cell - cell association cost
+        Available criterions are:
+          * Euclidean distance
+          * Jaccard coefficient
+          * Mean overlap
+          * Target overlap
+          * Volume similarity
+          * False negative error
+          * False positive error
+          * Sensitivity
+          * Conformity
 
         Parameters
         ----------
         adm_match_list: list
             list of admissible matchings
-
-        criterion: str
-            optional, similarity metric.
-            Default criterion is 'Euclidean distance'.
-            criterion can be either:
-                ['Euclidean distance', 'Jaccard coefficient', 'Mean overlap', 'Target overlap',
-                 'Volume similarity', 'False negative error', 'False positive error',
-                 'Sensitivity', 'Conformity']
+        criterion: str, optional
+            similarity metric to use, default criterion is 'Euclidean distance'.
 
         Returns
         -------
-        :return: single_cost_list (*list*) list of cell - cell association cost
+        single_cost_list : list
+            list of cell - cell association cost
 
         Example
         -------
         >>> single_cost_list = self.compute_single_cost(adm_match_list)
         """
-        possible_criteria = ['Euclidean distance', 'Jaccard coefficient',
-                             'Mean overlap', 'Target overlap',
-                             'Volume similarity',
-                             'False negative error', 'False positive error',
-                             'Sensitivity', 'Conformity']
-
-        if ((criterion is None) or (criterion not in possible_criteria)):
-            print('Possible criteria can be either:'), possible_criteria
+        if ((criterion is None) or (criterion not in POSS_CRITERIA)):
+            print('Possible criteria can be either:'), POSS_CRITERIA
             criterion = 'Euclidean distance'
             print('Setting criterion to:'), criterion
         else:
@@ -691,18 +695,23 @@ class TemporalMatching(object):
     def compute_pairwise_cost(self, adm_match_list, criterion=None):
         """
         Compute pairwise association cost
+        Available criterions are:
+          * Euclidean distance
+          * Jaccard coefficient
+          * Mean overlap
+          * Target overlap
+          * Volume similarity
+          * False negative error
+          * False positive error
+          * Sensitivity
+          * Conformity
 
         Parameters
         ----------
         adm_match_list: list
             list of admissible matchings
-        criterion: str
-            optional, similarity metric.
-            Default criterion is 'Euclidean distance'.
-            criterion can be either:
-                ['Euclidean distance', 'Jaccard coefficient', 'Mean overlap', 'Target overlap',
-                 'Volume similarity', 'False negative error', 'False positive error',
-                 'Sensitivity', 'Conformity']
+        criterion: str, optional
+            similarity metric. Default criterion is 'Euclidean distance'.
 
         Returns
         -------
@@ -713,14 +722,8 @@ class TemporalMatching(object):
         -------
         >>> pairwise_cost_list = self.compute_pairwise_cost(adm_match_list, criterion)
         """
-        possible_criteria = ['Euclidean distance', 'Jaccard coefficient',
-                             'Mean overlap', 'Target overlap',
-                             'Volume similarity',
-                             'False negative error', 'False positive error',
-                             'Sensitivity', 'Conformity']
-
-        if ((criterion is None) or (criterion not in possible_criteria)):
-            print('Possible criteria can be either:'), possible_criteria
+        if ((criterion is None) or (criterion not in POSS_CRITERIA)):
+            print('Possible criteria can be either:'), POSS_CRITERIA
             criterion = 'Euclidean distance'
             print('Setting criterion to:'), criterion
         else:
@@ -909,20 +912,27 @@ class TemporalMatching(object):
         Normalization of costs (simple and double) within the range
                 [min_cost, max_cost].
 
-        Association costs:                 - simple (one cell is associated to one cell)
-                - double (one cell is associated to two cells)
+        Association costs:
+          - simple (one cell is associated to one cell)
+          - double (one cell is associated to two cells)
+
+        Available criterions are:
+          * Euclidean distance
+          * Jaccard coefficient
+          * Mean overlap
+          * Target overlap
+          * Volume similarity
+          * False negative error
+          * False positive error
+          * Sensitivity
+          * Conformity
 
         Parameters
         ----------
         adm_match_list: list
             list of admissible matchings
-        criterion: str
-            optional, similarity metric.
-            Default criterion is 'Euclidean distance'.
-            criterion can be either:
-                ['Euclidean distance', 'Jaccard coefficient', 'Mean overlap', 'Target overlap',
-                 'Volume similarity', 'False negative error', 'False positive error',
-                 'Sensitivity', 'Conformity']
+        criterion: str, optional
+            similarity metric. Default criterion is 'Euclidean distance'.
         min_cost: int
             optional minimum cost (default min_cost = 0)
         max_cost: int
@@ -930,21 +940,16 @@ class TemporalMatching(object):
 
         Returns
         -------
-        :return: normalized_cost_list (*list*) list of costs normalized within the range [min_cost, max_cost]
+        normalized_cost_list : list
+            list of costs normalized within the range [min_cost, max_cost]
 
         Example
         -------
         >>> normalized_cost_list = self.compute_normalized_association_cost(adm_match_list, criterion,
                                                                             min_cost, max_cost)
         """
-        possible_criteria = ['Euclidean distance', 'Jaccard coefficient',
-                             'Mean overlap', 'Target overlap',
-                             'Volume similarity',
-                             'False negative error', 'False positive error',
-                             'Sensitivity', 'Conformity']
-
-        if ((criterion is None) or (criterion not in possible_criteria)):
-            print('Possible criteria can be either:'), possible_criteria
+        if ((criterion is None) or (criterion not in POSS_CRITERIA)):
+            print('Possible criteria can be either:'), POSS_CRITERIA
             criterion = 'Euclidean distance'
             print('Setting criterion to:'), criterion
         else:
@@ -1064,8 +1069,6 @@ class TemporalMatching(object):
             import networkx as nx
         except ImportError:
             raise ImportError('NetworkX import failed! Please install it.')
-            import sys
-            sys.exit(0)
 
         max_cost = self.max_cost
         if (alpha_cost is None):
@@ -1291,8 +1294,6 @@ class TemporalMatching(object):
             import networkx as nx
         except ImportError:
             raise ImportError('NetworkX import failed! Please install it.')
-            import sys
-            sys.exit(0)
 
         graph = self.build_init_graph(norm_cost_list, alpha_cost=alpha_cost)
         source, sink, appear, disappear = self.get_part_nodes()
@@ -1439,8 +1440,6 @@ class TemporalMatching(object):
             import networkx as nx
         except ImportError:
             raise ImportError('NetworkX import failed! Please install it.')
-            import sys
-            sys.exit(0)
 
         if tolerance is None:
             tolerance = 10.0 / 100

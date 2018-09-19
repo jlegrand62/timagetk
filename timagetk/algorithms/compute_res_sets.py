@@ -76,14 +76,11 @@ def compute_res_sets(sp_img, nodes_list, bounding_box_dict=None):
         min(ymin_list), max(ymax_list) + 1)
 
     if (len(bbox_list[0]) == 4):
-
         glob_set = [(np_around(j, decimals=2).tolist(),
                      np_around(k, decimals=2).tolist())
                     for j in range_x for k in range_y
                     if sp_img[j, k] in labels_list]
-
     elif (len(bbox_list[0]) == 6):
-
         range_z = xrange(min(zmin_list), max(zmax_list) + 1)
         glob_set = [(np_around(j, decimals=2).tolist(),
                      np_around(k, decimals=2).tolist(),

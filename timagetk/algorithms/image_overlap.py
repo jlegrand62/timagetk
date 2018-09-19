@@ -20,6 +20,10 @@ except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
 __all__ = ['image_overlap']
+POSS_CRITERIA = ['Jaccard coefficient', 'Mean overlap',
+                     'Target overlap', 'Volume similarity',
+                     'False negative error', 'False positive error',
+                     'Sensitivity', 'Conformity']
 
 np_unique = np.unique
 
@@ -39,6 +43,15 @@ def image_overlap(sp_img_1, sp_img_2, labels=[], background_id=None,
                   criterion=None):
     """
     Performance evaluation of segmentation algorithms
+    Available criterions are:
+        * 'Jaccard coefficient'
+        * 'Mean overlap'
+        * 'Target overlap'
+        * 'Volume similarity'
+        * 'False negative error'
+        * 'False positive error'
+        * 'Sensitivity'
+        * 'Conformity'
 
     Parameters
     ----------
@@ -52,10 +65,6 @@ def image_overlap(sp_img_1, sp_img_2, labels=[], background_id=None,
         background_id. If specified, removed from the computation
     criterion: str, optional
         criterion. Default is 'Jaccard coefficient'.
-                criterion can be either:
-                    ['Jaccard coefficient', 'Mean overlap', 'Target overlap',
-                     'Volume similarity', 'False negative error',
-                     'False positive error', 'Sensitivity', 'Conformity']
 
     Returns
     -------
@@ -72,13 +81,8 @@ def image_overlap(sp_img_1, sp_img_2, labels=[], background_id=None,
     try_spatial_image(sp_img_1, obj_name='sp_img_1')
     try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
-    possible_criteria = ['Jaccard coefficient', 'Mean overlap',
-                         'Target overlap', 'Volume similarity',
-                         'False negative error', 'False positive error',
-                         'Sensitivity', 'Conformity']
-
-    if ((criterion is None) or (criterion not in possible_criteria)):
-        print('Possible criteria can be either:'), possible_criteria
+    if ((criterion is None) or (criterion not in POSS_CRITERIA)):
+        print('Possible criteria can be either:'), POSS_CRITERIA
         criterion = 'Jaccard coefficient'
         print('Setting criterion to:'), criterion
     else:

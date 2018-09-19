@@ -42,16 +42,19 @@ def mean_squared_error(sp_img_1, sp_img_2):
     try_spatial_image(sp_img_1, obj_name='sp_img_1')
     try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
-    if sp_img_1.shape == sp_img_2.shape:
-        img_1 = sp_img_1.get_array().astype(np.float16)  # np.ndarray instance
-        img_2 = sp_img_2.get_array().astype(np.float16)  # np.ndarray instance
-        tmp = np_square((img_1 - img_2))  # np.ndarray instance
-        tmp = np_array(np_reshape(tmp, (-1, 1))).tolist()
-        mse = np_sum(tmp) / len(tmp)
-        return mse
-    else:
-        print('sp_img_1 and sp_img_2 does not have the same shape')
-        return
+    try:
+        assert sp_img_1.shape == sp_img_2.shape
+    except AssertionError:
+        msg = 'sp_img_1 and sp_img_2 does not have the same shape'
+        raise TypeError(msg)
+
+    img_1 = sp_img_1.get_array().astype(np.float16)  # np.ndarray instance
+    img_2 = sp_img_2.get_array().astype(np.float16)  # np.ndarray instance
+    tmp = np_square((img_1 - img_2))  # np.ndarray instance
+    tmp = np_array(np_reshape(tmp, (-1, 1))).tolist()
+    mse = np_sum(tmp) / len(tmp)
+
+    return mse
 
 
 def psnr(sp_img_1, sp_img_2):
@@ -74,14 +77,17 @@ def psnr(sp_img_1, sp_img_2):
     try_spatial_image(sp_img_1, obj_name='sp_img_1')
     try_spatial_image(sp_img_2, obj_name='sp_img_2')
 
-    if sp_img_1.itemsize == sp_img_2.itemsize:
-        maxi = 2 ** (sp_img_1.itemsize * 8) - 1
-        mse = mean_squared_error(sp_img_1, sp_img_2)
-        if mse != 0:
-            psnr = 20.0 * log10(maxi) - 10 * log10(mse)
-        elif mse == 0:
-            psnr = np.inf
-        return psnr
+    try:
+        assert sp_img_1.itemsize == sp_img_2.itemsize
+    except AssertionError:
+        msg = 'sp_img_1 and sp_img_2 does not have the same type'
+        raise TypeError(msg)
+
+    maxi = 2 ** (sp_img_1.itemsize * 8) - 1
+    mse = mean_squared_error(sp_img_1, sp_img_2)
+    if mse != 0:
+        psnr = 20.0 * log10(maxi) - 10 * log10(mse)
     else:
-        print('sp_img_1 and sp_img_2 does not have the same type')
-        return
+        psnr = np.inf
+
+    return psnr

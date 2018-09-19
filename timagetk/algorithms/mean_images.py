@@ -37,19 +37,17 @@ def mean_images(list_spatial_images, list_spatial_masks=None,
     ----------
     list_spatial_images: list
         input list of ``SpatialImage`` (grayscale)
-
-    list_spatial_masks: list
-        optional, input list of *SpatialImages* (binary)
-
-    param_str_1: str
+    list_spatial_masks: list, optional
+        input list of *SpatialImages* (binary)
+    param_str_1: str, optional
         MEANIMAGES_DEFAULT, by default a mean image is computed
-
-    param_str_2: str
-        optional, optional parameters
+    param_str_2: str, optional
+        optional parameters
 
     Returns
     -------
-    :return: ``SpatialImage`` output image
+    SpatialImage
+        mean image
 
     Example
     -------

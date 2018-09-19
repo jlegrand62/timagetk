@@ -44,10 +44,9 @@ def averaging(list_images, method=None, **kwargs):
     Parameters
     ----------
     list_images: list
-        list of ``SpatialImage``
-
-    method: used method (example: str
-        'mean_averaging')
+        list of ``SpatialImage`` to average
+    method: str, optional
+        used method (by default: 'mean_averaging')
 
     Returns
     -------
