@@ -925,7 +925,13 @@ class LabelledImage(SpatialImage):
                 print "Extracting neighbors for label {}...".format(labels)
             return self._neighbors_with_mask(labels)
         else:  # list case:
-            labels = self.labels(labels)
+            try:
+                assert self.background in labels
+            except:
+                labels = self.labels(labels)
+            else:
+                labels = [self.background] + self.labels(labels)
+
             try:
                 assert labels != []
             except AssertionError:
