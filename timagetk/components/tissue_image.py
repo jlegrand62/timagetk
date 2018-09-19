@@ -18,11 +18,17 @@ import scipy.ndimage as nd
 from timagetk.util import elapsed_time
 from timagetk.util import percent_progress
 
+from timagetk.components import SpatialImage
 from timagetk.components import LabelledImage
+from timagetk.components.labelled_image import array_replace_label
+from timagetk.components.labelled_image import image_with_labels
+from timagetk.components.labelled_image import image_without_labels
 from timagetk.components.labelled_image import structuring_element
 from timagetk.components.labelled_image import test_structuring_element
 
 __all__ = ['TissueImage']
+
+MISS_CELL = "The following cell{} {} not found in the image: {}"  # ''/'s'; 'is'/'are'; labels
 
 
 def voxel_n_layers(image, background, connectivity=None, n=1, **kwargs):
@@ -96,6 +102,15 @@ class TissueImage(LabelledImage):
         """
         LabelledImage.__init__(self, image, no_label_id=no_label_id)
 
+        # - Initializing EMPTY hidden attributes:
+        # -- Integer defining the background label:
+        self._background_id = None
+        # -- List of epidermal cells (L1):
+        self._cell_layer1 = None
+        # -- Array with only the first layer of voxels in contact with the
+        #  background label:
+        self._voxel_layer1 = None
+
         # - Define object hidden attributes:
         # -- Define the background value, if any (can be None):
         self._background_id = background
@@ -137,209 +152,9 @@ class TissueImage(LabelledImage):
             self._background_id = label
 
     def labels(self, labels=None):
-        """
-        Get the list of labels found in the image, or make sure provided labels
-        exists.
+        return list(set(LabelledImage.labels(labels)) - {self.background})
+        labels.__doc__ = LabelledImage.labels.__doc__
 
-        Parameters
-        ----------
-        labels: int|list, optional
-            if given, used to filter the returned list, else return all labels
-            defined in the image by default
-
-        Returns
-        -------
-        labels: list
-            list of label found in the image, except for 'background' and
-            'no_label_id' (if defined)
-
-        Notes
-        -----
-        Values defined for 'background' & 'no_label_id' are removed from the
-        returned list of labels since they do not relate to cells.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> a = np.array([[1, 2, 7, 7, 1, 1],
-                          [1, 6, 5, 7, 3, 3],
-                          [2, 2, 1, 7, 3, 3],
-                          [1, 1, 1, 4, 1, 1]])
-        >>> from timagetk.components.tissue_image import TissueImage
-        >>> im = TissueImage(a)
-        >>> im.labels()
-        [1,2,3,4,5,6,7]
-        >>> im = TissueImage(a, background=1)
-        >>> im.labels()
-        [2,3,4,5,6,7]
-        """
-        if isinstance(labels, int):
-            labels = [labels]
-        # - If the hidden label attribute is None, list all labels in the array:
-        if self._labels is None:
-            self._labels = np.unique(self.get_array())
-        # - Remove values attributed to 'background' & 'no_label_id':
-        unwanted_set = {self.background, self.no_label_id}
-        label_set = set(self._labels) - unwanted_set
-
-        if labels:
-            return list(label_set & set(labels))
-        else:
-            return list(label_set)
-    def boundingbox(self, labels=None, real=False, verbose=False):
-        """
-        Return the bounding-box of a cell for given 'labels'.
-
-        Parameters
-        ----------
-        labels: None|int|list(int)|str, optional
-            if None (default) returns all labels.
-            if an integer, make sure it is in self.labels()
-            if a list of integers, make sure they are in self.labels()
-            if a string, should be in LABEL_STR to get corresponding
-            list of cells (case insensitive)
-        real: bool, optional
-            if False (default), return the bounding-boxes in voxel units, else
-            in real units.
-        verbose: bool, optional
-            control verbosity of the function
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> a = np.array([[1, 2, 7, 7, 1, 1],
-                          [1, 6, 5, 7, 3, 3],
-                          [2, 2, 1, 7, 3, 3],
-                          [1, 1, 1, 4, 1, 1]])
-
-        >>> from timagetk.components.labelled_image import LabelledImage
-        >>> im = LabelledImage(a)
-
-        >>> im.boundingbox(7)
-        (slice(0, 3), slice(2, 4), slice(0, 1))
-
-        >>> im.boundingbox([7,2])
-        [(slice(0, 3), slice(2, 4), slice(0, 1)), (slice(0, 3), slice(0, 2), slice(0, 1))]
-
-        >>> im.boundingbox()
-        [(slice(0, 4), slice(0, 6), slice(0, 1)),
-        (slice(0, 3), slice(0, 2), slice(0, 1)),
-        (slice(1, 3), slice(4, 6), slice(0, 1)),
-        (slice(3, 4), slice(3, 4), slice(0, 1)),
-        (slice(1, 2), slice(2, 3), slice(0, 1)),
-        (slice(1, 2), slice(1, 2), slice(0, 1)),
-        (slice(0, 3), slice(2, 4), slice(0, 1))]
-        """
-
-        # - Get the boundingbox for the background:
-        if not self._bbox_dict.has_key(self.background):
-            image = self.get_array()
-            bbox = nd.find_objects(image == self.background, max_label=1)[0]
-            self._bbox_dict[self.background] = bbox
-
-        # - Starts with integer case since it is the easiest:
-        if isinstance(labels, int):
-            try:
-                assert self._bbox_dict.has_key(labels)
-            except AssertionError:
-                image = self.get_array()
-                bbox = nd.find_objects(image == labels, max_label=1)[0]
-                self._bbox_dict[labels] = bbox
-            return self._bbox_dict[labels]
-        else:
-            has_back_id = self.background in labels
-            # !! remove 'self._background_id' & 'self._no_label_id'
-            labels = self.labels()
-            if has_back_id:
-                labels.extend(self.background)
-
-        # - Create a dict of bounding-boxes using 'scipy.ndimage.find_objects':
-        known_bbox = [l in self._bbox_dict for l in labels]
-        image = self.get_array()
-        if self._bbox_dict is None or not all(known_bbox):
-            max_lab = max(labels)
-            if verbose:
-                print "Computing {} bounding-boxes...".format(max_lab),
-            bbox = nd.find_objects(image, max_label=max_lab)
-            # NB: scipy.ndimage.find_objects start at 1 (and python index at 0), hence to access i-th element, we have to use (i-1)-th index!
-            self._bbox_dict = {n: bbox[n - 1] for n in range(1, max_lab + 1)}
-
-        # - Filter returned bounding-boxes to the (cleaned) given list of labels
-        bboxes = {l: self._bbox_dict[l] for l in labels}
-        if real:
-            vxs = self.voxelsize
-            bboxes = {l: real_indices(bbox, vxs) for l, bbox in bboxes.items()}
-
-        return bboxes
-    def neighbors(self, labels=None, verbose=True):
-        """
-        Return the dictionary of neighbors of each label.
-        Except for 'self.background' & 'self.no_label_id', which are filtered
-        out from the 'labels' list!
-
-        Parameters
-        ----------
-        labels: None|int|list(int)|str, optional
-            if None (default) returns all labels.
-            if an integer, make sure it is in self.labels()
-            if a list of integers, make sure they are in self.labels()
-            if a string, should be in LABEL_STR to get corresponding
-            list of cells (case insensitive)
-        verbose: bool, optional
-            control verbosity
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> a = np.array([[1, 2, 7, 7, 1, 1],
-                          [1, 6, 5, 7, 3, 3],
-                          [2, 2, 1, 7, 3, 3],
-                          [1, 1, 1, 4, 1, 1]])
-
-        >>> from timagetk.components import LabelledImage
-        >>> im = LabelledImage(a)
-
-        >>> im.neighbors(7)
-        [1, 2, 3, 4, 5]
-
-        >>> im.neighbors([7,2])
-        {7: [1, 2, 3, 4, 5], 2: [1, 6, 7] }
-
-        >>> im.neighbors()
-        {1: [2, 3, 4, 5, 6, 7],
-         2: [1, 6, 7],
-         3: [1, 7],
-         4: [1, 7],
-         5: [1, 6, 7],
-         6: [1, 2, 5],
-         7: [1, 2, 3, 4, 5] }
-        """
-        # - Transform length-1 list to integers
-        if isinstance(labels, list) and len(labels) == 1:
-            labels = labels[0]
-
-        # - Neighborhood computing:
-        if isinstance(labels, int):
-            try:
-                assert self.is_label_in_image(labels) or labels == self.background
-            except AssertionError:
-                raise ValueError(MISS_LABEL.format('', 'is', labels))
-            if verbose:
-                print "Extracting neighbors for label {}...".format(labels)
-            return self._neighbors_with_mask(labels)
-        else:  # list case:
-            if self.background in labels:
-                labels = [self.background] + self.labels(labels)
-            else:
-                labels = self.labels(labels)
-            try:
-                assert labels != []
-            except AssertionError:
-                raise ValueError(MISS_LABEL.format('s', 'are', labels))
-            if verbose:
-                n_lab = len(labels)
-                print "Extracting neighbors for {} labels...".format(n_lab)
-            return self._neighborhood_with_mask(labels, verbose=verbose)
 
     # ##########################################################################
     #
@@ -371,8 +186,8 @@ class TissueImage(LabelledImage):
         try:
             assert self._no_label_id is not None
         except AssertionError:
-            raise ValueError(
-                "Attribute 'no_label_id' is not defined (None), please set it to an integer value before calling this function!")
+            msg = "Attribute 'no_label_id' is not defined (None)!"
+            raise ValueError(msg)
 
         all_labels = self.labels()
         labels = self.labels(labels)
@@ -383,8 +198,8 @@ class TissueImage(LabelledImage):
             try:
                 assert back_id is not None
             except AssertionError:
-                raise ValueError(
-                    "You asked to keep the background position, but no background label is defined!")
+                msg = "You asked to keep the background position, but no background label is defined!"
+                raise ValueError(msg)
             else:
                 labels.append(back_id)
         else:
@@ -421,8 +236,6 @@ class TissueImage(LabelledImage):
             strings might be processed trough 'self.labels_checker()'
         keep_background: bool, optional
             indicate if background label should be kept in the returned image
-        no_label_value: int
-            value use to use in place of discarded labels
 
         Returns
         -------
@@ -545,7 +358,6 @@ class TissueImage(LabelledImage):
 
         t_start = time.time()  # timer
         array = self.get_array()
-        ndim = self.get_dim()
         # - Remove 'background' label:
         if has_back_id:
             if verbose:
@@ -610,6 +422,7 @@ class TissueImage(LabelledImage):
         """
         # - **kwargs options:
         verbose = kwargs.get('verbose', False)
+        back_id = self.background
         # - Mapping dictionary inspection:
         # -- Check the background is not there:
         if back_id in mapping.keys():
