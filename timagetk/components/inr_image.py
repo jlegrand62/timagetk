@@ -20,7 +20,7 @@ import numpy as np
 
 try:
     from cStringIO import StringIO  # C version
-except:
+except ImportError:
     from StringIO import StringIO  # Python version
 try:
     from timagetk.components import SpatialImage
@@ -40,12 +40,13 @@ def read_inr_image(inr_file):
 
     Parameters
     ----------
-    inr_file: str
+    inr_file : str
         path to the image
 
     Returns
     -------
-    :returns: out_sp_img (``SpatialImage``) -- image and metadata (such as voxelsize, extent, type, etc.)
+    out_sp_img : ``SpatialImage``
+        image and metadata (such as voxelsize, extent, type, etc.)
 
     Example
     -------
@@ -68,18 +69,18 @@ def read_inr_image(inr_file):
     except AssertionError:
         raise NotImplementedError(
             "Unknown file ext '{}', should be in {}.".format(ext,
-                                                                   POSS_EXT))
+                                                             POSS_EXT))
 
-    if (ext == '.inr.gz' or ext == '.inr.zip'):
+    if ext == '.inr.gz' or ext == '.inr.zip':
         with gzip.open(inr_file, 'rb') as fzip:
             f = StringIO(fzip.read())
             fzip.close()
-    elif (ext == '.inr'):
+    else:
         f = open(inr_file, 'rb')
 
     # --- header
     header = ""
-    while (header[-4:] != "##}\n"):
+    while header[-4:] != "##}\n":
         header += f.read(256)
 
     prop = {}
@@ -100,20 +101,22 @@ def read_inr_image(inr_file):
     poss_types, poss_enc = ['unsigned fixed', 'signed fixed', 'float'], [8, 16]
     conds = img_type in poss_types and img_enc in poss_enc
     if conds:
-        if (img_type == 'unsigned fixed'):
+        if img_type == 'unsigned fixed':
             np_typ = eval("np.dtype(np.uint%d)" % img_enc)
-        elif (img_type == 'signed fixed'):
+        elif img_type == 'signed fixed':
             np_typ = eval("np.dtype(np.int%d)" % img_enc)
-        elif (img_type == 'float'):
+        # elif img_type == 'float':
+        else:
             np_typ = np.dtype(np.float16)
     else:
-        if (img_type in poss_types and img_enc not in poss_enc):
+        if img_type in poss_types and img_enc not in poss_enc:
             print('Warning, undetected encoding and possibly incorrect reading')
-            if (img_type == 'unsigned fixed'):
+            if img_type == 'unsigned fixed':
                 np_typ = np.dtype(np.uint)
-            elif (img_type == 'signed fixed'):
+            elif img_type == 'signed fixed':
                 np_typ = np.dtype(np.int)
-            elif (img_type == 'float'):
+            # elif img_type == 'float':
+            else:
                 np_typ = np.dtype(np.float)
         else:
             print('Unable to read this file...')
@@ -121,9 +124,9 @@ def read_inr_image(inr_file):
 
     size = np_typ.itemsize * shape_x * shape_y * shape_z * vdim
     mat = np.fromstring(f.read(size), np_typ)
-    if (vdim == 1):
+    img_vox = [vox_x, vox_y, vox_z]
+    if vdim == 1:
         mat = mat.reshape((shape_x, shape_y, shape_z), order="F")
-        img_vox = [vox_x, vox_y, vox_z]
         if 1 in mat.shape:  # --- 2D images management
             if mat.shape[0] == 1:
                 mat = np.squeeze(mat, axis=(0,))
@@ -134,9 +137,9 @@ def read_inr_image(inr_file):
             elif mat.shape[2] == 1:
                 mat = np.squeeze(mat, axis=(2,))
                 img_vox = [vox_x, vox_y]
-#            elif (vdim!=1):
-#                mat = mat.reshape((vdim,shape_x,shape_y,shape_z), order="F" )
-#                mat = mat.transpose(1,2,3,0)
+    # elif (vdim!=1):
+    #     mat = mat.reshape((vdim,shape_x,shape_y,shape_z), order="F" )
+    #     mat = mat.transpose(1,2,3,0)
 
     out_sp_img = SpatialImage(input_array=mat, voxelsize=img_vox,
                               origin=[0, 0, 0], metadata_dict=prop)
@@ -152,9 +155,9 @@ def write_inr_image(inr_file, sp_img):
 
     Parameters
     ----------
-    inr_file: str
+    inr_file : str
         path to the file.
-    sp_img: SpatialImage
+    sp_img : SpatialImage
         ``SpatialImage`` instance
 
     Example
@@ -187,21 +190,18 @@ def write_inr_image(inr_file, sp_img):
             "Unknown file ext '{}', should be in {}.".format(
                 ext, POSS_EXT))
 
-    if (ext == '.inr.gz' or ext == '.inr.zip'):
+    if ext == '.inr.gz' or ext == '.inr.zip':
         f = gzip.GzipFile(inr_file, 'wb')
-    elif (ext == '.inr'):
+    else:
         f = open(inr_file, 'wb')
 
     metadata = sp_img.metadata
-    info = {}
-    info['XDIM'], info['YDIM'] = metadata['shape'][0], \
-                                 metadata['shape'][1]
-    info['VX'], info['VY'] = metadata['voxelsize'][0], \
-                             metadata['voxelsize'][1]
+    info = {'XDIM': metadata['shape'][0], 'YDIM': metadata['shape'][1],
+            'VX': metadata['voxelsize'][0], 'VY': metadata['voxelsize'][1]}
 
-    if (sp_img.get_dim() == 2):
+    if sp_img.get_dim() == 2:
         info['ZDIM'], info['VZ'] = 1, 1.0
-    elif (sp_img.get_dim() == 3):
+    elif sp_img.get_dim() == 3:
         info['ZDIM'], info['VZ'] = metadata['shape'][2], \
                                    metadata['voxelsize'][2]
     info['#GEOMETRY'] = 'CARTESIAN'
@@ -209,9 +209,9 @@ def write_inr_image(inr_file, sp_img):
     info['VDIM'] = '1'
     img_typ = str(sp_img.dtype)
 
-    if (img_typ[0:4] == 'uint'):
+    if img_typ[0:4] == 'uint':
         info['TYPE'] = 'unsigned fixed'
-    elif (img_typ[0:5] == 'float'):
+    elif img_typ[0:5] == 'float':
         info['TYPE'] = 'float'
     if '8' in img_typ:
         info['PIXSIZE'] = '8 bits'

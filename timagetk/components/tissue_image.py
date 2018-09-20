@@ -31,7 +31,7 @@ __all__ = ['TissueImage']
 MISS_CELL = "The following cell{} {} not found in the image: {}"  # ''/'s'; 'is'/'are'; labels
 
 
-def voxel_n_layers(image, background, connectivity=None, n=1, **kwargs):
+def voxel_n_layers(image, background, connectivity=None, n_layers=1, **kwargs):
     """
     Extract the n-first layer of non-background voxels, ie. those in contact
     with the background.
@@ -47,7 +47,7 @@ def voxel_n_layers(image, background, connectivity=None, n=1, **kwargs):
         in 3D and 4 in 2D
         should be in [4, 6, 8, 18, 26], where 4 and 8 are 2D structuring
         elements, the rest are 3D structuring elements.
-    n: int, optional
+    n_layers: int, optional
         number of layer of voxels to extract, the first one being in contact
         with the background
 
@@ -72,7 +72,8 @@ def voxel_n_layers(image, background, connectivity=None, n=1, **kwargs):
     # - Dilate it by one voxel using a 18-connexe 3D structuring element:
     struct = structuring_element(connectivity)
     assert test_structuring_element(image, struct)
-    dil_1 = nd.binary_dilation(mask_img_1, structure=struct, iterations=n)
+    dil_1 = nd.binary_dilation(mask_img_1, structure=struct,
+                               iterations=n_layers)
     # - Difference with background mask gives the first layer of voxels:
     layer = dil_1 ^ mask_img_1
 
@@ -154,7 +155,6 @@ class TissueImage(LabelledImage):
     def labels(self, labels=None):
         return list(set(LabelledImage.labels(labels)) - {self.background})
         labels.__doc__ = LabelledImage.labels.__doc__
-
 
     # ##########################################################################
     #

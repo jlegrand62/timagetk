@@ -50,7 +50,7 @@ DICT_TYPES = {0: np.uint8, 1: np.int8, 2: np.uint16, 3: np.int16, 4: np.uint32,
               'cfloat': np.complex128, 'complex': np.complex128,
               'complex256': np.complex_, 'clongdouble': np.complex_,
               'clongfloat': np.complex_, 'longcomplex': np.complex_}
-AVAIL_TYPES = sorted([k for k in DICT_TYPES.keys() if isinstance(k, str)])
+AVAIL_TYPES = sorted([k for k in DICT_TYPES if isinstance(k, str)])
 # - Define default type:
 DEFAULT_DTYPE = DICT_TYPES[0]
 # - List of protected attribute or poperties:
