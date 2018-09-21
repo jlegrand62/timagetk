@@ -11,6 +11,26 @@
 # -----------------------------------------------------------------------------
 """
 Management of the .inr format
+
+Header specifications
+---------------------
+#INRIMAGE-4#{ // format type
+XDIM=150 // x dimension
+YDIM=200 // y dimension
+ZDIM=100 // z dimension
+VDIM=1 // dimension of the data, here 1 for scalar or 3 for thing like RGB values
+VX=5 // voxel size in x
+VY=5 // voxel size in y
+VZ=5 // voxel size in z
+// a higher voxel size results in a more precise 3D mesh
+TYPE=unsigned fixed // type of data written, can be float, signed fixed or unsigned fixed
+SCALE=2**0 // not used by most programs apparently
+PIXSIZE=8 bits // size of a char, can be 8, 16, 32 or 64
+CPU=pc // the type of cpu for little/big endianness, pc is little endian
+
+// Fill with carriage returns until the header is a multiple of 256 bytes, including the end of the header (4 bytes including the line break)
+
+##} // the line break is included in the header count
 """
 
 import gzip
@@ -30,7 +50,12 @@ except ImportError:
 
 __all__ = ["read_inr_image", "write_inr_image"]
 
+# - Accepted file formats:
 POSS_EXT = ['.inr', '.inr.gz', '.inr.zip']
+# - Accepted types of images, checked against 'TYPE' in header:
+POSS_TYPES = ['unsigned fixed', 'signed fixed', 'float']
+# - Accepted encoding of images, checked against 'PIXSIZE' in header:
+POSS_ENC = [8, 16, 32]
 
 
 def read_inr_image(inr_file):
@@ -67,10 +92,10 @@ def read_inr_image(inr_file):
     try:
         assert ext in POSS_EXT
     except AssertionError:
-        raise NotImplementedError(
-            "Unknown file ext '{}', should be in {}.".format(ext,
-                                                             POSS_EXT))
+        msg = "Unknown file ext '{}', should be in {}."
+        raise NotImplementedError(msg.format(ext, POSS_EXT))
 
+    # - Open file:
     if ext == '.inr.gz' or ext == '.inr.zip':
         with gzip.open(inr_file, 'rb') as fzip:
             f = StringIO(fzip.read())
@@ -78,73 +103,74 @@ def read_inr_image(inr_file):
     else:
         f = open(inr_file, 'rb')
 
-    # --- header
+    # - Parsing header info to a dictionary:
+    # -- Read the first lines of the files by muliples of 256 bytes until the end of the header ('##}\n'):
     header = ""
     while header[-4:] != "##}\n":
         header += f.read(256)
-
-    prop = {}
+    # -- Define header begining and end:
     head_start, head_end = header.find("{\n") + 1, header.find("##}")
+    # -- Split lines:
     infos = [gr for gr in header[head_start:head_end].split("\n") if
              len(gr) > 0]
-
+    # -- Create a dictionary by lines:
+    prop = {}
     for prop_def in infos:
         if not prop_def.strip().startswith('#'):
             key, val = prop_def.split("=")
             prop[key] = val
 
-    shape_x, shape_y, shape_z = int(prop['XDIM']), int(prop['YDIM']), int(prop['ZDIM'])
-    vox_x, vox_y, vox_z = float(prop['VX']), float(prop['VY']), float(prop['VZ'])
+    # - Parsing headers dictionary:
+    # -- Image shape:
+    x_sh, y_sh, z_sh = int(prop['XDIM']), int(prop['YDIM']), int(prop['ZDIM'])
+    # -- Image voxelsize:
+    vx, vy, vz = float(prop['VX']), float(prop['VY']), float(prop['VZ'])
+    # -- Number of channels in the image:
     vdim = int(prop['VDIM'])
+    # -- Image type and encoding:
     img_type, img_enc = prop['TYPE'], int(prop["PIXSIZE"].split()[0])
 
-    poss_types, poss_enc = ['unsigned fixed', 'signed fixed', 'float'], [8, 16]
-    conds = img_type in poss_types and img_enc in poss_enc
+    # - Convert the encoding found in the header into a numpy encoding:
+    conds = img_type in POSS_TYPES and img_enc in POSS_ENC
     if conds:
         if img_type == 'unsigned fixed':
             np_typ = eval("np.dtype(np.uint%d)" % img_enc)
         elif img_type == 'signed fixed':
             np_typ = eval("np.dtype(np.int%d)" % img_enc)
-        # elif img_type == 'float':
         else:
-            np_typ = np.dtype(np.float16)
+            np_typ = eval("np.dtype(np.float%d)" % img_enc)
     else:
-        if img_type in poss_types and img_enc not in poss_enc:
-            print('Warning, undetected encoding and possibly incorrect reading')
+        if img_type in POSS_TYPES and img_enc not in POSS_ENC:
+            print(
+                'Warning, unable to detected encoding, might lead to incorrect reading!')
             if img_type == 'unsigned fixed':
                 np_typ = np.dtype(np.uint)
             elif img_type == 'signed fixed':
                 np_typ = np.dtype(np.int)
-            # elif img_type == 'float':
             else:
                 np_typ = np.dtype(np.float)
         else:
             print('Unable to read this file...')
             return
 
-    size = np_typ.itemsize * shape_x * shape_y * shape_z * vdim
+    # - Get the matrix representing the image: 
+    size = np_typ.itemsize * x_sh * y_sh * z_sh * vdim
     mat = np.fromstring(f.read(size), np_typ)
-    img_vox = [vox_x, vox_y, vox_z]
-    if vdim == 1:
-        mat = mat.reshape((shape_x, shape_y, shape_z), order="F")
-        if 1 in mat.shape:  # --- 2D images management
-            if mat.shape[0] == 1:
-                mat = np.squeeze(mat, axis=(0,))
-                img_vox = [vox_y, vox_z]
-            elif mat.shape[1] == 1:
-                mat = np.squeeze(mat, axis=(1,))
-                img_vox = [vox_x, vox_z]
-            elif mat.shape[2] == 1:
-                mat = np.squeeze(mat, axis=(2,))
-                img_vox = [vox_x, vox_y]
-    # elif (vdim!=1):
-    #     mat = mat.reshape((vdim,shape_x,shape_y,shape_z), order="F" )
-    #     mat = mat.transpose(1,2,3,0)
-
-    out_sp_img = SpatialImage(input_array=mat, voxelsize=img_vox,
-                              origin=[0, 0, 0], metadata_dict=prop)
     f.close()
-    prop.clear()
+    # - Reshape to single channel array (vdim==1):
+    if vdim == 1:
+        mat = mat.reshape((x_sh, y_sh, z_sh), order="F")
+    else:
+        raise TypeError("This inr reader does not accept multi-channel images.")
+        # mat = mat.reshape((vdim, x_sh, y_sh, z_sh), order="F")
+        # mat = mat.transpose(1, 2, 3, 0)
+
+    out_sp_img = SpatialImage(mat, origin=[0, 0, 0], voxelsize=[vx, vy, vz],
+                              metadata_dict=prop)
+    # --- 2D images management
+    if 1 in out_sp_img.shape:
+        out_sp_img = out_sp_img.to_2D()
+
     return out_sp_img
 
 
@@ -243,10 +269,10 @@ def write_inr_image(inr_file, sp_img):
 
     f.write(header)
     f.write(sp_img.get_array().tostring("F"))
-#            elif (sp_img._get_dim() == 4):
-#                mat = img.transpose(3,0,1,2)
-#                stream.write(mat.tostring("F") )
-#            else:
-#                raise Exception("Unhandled image dimension %d."%img.ndim)
+    #            elif (sp_img._get_dim() == 4):
+    #                mat = img.transpose(3,0,1,2)
+    #                stream.write(mat.tostring("F") )
+    #            else:
+    #                raise Exception("Unhandled image dimension %d."%img.ndim)
 
     return
