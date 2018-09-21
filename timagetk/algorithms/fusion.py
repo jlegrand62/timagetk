@@ -23,9 +23,9 @@ try:
         inv_trsf
     from timagetk.algorithms import mean_images
     from timagetk.components import SpatialImage, imsave
-    from timagetk.algorithms.reconstruction import rigid_registration
-    from timagetk.algorithms.reconstruction import affine_registration
-    from timagetk.algorithms.reconstruction import deformable_registration
+    from timagetk.plugins.registration import rigid_registration
+    from timagetk.plugins.registration import affine_registration
+    from timagetk.plugins.registration import deformable_registration
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 __all__ = ['fusion']
