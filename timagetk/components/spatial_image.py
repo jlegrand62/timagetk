@@ -554,14 +554,17 @@ class SpatialImage(np.ndarray):
             if shape[0] == 1:
                 new_arr = np.squeeze(array, axis=(0,))
                 new_vox = [voxelsize[1], voxelsize[2]]
+                new_ori = [ori[1], ori[2]]
             elif shape[1] == 1:
                 new_arr = np.squeeze(array, axis=(1,))
                 new_vox = [voxelsize[0], voxelsize[2]]
+                new_ori = [ori[0], ori[2]]
             else:
                 new_arr = np.squeeze(array, axis=(2,))
                 new_vox = [voxelsize[0], voxelsize[1]]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
-                                      origin=ori, metadata_dict=md)
+                new_ori = [ori[0], ori[1]]
+            out_sp_img = SpatialImage(new_arr, voxelsize=new_vox,
+                                      origin=new_ori, metadata_dict=md)
             return out_sp_img
         else:
             print('This 3D SpatialImage can not be reshaped to 2D.')
@@ -582,8 +585,9 @@ class SpatialImage(np.ndarray):
             ori, md = self.origin, self.metadata
             new_arr = np.reshape(array, (shape[0], shape[1], 1))
             new_vox = [voxelsize[0], voxelsize[1], 1.0]
-            out_sp_img = SpatialImage(input_array=new_arr, voxelsize=new_vox,
-                                      origin=ori, metadata_dict=md)
+            new_ori = [ori[0], ori[1], 0]
+            out_sp_img = SpatialImage(new_arr, voxelsize=new_vox,
+                                      origin=new_ori, metadata_dict=md)
             return out_sp_img
         else:
             print('This SpatialImage is not 2D.')
