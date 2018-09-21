@@ -21,6 +21,13 @@ except ImportError:
     raise ImportError('Unable to import LabelledImage class.')
 
 try:
+    from timagetk.components.tissue_image import TissueImage
+    from timagetk.components.tissue_image import TissueImage2D
+    from timagetk.components.tissue_image import TissueImage3D
+except ImportError:
+    raise ImportError('Unable to import TissueImage class.')
+
+try:
     from timagetk.components.io import imread, imsave
 except ImportError:
     raise ImportError('Unable to import imread and imsave.')

@@ -45,7 +45,7 @@ __all__ = [
 ]
 
 INV_TRSF_DEFAULT = ''
-APPLY_TRSF_DEFAULT = ''
+APPLY_TRSF_DEFAULT = '-linear'
 COMPOSE_TRSF_DEFAULT = ''
 CREATE_TRSF_DEFAULT = '-identity'
 

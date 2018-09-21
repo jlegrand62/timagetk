@@ -16,6 +16,7 @@
 """
 This module contains a generic implementation of several linear filtering algorithms.
 """
+
 try:
     from timagetk.util import _input_img_check
     from timagetk.util import _method_check

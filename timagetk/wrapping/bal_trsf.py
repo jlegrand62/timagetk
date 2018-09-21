@@ -122,8 +122,7 @@ class BalTransformation(object, enumTypeTransfo, enumUnitTransfo):
         self._c_bal_trsf = BAL_TRSF()
         if c_bal_trsf is None:
             # WARNING: BAL_InitTransformation set type to undef!
-            libblockmatching.BAL_InitTransformation(
-                self.c_ptr)  # type to undef !
+            libblockmatching.BAL_InitTransformation(self.c_ptr)
             if trsf_unit is not None:
                 self._c_bal_trsf.transformation_unit = trsf_unit
             if trsf_type is not None:
@@ -147,8 +146,8 @@ class BalTransformation(object, enumTypeTransfo, enumUnitTransfo):
 
         # Set object attributes:
         self.trsf_unit = self._c_bal_trsf.transformation_unit
-        self.mat = BalMatrix(
-            c_bal_matrix=self._c_bal_trsf.mat)  # ---- BalMatrix instance
+        # ---- BalMatrix instance
+        self.mat = BalMatrix(c_bal_matrix=self._c_bal_trsf.mat)
         # TODO: move this if/else behaviour to BalImage (avoid unnecessary warnings raise when calling SpatialImage)!
         if self._c_bal_trsf.vx is not None:
             # ---- BalImage instances:
