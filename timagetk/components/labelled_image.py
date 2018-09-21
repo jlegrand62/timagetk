@@ -8,6 +8,10 @@
 #
 # -----------------------------------------------------------------------------
 
+"""
+This module implement the LabelledImage class and most of its functionnalities.
+"""
+
 __license__ = "Private/UnderDev"
 __revision__ = " $Id$ "
 
@@ -22,7 +26,7 @@ from timagetk.components import SpatialImage
 from timagetk.components.slices import dilation_by
 from timagetk.components.slices import real_indices
 
-__all__ = ['LabelledImage']
+# __all__ = ['LabelledImage']
 
 
 # ------------------------------------------------------------------------------
@@ -506,7 +510,7 @@ class LabelledImage(SpatialImage):
 
         # - Initialise object property and most used hidden attributes:
         # -- Define the "no_label_id" value, if any (can be None):
-        self.no_label_id = no_label_id
+        self._no_label_id = no_label_id
         # -- Get the list of labels found in the image:
         self.labels()
         # -- Get the boundingbox dictionary:
@@ -1146,7 +1150,6 @@ class LabelledImage(SpatialImage):
                 "Unknown 'new_value' definition for '{}'".format(new_value))
 
         t_start = time.time()  # timer
-        array = self.get_array()
         # - Label "fusion" loop:
         no_bbox = []
         progress = 0
@@ -1163,7 +1166,7 @@ class LabelledImage(SpatialImage):
                 no_bbox.append(label)
                 bbox = None
             # - Performs value replacement:
-            array = array_replace_label(array, label, new_value, bbox)
+            array_replace_label(self, label, new_value, bbox)
 
         # - If some boundingbox were missing, print about it:
         if no_bbox:
@@ -1174,11 +1177,7 @@ class LabelledImage(SpatialImage):
         if verbose:
             elapsed_time(t_start)
 
-        # TODO: re-instanciate the object !
-        return LabelledImage(array, origin=self.origin,
-                             voxelsize=self.voxelsize,
-                             metadata_dict=self.metadata,
-                             no_label_id=self.no_label_id)
+        return
 
     def remove_labels_from_image(self, labels, verbose=True):
         """
@@ -1232,7 +1231,6 @@ class LabelledImage(SpatialImage):
             return
 
         t_start = time.time()  # timer
-        array = self.get_array()
         # - Remove 'labels' using bounding boxes to speed-up computation:
         no_bbox = []
         progress = 0
@@ -1248,7 +1246,7 @@ class LabelledImage(SpatialImage):
                 no_bbox.append(label)
                 bbox = None
             # Performs value replacement:
-            array = array_replace_label(array, label, self.no_label_id, bbox)
+            array_replace_label(self, label, self.no_label_id, bbox)
 
         # - If some boundingbox were missing, print about it:
         if no_bbox:
@@ -1259,11 +1257,7 @@ class LabelledImage(SpatialImage):
         if verbose:
             elapsed_time(t_start)
 
-        # TODO: re-instanciate the object !
-        return LabelledImage(array, origin=self.origin,
-                             voxelsize=self.voxelsize,
-                             metadata_dict=self.metadata,
-                             no_label_id=self.no_label_id)
+        return
 
     def relabel_from_mapping(self, mapping, clear_unmapped=False, **kwargs):
         """
@@ -1303,7 +1297,7 @@ class LabelledImage(SpatialImage):
             assert all([isinstance(v, int) for v in mapping.values()])
         except AssertionError:
             raise TypeError("Mapping dictionary values should be integers!")
-        # -- Check the mapping keys are known labels, and how many are unknown, to the image:
+        # -- Check that mapping keys are known labels, and how many are unknown:
         labels = self.labels()
         in_labels = set(mapping.keys()) & set(labels)
         off_labels = set(mapping.keys()) - in_labels
@@ -1317,21 +1311,11 @@ class LabelledImage(SpatialImage):
                 n_off = len(off_labels)
                 pc_in = n_in * 100 / n_mapped
                 pc_off = 100 - pc_in
-                s += ", {} ({}%) of them are found in the image".format(n_in,
-                                                                        pc_in)
-
-                s += " and {} ({}%) of them are not!".format(n_off, pc_off)
+                s += ", {} ({}%) are found in the image".format(n_in, pc_in)
+                s += " and {} ({}%) are not!".format(n_off, pc_off)
             else:
                 s += ", all are found in the image!."
             print s
-
-        # - Make a copy of the image to relabel:
-        relab_img = self.get_array()
-        dtype = self.dtype
-        if clear_unmapped:
-            # -- Reset every value to `self._no_label_id` value:
-            relab_img.fill(self._no_label_id)
-            relab_img = relab_img.astype(dtype)
 
         t_start = time.time()
         # - Relabelling loop:
@@ -1345,14 +1329,15 @@ class LabelledImage(SpatialImage):
                 percent = percent_progress(percent, n, n_in, increment)
             bbox = self.boundingbox(old_lab)
             mask = self.get_array()[bbox] == old_lab
-            relab_img[bbox] += np.array(mask * new_lab, dtype=dtype)
+            self[bbox] += np.array(mask * new_lab, dtype=self.dtype)
+
+        # - Clear unmapped labels if required:
+        if clear_unmapped:
+            labels2clear = list(set(labels) - in_labels)
+            self.remove_labels_from_image(labels2clear, **kwargs)
 
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
 
-        # TODO: re-instanciate the object !
-        return LabelledImage(relab_img, origin=self.origin,
-                             voxelsize=self.voxelsize,
-                             metadata_dict=self.metadata,
-                             no_label_id=self.no_label_id)
+        return
