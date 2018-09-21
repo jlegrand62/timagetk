@@ -25,6 +25,7 @@ try:
     from timagetk.algorithms import blockmatching
     from timagetk.components import SpatialImage
     from timagetk.algorithms.blockmatching import BLOCKMATCHING_DEFAULT
+    from timagetk.wrapping.bal_trsf import BalTransformation
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 
@@ -117,7 +118,7 @@ def registration(floating_img, reference_img, method=None, **kwargs):
     # registration but returned trsf will NOT contain this trsf
     left_trsf = kwargs.pop('left_trsf', None)
 
-    if init_trsf:
+    if init_trsf is not None:
         try:
             assert left_trsf is None
         except:
@@ -195,18 +196,18 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
 
     msg = None
     # - Make sure the provided initialisation trsf matrix is linear:
-    if left_trsf:
+    if left_trsf is not None:
         try:
-            assert left_trsf.is_linear()
+            assert isinstance(left_trsf, BalTransformation)
         except:
-            raise TypeError("Provided 'left_trsf' is not a linear deformation!")
+            raise TypeError("Provided 'left_trsf' is not a BalTransformation!")
         else:
             msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
-    if init_trsf:
+    if init_trsf is not None:
         try:
-            assert init_trsf.is_linear()
+            assert isinstance(init_trsf, BalTransformation)
         except:
-            raise TypeError("Provided 'init_trsf' is not a linear deformation!")
+            raise TypeError("Provided 'init_trsf' is not a BalTransformation!")
         else:
             msg = "Using initialisation matrix for vectorfield blockmatching..."
 
@@ -274,20 +275,20 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
         del res_rig
     else:
         # - Make sure the provided initialisation trsf matrix is linear:
-        if left_trsf:
+        if left_trsf is not None:
             try:
-                assert init_trsf.is_linear()
+                assert isinstance(left_trsf, BalTransformation)
             except:
                 raise TypeError(
-                    "Provided 'init_trsf' is not a linear deformation!")
+                    "Provided 'left_trsf' is not a BalTransformation!")
             else:
                 msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
-        if init_trsf:
+        if init_trsf is not None:
             try:
-                assert left_trsf.is_linear()
+                assert isinstance(init_trsf, BalTransformation)
             except:
                 raise TypeError(
-                    "Provided 'left_trsf' is not a linear deformation!")
+                    "Provided 'init_trsf' is not a BalTransformation!")
             else:
                 msg = "Using initialisation matrix for vectorfield blockmatching..."
 
@@ -357,20 +358,20 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
         del res_rig
     else:
         # - Make sure the provided initialisation trsf matrix is linear:
-        if left_trsf:
+        if left_trsf is not None:
             try:
-                assert init_trsf.is_linear()
+                assert isinstance(left_trsf, BalTransformation)
             except:
                 raise TypeError(
-                    "Provided 'init_trsf' is not a linear deformation!")
+                    "Provided 'left_trsf' is not a BalTransformation!")
             else:
                 msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
-        if init_trsf:
+        if init_trsf is not None:
             try:
-                assert left_trsf.is_linear()
+                assert isinstance(init_trsf, BalTransformation)
             except:
                 raise TypeError(
-                    "Provided 'left_trsf' is not a linear deformation!")
+                    "Provided 'init_trsf' is not a BalTransformation!")
             else:
                 msg = "Using initialisation matrix for vectorfield blockmatching..."
 
