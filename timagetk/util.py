@@ -17,9 +17,6 @@ import time
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
-import warnings
-from timagetk.components import SpatialImage
-
 
 def shared_folder():
     return os.path.join(_ROOT, 'share', 'data')
@@ -67,54 +64,6 @@ def _method_check(method, valid_methods, default_index=0):
             raise NotImplementedError(msg)
 
     return method
-
-
-def try_spatial_image(obj, obj_name=None):
-    """
-    Tests whether given instance is a SpatialImage.
-
-    Parameters
-    ----------
-    obj: instance
-        instance to test
-    obj_name: str, optional
-        if given used as object name for TypeError printing
-    """
-    if obj_name is None:
-        obj_name = type(obj)
-
-    err = "Input '{}' is not a SpatialImage instance."
-    try:
-        assert isinstance(obj, SpatialImage)
-    except AssertionError:
-        raise TypeError(err.format(obj_name))
-
-    return
-
-
-def _input_img_check(input_image, real=False):
-    """
-    Used to check `input_image` type and method units.
-    If not real, check that the given input image is isometric.
-
-    Parameters
-    ----------
-    input_image: SpatialImage
-        tested input type
-    real: bool, optional
-        indicate if the method works on real or voxel units
-    """
-    # TODO: use function name for better 'warnings'
-    # - Check the `input_image` is indeed a `SpatialImage`
-    try_spatial_image(input_image, obj_name='input_image')
-
-    # - Check the isometry of the image when using voxel units:
-    if not real and not input_image.is_isometric():
-        warnings.formatwarning = clean_warning
-        warnings.simplefilter("always")
-        msg = "The image is NOT isometric, this method operates on voxels!"
-        warnings.warn(msg)
-    return
 
 
 def _general_kwargs(param=False, verbose=False, time=False, debug=False,
@@ -281,3 +230,41 @@ def elapsed_time(start, stop=None, round_to=3):
     t = round(stop - start, round_to)
     print "done in {}s".format(t)
     return
+
+
+def get_class_name(obj):
+    """
+    Returns a string defining the class name.
+    No module & package hierarchy returned.
+
+    Parameters
+    ----------
+    obj : any
+        any object for which you want to get the class name
+
+    Returns
+    -------
+    str
+        the name of the class
+    """
+    return str(type(obj))[:-2].split('.')[-1]
+
+
+def get_attributes(obj, attr_list):
+    """
+    Return a dictionary with attributes values from 'obj'.
+    By default they are set to None if not defined.
+
+    Parameters
+    ----------
+    obj : any
+        an object from which to try to get attributes
+    attr_list : list(str)
+        list of attributes to get from the object
+
+    Returns
+    -------
+    dict
+        attr_list as keys and the attribute value as their values.
+    """
+    return {attr: getattr(obj, attr, None) for attr in attr_list}
