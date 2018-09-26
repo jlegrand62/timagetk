@@ -146,7 +146,7 @@ def imsave(img_file, sp_img):
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imsave, SpatialImage
     >>> test_array = np.ones((5,5), dtype=np.uint8)
-    >>> sp_image = SpatialImage(input_array=test_array)
+    >>> sp_image = SpatialImage(test_array)
     >>> save_path = data_path('test_output.tif')
     >>> imsave(save_path, sp_image)
     """

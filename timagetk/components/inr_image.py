@@ -44,7 +44,7 @@ except ImportError:
     from StringIO import StringIO  # Python version
 try:
     from timagetk.components import SpatialImage
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError:
     raise ImportError('Unable to import SpatialImage')
 
@@ -190,7 +190,7 @@ def write_inr_image(inr_file, sp_img):
     -------
     >>> inr_file = '/home/you/Documents/my_inr_file.inr'
     >>> test_arr = np.ones((5,5), dtype=np.uint8)
-    >>> sp_img = SpatialImage(input_array=test_arr)
+    >>> sp_img = SpatialImage(test_arr)
     >>> write_inr_image(inr_file, sp_img)
     """
     # - Assert sp_img is a SpatialImage instance:

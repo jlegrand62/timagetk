@@ -20,7 +20,7 @@ This module contain implementation of region labeling algorithms
 import numpy as np
 
 try:
-    from timagetk.util import _input_img_check
+    from timagetk.components import _input_img_check
     from timagetk.util import _method_check
     from timagetk.util import _general_kwargs
     from timagetk.util import _parallel_kwargs

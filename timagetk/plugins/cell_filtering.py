@@ -18,7 +18,7 @@ This module contain a generic implementation of several cell filtering algorithm
 """
 
 try:
-    from timagetk.util import _input_img_check
+    from timagetk.components import _input_img_check
     from timagetk.util import _method_check
     from timagetk.util import _general_kwargs
     from timagetk.util import _parallel_kwargs

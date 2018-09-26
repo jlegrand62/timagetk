@@ -133,9 +133,9 @@ def read_tiff_image(tiff_file):
             vox.append(1.0)
 
         if (len(vox)==metadata_dict['dim']):
-            out_sp_img = SpatialImage(input_array=tmp_arr, voxelsize=vox, metadata_dict=metadata_dict)
+            out_sp_img = SpatialImage(tmp_arr, voxelsize=vox, metadata_dict=metadata_dict)
         else:
-            out_sp_img = SpatialImage(input_array=tmp_arr, voxelsize=[], metadata_dict=metadata_dict)
+            out_sp_img = SpatialImage(tmp_arr, voxelsize=[], metadata_dict=metadata_dict)
             #~ print('Warning, unknown voxelsize')
         #~ del metadata_dict
         return out_sp_img
@@ -157,7 +157,7 @@ def write_tiff_image(tiff_file, sp_img):
     -------
     tiff_file = '/home/you/Documents/my_tiff_file.tiff'
     test_arr = np.ones((5,5), dtype=np.uint8)
-    sp_img = SpatialImage(input_array=test_arr)
+    sp_img = SpatialImage(test_arr)
     write_tiff_image(tiff_file, sp_img)
     """
     # - Assert sp_img is a SpatialImage instance:

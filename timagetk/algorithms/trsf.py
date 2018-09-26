@@ -32,7 +32,7 @@ try:
     from timagetk.wrapping.bal_matrix import allocate_c_bal_matrix
     from timagetk.wrapping.bal_trsf import BalTransformation
     from timagetk.components.spatial_image import SpatialImage
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 

@@ -17,7 +17,7 @@ try:
     from timagetk.wrapping.clib import add_doc, return_value, libvtexec
     from timagetk.wrapping.vt_image import vt_image, new_vt_image
     from timagetk.components import SpatialImage
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 

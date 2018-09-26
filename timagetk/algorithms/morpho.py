@@ -17,7 +17,7 @@ import warnings
 from ctypes import pointer, c_int, Structure, POINTER
 
 try:
-    from timagetk.util import _input_img_check
+    from timagetk.components import _input_img_check
     from timagetk.util import _general_kwargs
     from timagetk.util import _parallel_kwargs
     from timagetk.util import _method_check

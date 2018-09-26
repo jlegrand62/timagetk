@@ -15,7 +15,7 @@ try:
     from timagetk.components import SpatialImage
     from timagetk.algorithms import sets_metrics
     from timagetk.algorithms import imgtosets
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 

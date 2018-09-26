@@ -24,7 +24,7 @@ try:
         spatial_image_to_bal_image_fields
     from timagetk.wrapping.bal_trsf import BalTransformation
     from timagetk.components import SpatialImage
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 

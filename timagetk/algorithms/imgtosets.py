@@ -14,7 +14,7 @@ import numpy as np
 try:
     from timagetk.components import SpatialImage
     from timagetk.algorithms import GeometricalFeatures
-    from timagetk.util import try_spatial_image
+    from timagetk.components import try_spatial_image
 except ImportError as e:
     raise ImportError('Import Error: {}'.format(e))
 

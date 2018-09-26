@@ -27,7 +27,7 @@ It was using a library that is not available anymore (morpheme).
 import numpy as np
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
-from timagetk.util import try_spatial_image
+from timagetk.components import try_spatial_image
 from timagetk.algorithms import connexe
 from timagetk.components.spatial_image import SpatialImage
 from timagetk.components.labelled_image import connectivity_4
