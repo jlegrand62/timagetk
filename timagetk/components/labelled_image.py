@@ -19,12 +19,15 @@ import time
 import numpy as np
 import scipy.ndimage as nd
 
+from timagetk.util import get_attributes
+from timagetk.util import get_class_name
 from timagetk.util import elapsed_time
 from timagetk.util import percent_progress
 
 from timagetk.components import SpatialImage
 from timagetk.components.slices import dilation_by
 from timagetk.components.slices import real_indices
+
 
 # __all__ = ['LabelledImage']
 
@@ -457,16 +460,14 @@ class LabelledImage(SpatialImage):
     Class to manipulate labelled SpatialImage, eg. a segmented image.
     """
 
-    def __init__(self, image, no_label_id=None, **kwargs):
+    def __new__(cls, image, **kwargs):
         """
-        LabelledImage constructor.
+        LabelledImage construction method.
 
         Parameters
         ----------
-        image: np.array|SpatialImage
+        image : np.array|SpatialImage
             a numpy array or a SpatialImage containing a labelled array
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a label)
 
         kwargs
         ------
@@ -478,25 +479,75 @@ class LabelledImage(SpatialImage):
             image type, default dtype = input_array.dtype
         metadata_dict: dict, optional
             dictionary of image metadata, default is an empty dict
-        """
-        # - Get variable for SpatialImage initialisation:
-        if isinstance(image, SpatialImage):
-            input_array = image.get_array()
-            origin = image.origin
-            voxelsize = image.voxelsize
-            dtype = image.dtype
-            metadata_dict = image.metadata
-        else:
-            input_array = image
-            origin = kwargs.get('origin', None)
-            voxelsize = kwargs.get('voxelsize', None)
-            dtype = kwargs.get('voxelsize', image.dtype)
-            metadata_dict = kwargs.get('metadata_dict', None)
 
-        # - Inherit SpatialImage class:
-        SpatialImage.__init__(self, input_array, origin=origin,
-                              voxelsize=voxelsize, dtype=dtype,
-                              metadata_dict=metadata_dict)
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> from timagetk.components import LabelledImage
+        >>> test_array = np.random.randint(0, 255, (5, 5)).astype(np.uint8)
+        >>> test_array[0,:] = np.ones((5,), dtype=np.uint8)
+        >>> # - Construct from a NumPy array:
+        >>> lab_image = LabelledImage(test_array, voxelsize=[0.5,0.5], no_label_id=0)
+        >>> # - Construct from a SpatialImage:
+        >>> image_1 = SpatialImage(test_array, voxelsize=[0.5,0.5])
+        >>> lab_image = LabelledImage(image_1, no_label_id=0)
+        >>> isinstance(lab_image, np.ndarray)
+        True
+        >>> isinstance(lab_image, SpatialImage)
+        True
+        >>> isinstance(lab_image, LabelledImage)
+        True
+        >>> print lab_image.voxelsize
+        [0.5, 0.5]
+        >>> print lab_image.no_label_id
+        0
+        """
+        # - Get variables for SpatialImage initialisation:
+        if isinstance(image, SpatialImage):
+            # -- Can be a SpatialImage or any class inheriting from it:
+            return super(LabelledImage, cls).__new__(cls, image, **kwargs)
+        elif isinstance(image, np.ndarray):
+            # -- Case where constructing from a NumPy array:
+            origin = kwargs.pop('origin', None)
+            voxelsize = kwargs.pop('voxelsize', None)
+            dtype = kwargs.pop('dtype', image.dtype)
+            metadata = kwargs.pop('metadata_dict', None)
+            return super(LabelledImage, cls).__new__(cls, image,
+                                                     origin=origin,
+                                                     voxelsize=voxelsize,
+                                                     dtype=dtype,
+                                                     metadata_dict=metadata,
+                                                     **kwargs)
+        else:
+            msg = "Undefined construction method for type '{}'!"
+            raise NotImplementedError(msg.format(type(image)))
+
+    def __init__(self, image, no_label_id=None, **kwargs):
+        """
+        LabelledImage initialisation method.
+
+        Parameters
+        ----------
+        image : np.array|SpatialImage
+            a numpy array or a SpatialImage containing a labelled array
+        no_label_id : int, optional
+            if given define the "unknown label" (ie. not a label)
+        """
+        # - In case a LabelledImage is contructed from a LabelledImage, get the attributes values:
+        if isinstance(image, LabelledImage):
+            attr_list = ["no_label_id"]
+            attr_dict = get_attributes(image, attr_list)
+            class_name = get_class_name(image)
+            msg = "Overriding optional keyword arguments '{}' ({}) with defined attribute ({}) in given '{}'!"
+            # -- Check necessity to override 'origin' with attribute value:
+            if attr_dict['no_label_id'] is not None:
+                if no_label_id is not None and no_label_id != attr_dict[
+                    'no_label_id']:
+                    print msg.format('no_label_id', no_label_id,
+                                     attr_dict['no_label_id'],
+                                     class_name)
+                no_label_id = attr_dict['no_label_id']
 
         # - Initializing EMPTY hidden attributes:
         # -- Property hidden attributes:
@@ -510,7 +561,7 @@ class LabelledImage(SpatialImage):
 
         # - Initialise object property and most used hidden attributes:
         # -- Define the "no_label_id" value, if any (can be None):
-        self._no_label_id = no_label_id
+        self.no_label_id = no_label_id
         # -- Get the list of labels found in the image:
         self.labels()
         # -- Get the boundingbox dictionary:
@@ -584,6 +635,7 @@ class LabelledImage(SpatialImage):
             return
         else:
             self._no_label_id = value
+        self.metadata = {'no_label_id': self.no_label_id}
 
     def _defined_no_label_id(self):
         """

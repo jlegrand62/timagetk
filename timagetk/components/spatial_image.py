@@ -24,6 +24,9 @@ from __future__ import division
 
 import numpy as np
 
+from timagetk.util import get_attributes
+from timagetk.util import get_class_name
+
 __all__ = ['SpatialImage']
 
 # - Define default values:
@@ -100,6 +103,7 @@ def tuple_array_to_list(val):
     else:
         return val
 
+
 def check_dimensionality(dim, list2test):
     """
     Tests list dimensionality against array dimensionality.
@@ -110,6 +114,7 @@ def check_dimensionality(dim, list2test):
         return None
     else:
         return list2test
+
 
 def compare_kwargs_metadata(kwd_val, md_val, dim):
     """
@@ -268,11 +273,19 @@ class SpatialImage(np.ndarray):
     This class allows a management of ``SpatialImage`` objects (2D and 3D images).
     A ``SpatialImage`` gathers a numpy array and some metadata (such as voxelsize,
     physical extent, origin, type, etc.).
+
     Through a ``numpy.ndarray`` inheritance, all usual operations on
     `numpy.ndarray <http://docs.scipy.org/doc/numpy-1.10.1/reference/generated/numpy.ndarray.html>`_
     objects (sum, product, transposition, etc.) are available.
+
     All image processing operations are performed on this data structure, that
     is also used to solve inputs (read) and outputs (write).
+
+    We `subclass <https://docs.scipy.org/doc/numpy-1.14.0/user/basics.subclassing.html>`_
+    ndarray using view casting in the '__new__' section.
+    View casting is the standard ``ndarray`` mechanism by which you take an
+    ``ndarray`` of any subclass, and return a view of the array as another
+    (specified) subclass, here a ``SpatialImage``.
     """
 
     def __new__(cls, input_array, origin=None, voxelsize=None, dtype=None,
@@ -307,15 +320,47 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image_1 = SpatialImage(input_array=test_array)
+        >>> image_1 = SpatialImage(test_array, voxelsize=[0.5,0.5])
         >>> isinstance(image_1, SpatialImage)
         True
-        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
-        >>> isinstance(image_2, SpatialImage)
+        >>> isinstance(image_1, np.ndarray)
         True
-        >>> print image_2.voxelsize
+        >>> print image_1.voxelsize
         [0.5, 0.5]
         """
+        # - Override the optional keyword arguments if defined in `input_array`:
+        if isinstance(input_array, SpatialImage):
+            attr_list = ["origin", "voxelsize", "dtype", "metadata"]
+            attr_dict = get_attributes(input_array, attr_list)
+            class_name = get_class_name(input_array)
+            msg = "Overriding optional keyword arguments '{}' ({}) with defined attribute ({}) in given '{}'!"
+            # -- Check necessity to override 'origin' with attribute value:
+            if attr_dict['origin'] is not None:
+                if origin is not None and origin != attr_dict['origin']:
+                    print msg.format('origin', origin, attr_dict['origin'],
+                                     class_name)
+                origin = attr_dict['origin']
+            # -- Check necessity to override 'voxelsize' with attribute value:
+            if attr_dict['voxelsize'] is not None:
+                if voxelsize is not None and voxelsize != attr_dict[
+                    'voxelsize']:
+                    print msg.format('voxelsize', voxelsize,
+                                     attr_dict['voxelsize'], class_name)
+                voxelsize = attr_dict['voxelsize']
+            # -- Check necessity to override 'dtype' with attribute value:
+            if attr_dict['dtype'] is not None:
+                if dtype is not None and dtype != attr_dict['dtype']:
+                    print msg.format('dtype', dtype, attr_dict['dtype'],
+                                     class_name)
+                dtype = attr_dict['dtype']
+            # -- Check necessity to override 'metadata_dict' with attribute value:
+            if attr_dict['metadata'] is not None:
+                if metadata_dict is not None and metadata_dict != attr_dict[
+                    'metadata_dict']:
+                    print msg.format('metadata', metadata_dict,
+                                     attr_dict['metadata'], class_name)
+                metadata_dict = attr_dict['metadata']
+
         # - Test input array: should be a numpy array of dimension 2 or 3:
         try:
             assert isinstance(input_array, np.ndarray)
@@ -365,7 +410,7 @@ class SpatialImage(np.ndarray):
         # ----------------------------------------------------------------------
         # ARRAY:
         # ----------------------------------------------------------------------
-        # - Check input array 'flags' attribute, use 'dtype' value:
+        # - View casting (see class doc) of the array as a SpatialImage subclass:
         if input_array.flags.f_contiguous:
             obj = np.asarray(input_array, dtype=dtype).view(cls)
         else:
@@ -453,11 +498,6 @@ class SpatialImage(np.ndarray):
 
         return obj
 
-    def __init__(self, input_array, **kwargs):
-        """
-        """
-        pass
-
     def __array_finalize__(self, obj):
         """
         This is the mechanism that numpy provides to allow subclasses to handle
@@ -465,7 +505,8 @@ class SpatialImage(np.ndarray):
 
         Parameters
         ----------
-        obj: the object returned by the __new__ method.
+        obj :
+            the object returned by the __new__ method.
         """
         if obj is not None:
             self._voxelsize = getattr(obj, '_voxelsize', [])
@@ -478,12 +519,17 @@ class SpatialImage(np.ndarray):
         else:
             pass
 
+    def _new_from_spatialimage(self, input_array, **kwargs):
+        pass
+
     def __str__(self):
         """
+        Method called when printing the object.
         """
-        print "SpatialImage object with following metadata:"
-        print  self._metadata
-        return
+        msg = "SpatialImage object with following metadata:\n"
+        md = self.metadata
+        msg += '\n'.join(['   - {}: {}'.format(k, v) for k, v in md.items()])
+        return msg
 
     def astype(self, type, **kwargs):
         """
@@ -642,10 +688,10 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image_1 = SpatialImage(input_array=test_array)
+        >>> image_1 = SpatialImage(test_array)
         >>> image_1.equal(image_1)
         True
-        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
+        >>> image_2 = SpatialImage(test_array, voxelsize=[0.5,0.5])
         >>> image_1.equal(image_2)
         SpatialImages metadata are different.
         False
@@ -700,11 +746,11 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image_1 = SpatialImage(input_array=test_array)
+        >>> image_1 = SpatialImage(test_array)
         >>> image_1.equal_array(image_1)
         True
         >>> # - Changing voxelsize does not affect array equality test:
-        >>> image_2 = SpatialImage(input_array=test_array, voxelsize=[0.5,0.5])
+        >>> image_2 = SpatialImage(test_array, voxelsize=[0.5,0.5])
         >>> image_1.equal_array(image_2)
         True
         >>> # - Changing array value does affect array equality test:
@@ -766,7 +812,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image_array = image.get_array()
         >>> isinstance(image_array, SpatialImage)
         False
@@ -789,7 +835,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image_dim = image.get_dim()
         >>> print image_dim
         2
@@ -810,7 +856,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image_min = image.get_min()
         >>> print image_min
         1
@@ -836,7 +882,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image_max = image.get_max()
         >>> print image_max
         1
@@ -862,7 +908,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image_mean = image.get_mean()
         >>> print image_mean
         1
@@ -893,7 +939,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> indices = [1,1]
         >>> pixel_value = image.get_pixel(indices)
         >>> print pixel_value
@@ -942,7 +988,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> indices = [1,3,1,3]
         >>> out_sp_image = image.get_region(indices)
         >>> isinstance(out_sp_image, SpatialImage)
@@ -997,7 +1043,7 @@ class SpatialImage(np.ndarray):
                 reg_val = np.squeeze(reg_val, axis=(2,))
                 tmp_vox = [tmp_vox[0], tmp_vox[1]]
 
-        out_sp_img = SpatialImage(input_array=reg_val, voxelsize=tmp_vox)
+        out_sp_img = SpatialImage(reg_val, voxelsize=tmp_vox)
         return out_sp_img
 
     # Commented since 'shape' is already an attribute of numpy.array
@@ -1014,7 +1060,7 @@ class SpatialImage(np.ndarray):
     #     >>> import numpy as np
     #     >>> from timagetk.components import SpatialImage
     #     >>> test_array = np.ones((5,5), dtype=np.uint8)
-    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> image = SpatialImage(test_array)
     #     >>> image_shape = image.shape
     #     >>> print image_shape
     #     (5, 5)
@@ -1037,7 +1083,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image.set_pixel([1,1], 2)
         >>> image.get_array()
         array([[1, 1, 1, 1, 1],
@@ -1088,7 +1134,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> indices = [1,3,1,3]
         >>> out_sp_image = image.set_region(indices, 3)
         """
@@ -1138,7 +1184,7 @@ class SpatialImage(np.ndarray):
                                                     indices[5])] = val
         else:
             print('Warning, incorrect specification')
-        out_sp_img = SpatialImage(input_array=tmp_arr, voxelsize=tmp_vox)
+        out_sp_img = SpatialImage(tmp_arr, voxelsize=tmp_vox)
         return out_sp_img
 
     # ##########################################################################
@@ -1161,7 +1207,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> print image.extent
         [5.0, 5.0]
         """
@@ -1187,7 +1233,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> print image.voxelsize
         [1.0, 1.0]
         >>> image.extent = [10.0, 10.0]
@@ -1208,8 +1254,8 @@ class SpatialImage(np.ndarray):
         vox = around_list(vox)
         self._voxelsize = vox
         # - Update 'extent' & 'voxelsize' metadata:
-        self._metadata['extent'] = self.extent
-        self._metadata['voxelsize'] = self.voxelsize
+        self.metadata = {'extent': self.extent}
+        self.metadata = {'voxelsize': self.voxelsize}
         print "Set extent to '{}'".format(self.extent)
         print "Changed voxelsize to '{}'".format(self.voxelsize)
         return
@@ -1229,7 +1275,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> print image.metadata
         {'dim': 2,
          'extent': [5.0, 5.0],
@@ -1240,6 +1286,8 @@ class SpatialImage(np.ndarray):
          }
         """
         md = self._metadata
+        if md is None:
+            return None
         # - Test whether the metadata dict has been initialized:
         try:
             assert md.has_key('shape')
@@ -1308,7 +1356,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image.metadata = {'name': 'img_test'}
         >>> image.metadata = {'voxelsize': [1.0, 1.0]}
         >>> image.metadata = {'voxelsize': [1.5, 1.5]}
@@ -1380,7 +1428,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> print image.origin
         [0, 0]
         """
@@ -1402,7 +1450,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image.origin = [2, 2]
         Set origin to '[2, 2]'
         """
@@ -1411,11 +1459,11 @@ class SpatialImage(np.ndarray):
         # - Update hidden attribute 'origin':
         self._origin = img_origin
         # - Update hidden attribute metadata key 'origin':
-        self._metadata['origin'] = img_origin
+        self.metadata = {'origin': img_origin}
         print "Set origin to '{}'".format(self.origin)
         return
 
-    # Deprecated, use Numpy attribute 'dtype'
+    # Deprecated, use NumPy attribute 'dtype'
     # @property
     # def type(self):
     #     """
@@ -1431,7 +1479,7 @@ class SpatialImage(np.ndarray):
     #     >>> import numpy as np
     #     >>> from timagetk.components import SpatialImage
     #     >>> test_array = np.ones((5,5), dtype=np.uint8)
-    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> image = SpatialImage(test_array)
     #     >>> print image.dtype
     #     uint8
     #     """
@@ -1458,7 +1506,7 @@ class SpatialImage(np.ndarray):
     #     >>> import numpy as np
     #     >>> from timagetk.components import SpatialImage
     #     >>> test_array = np.ones((5,5), dtype=np.uint8)
-    #     >>> image = SpatialImage(input_array=test_array)
+    #     >>> image = SpatialImage(test_array)
     #     >>> image.dtype = np.uint16
     #     >>> print image.dtype
     #     uint16
@@ -1491,7 +1539,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> print image.voxelsize
         [1.0, 1.0]
         """
@@ -1517,7 +1565,7 @@ class SpatialImage(np.ndarray):
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
         >>> test_array = np.ones((5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array)
+        >>> image = SpatialImage(test_array)
         >>> image.voxelsize = [0.5, 0.5]
         Set voxelsize to '[0.5, 0.5]'
         Changed extent to '[2.5, 2.5]'
@@ -1536,8 +1584,8 @@ class SpatialImage(np.ndarray):
         ext = around_list(ext)
         self._extent = ext
         # - Update 'extent' & 'voxelsize' metadata:
-        self._metadata['voxelsize'] = self.voxelsize
-        self._metadata['extent'] = self.extent
+        self.metadata = {'voxelsize': self.voxelsize}
+        self.metadata = {'extent': self.extent}
         print "Set voxelsize to '{}'".format(self.voxelsize)
         print "Changed extent to '{}'".format(self.extent)
         return
@@ -1578,61 +1626,97 @@ class SpatialImage(np.ndarray):
         ``SpatialImage``
             the converted ``SpatialImage``
         """
-        vxs = self.voxelsize
-        ori = self.origin
-        md = self.metadata
         if unsigned:
             dtype = 'uint8'
         else:
             dtype = 'int8'
 
-        arr = self.get_array()
-        if arr.dtype == "uint16" or arr.dtype == "int16":
+        if self.dtype == "uint16" or self.dtype == "int16":
             factor = 2 ** (16 - 8) - 1
-        elif arr.dtype == "uint32" or arr.dtype == "int32":
+        elif self.dtype == "uint32" or self.dtype == "int32":
             factor = 2 ** (32 - 8) - 1
-        elif arr.dtype == "uint64" or arr.dtype == "int64":
+        elif self.dtype == "uint64" or self.dtype == "int64":
             factor = 2 ** (64 - 8) - 1
         else:
-            raise NotImplementedError(
-                'Could not find implementation to do just that!')
+            msg = "Cannot convert '{}' to '{}'!".format(self.dtype, dtype)
+            raise NotImplementedError(msg)
 
-        arr = np.divide(arr, factor).astype(DICT_TYPES[dtype])
-        return SpatialImage(arr, voxelsize=vxs, origin=ori, metadata_dict=md)
+        return np.divide(self, factor).astype(DICT_TYPES[dtype])
 
-    def revert_axis(self, axis='z'):
+    def revert_axis(self, axis):
         """
-        Revert x, y, or z axis
+        Revert x, y, or z axis if the object is in 3D, limited to x and y in 2D.
 
         Parameters
         ----------
         axis: str
-            can be either 'x', 'y' or 'z'
+            can be either 'x', 'y' or 'z' (if 3D)
 
         Returns
         -------
-        ``SpatialImage``
-            ``SpatialImage`` instance
+        SpatialImage
+            reverted array for selected axis
 
         Example
         -------
         >>> import numpy as np
         >>> from timagetk.components import SpatialImage
-        >>> test_array = np.ones((5,5,5), dtype=np.uint8)
-        >>> image = SpatialImage(input_array=test_array, voxelsize=[0.5, 0.5, 0.5])
+        >>> test_array = np.random.randint(0, 255, (5, 5)).astype(np.uint8)
+        >>> image = SpatialImage(test_array, voxelsize=[0.5, 0.5, 0.5])
+        >>> print image.get_array()
         >>> image.revert_axis(axis='y')
         """
-        if self.get_dim() == 2:
-            self = self.to_3D()
+        if self.is2D():
+            return self._revert_2d(self, axis)
+        else:
+            return self._revert_3d(self, axis)
 
-        arr, vox = self.get_array(), self.voxelsize
+    @staticmethod
+    def _revert_3d(array, axis):
+        """
+        Revert x, y, or z axis of the given array.
+
+        Parameters
+        ----------
+        array : np.array
+            array for which to revert an axis
+        axis : str
+            can be either 'x', 'y' or 'z'
+
+        Returns
+        -------
+        np.array
+            reverted array for selected axis
+        """
         if axis == 'x':
-            new_arr = arr[::-1, :, :]
-        if axis == 'y':
-            new_arr = arr[:, ::-1, :]
+            return array[::-1, :, :]
+        elif axis == 'y':
+            return array[:, ::-1, :]
         elif axis == 'z':
-            new_arr = arr[:, :, ::-1]
-        out_sp_image = SpatialImage(new_arr, voxelsize=vox)
-        if 1 in out_sp_image.shape:
-            out_sp_image = out_sp_image.to_2D()
-        return out_sp_image
+            return array[:, :, ::-1]
+        else:
+            raise ValueError("Unknown axis '{}' for a 3D array.".format(axis))
+
+    @staticmethod
+    def _revert_2d(array, axis):
+        """
+        Revert x or y axis of the given array.
+
+        Parameters
+        ----------
+        array : np.array
+            array for which to revert an axis
+        axis : str
+            can be either 'x' or 'y'
+
+        Returns
+        -------
+        np.array
+            reverted array for selected axis
+        """
+        if axis == 'x':
+            return array[::-1, :]
+        elif axis == 'y':
+            return array[:, ::-1]
+        else:
+            raise ValueError("Unknown axis '{}' for a 2D array.".format(axis))

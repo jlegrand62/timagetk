@@ -15,12 +15,13 @@ import time
 import numpy as np
 import scipy.ndimage as nd
 
+from timagetk.util import get_class_name
+from timagetk.util import get_attributes
 from timagetk.util import elapsed_time
 from timagetk.util import percent_progress
 
 from timagetk.components import SpatialImage
 from timagetk.components import LabelledImage
-from timagetk.components.labelled_image import array_replace_label
 from timagetk.components.labelled_image import image_with_labels
 from timagetk.components.labelled_image import image_without_labels
 from timagetk.components.labelled_image import structuring_element
@@ -89,8 +90,82 @@ class TissueImage(LabelledImage):
     background.
     """
 
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
+    def __new__(cls, image, **kwargs):
         """
+        TissueImage construction method.
+
+        Parameters
+        ----------
+        image : np.array|SpatialImage|LabelledImage
+            a numpy array or a SpatialImage containing a labelled array
+
+        kwargs
+        ------
+        origin: list, optional
+            coordinates of the origin in the image, default: [0,0] or [0,0,0]
+        voxelsize: list, optional.
+            image voxelsize, default: [1.0,1.0] or [1.0,1.0,1.0]
+        dtype: str, optional
+            image type, default dtype = input_array.dtype
+        metadata_dict: dict, optional
+            dictionary of image metadata, default is an empty dict
+        no_label_id : int, optional
+            if given define the "unknown label" (ie. not a label)
+
+        Example
+        -------
+        >>> import numpy as np
+        >>> from timagetk.components import SpatialImage
+        >>> from timagetk.components import LabelledImage
+        >>> from timagetk.components import TissueImage
+        >>> test_array = np.random.randint(0, 255, (5, 5)).astype(np.uint8)
+        >>> test_array[0,:] = np.ones((5,), dtype=np.uint8)
+        >>> # - Construct from a NumPy array:
+        >>> tissue = TissueImage(test_array, voxelsize=[0.5,0.5], no_label_id=0, background=1)
+        >>> print tissue.background
+        1
+        >>> # - Construct from a SpatialImage:
+        >>> image = SpatialImage(test_array, voxelsize=[0.5,0.5])
+        >>> tissue = TissueImage(image, no_label_id=0, background=1)
+        >>> print tissue.background
+        1
+        >>> # - Construct from a LabelledImage:
+        >>> lab_image = LabelledImage(test_array, voxelsize=[0.5,0.5], no_label_id=0)
+        >>> tissue = TissueImage(lab_image, background=1)
+        >>> print tissue.background
+        1
+        """
+        if isinstance(image, LabelledImage):
+            # -- Can be a LabelledImage or any class inheriting from it:
+            return super(TissueImage, cls).__new__(cls, image, **kwargs)
+        elif isinstance(image, SpatialImage):
+            # -- Can be a SpatialImage or any class inheriting from it:
+            no_label_id = kwargs.pop('no_label_id', None)
+            return super(TissueImage, cls).__new__(cls, image,
+                                                   no_label_id=no_label_id,
+                                                   **kwargs)
+        elif isinstance(image, np.ndarray):
+            # -- Case where constructing from a NumPy array:
+            origin = kwargs.pop('origin', None)
+            voxelsize = kwargs.pop('voxelsize', None)
+            dtype = kwargs.pop('dtype', image.dtype)
+            metadata = kwargs.pop('metadata_dict', None)
+            no_label_id = kwargs.pop('no_label_id', None)
+            return super(LabelledImage, cls).__new__(cls, image,
+                                                     origin=origin,
+                                                     voxelsize=voxelsize,
+                                                     dtype=dtype,
+                                                     metadata_dict=metadata,
+                                                     no_label_id=no_label_id,
+                                                     **kwargs)
+        else:
+            msg = "Undefined construction method for type '{}'!"
+            raise NotImplementedError(msg.format(type(image)))
+
+    def __init__(self, image, background=None, **kwargs):
+        """
+        TissueImage initialisation method.
+
         Parameters
         ----------
         image: LabelledImage
@@ -98,10 +173,23 @@ class TissueImage(LabelledImage):
         background: int, optional
             if given define the label of the background (ie. space surrounding
             the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
         """
-        LabelledImage.__init__(self, image, no_label_id=no_label_id, **kwargs)
+        # - In case a TissueImage is contructed from a TissueImage, get the attributes values:
+        if isinstance(image, TissueImage):
+            attr_list = ["background"]
+            attr_dict = get_attributes(image, attr_list)
+            class_name = get_class_name(image)
+            msg = "Overriding optional keyword arguments '{}' ({}) with defined attribute ({}) in given '{}'!"
+            # -- Check necessity to override 'origin' with attribute value:
+            if attr_dict['background'] is not None:
+                if background is not None and background != attr_dict[
+                    'background']:
+                    print msg.format('background', background,
+                                     attr_dict['background'], class_name)
+                background = attr_dict['background']
+
+        # - Call initialisation method of LabelledImage:
+        super(TissueImage, self).__init__(image, **kwargs)
 
         # - Initializing EMPTY hidden attributes:
         # -- Integer defining the background label:
@@ -152,6 +240,7 @@ class TissueImage(LabelledImage):
             return
         else:
             self._background_id = label
+        self.metadata = {'background': self.background}
 
     def cells(self, cells=None):
         """
