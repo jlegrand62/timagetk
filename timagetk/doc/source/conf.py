@@ -30,13 +30,20 @@ sys.path.insert(0, os.path.abspath('../..'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    # Include documentation from docstrings
     'sphinx.ext.doctest',
+    # Test snippets in the documentation
+    'sphinx.ext.githubpages',
+#    'sphinxtogithub' now remaned as 'sphinx.ext.githubpages''
+    # Publish HTML docs in GitHub Pages
     'sphinx.ext.intersphinx',
+    # Link to other projects’ documentation
+    'sphinx.ext.napoleon',
+    # Support for NumPy and Google style docstrings
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode',
-    'sphinxtogithub',
-
-
+    # Support for todo items
+    'sphinx.ext.viewcode'
+    # Add links to highlighted source code
 ]
 #'rst2pdf.pdfbuilder',
 #'sphinx.ext.pngmath',
@@ -56,7 +63,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'timagetk'
-copyright = u'2016, Sophie Ribes'
+copyright = u'MOSAIC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

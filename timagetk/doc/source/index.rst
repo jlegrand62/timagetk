@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. |coord| replace:: S.Ribes, G.Malandain
-.. |release| replace:: 1.0.0
+.. |coord| replace:: J.Legrand, G.Malandain
+.. |contrib| replace:: G.Baty, S.Ribes
+.. |release| replace:: 1.1.0
 .. |licence| replace:: Inria licence
 .. |name| replace:: Tissue Image Toolkit
 
@@ -15,8 +16,6 @@ Welcome
 to image processing of multicellular architectures such as plants or animals,
 and is intended for biologists, modelers and computer scientists.
 
-The package provides the following main functionalities (both in 2D and 3D):
-
 .. sidebar:: |name|
 
    .. image:: _static/logo_timagetk.png
@@ -25,10 +24,15 @@ The package provides the following main functionalities (both in 2D and 3D):
 
    Coordination: |coord|
 
-   Teams:
+   Contributors: |contrib|
+
+   Active teams:
+            * Inria team `Mosaic <https://team.inria.fr/mosaic/>`_
+            * Inria team `Morpheme <http://www-sop.inria.fr/morpheme/>`_
+
+   Fomer teams:
             * Inria-Cirad-Inra `Virtual Plants <https://team.inria.fr/virtualplants/>`_
-            * Inria `Morpheme <http://www-sop.inria.fr/morpheme/>`_
-            * `Inria Project Lab Morphogenetics <https://team.inria.fr/morphogenetics/>`_
+            * Inria Project Lab `Morphogenetics <https://team.inria.fr/morphogenetics/>`_
 
    Stable release: |release|
 
@@ -37,6 +41,8 @@ The package provides the following main functionalities (both in 2D and 3D):
    Operaring system: Linux, Mac OS
 
    Licence: |licence|, no commercial use
+
+The package provides the following main functionalities (both in 2D and 3D):
 
 * **Linear filtering:** gaussian, gradient, hessian, laplacian, etc.
 * **Grayscale mathematical morphology:** erosion, dilation, opening, closing, hat transform, sequential filters, etc.
@@ -57,15 +63,24 @@ Documentation
 
 This is the :ref:`ref_documentation` for |name| version |release|.
 
-To build **timagetk**'s dynamic documentation (`sphinx <http://www.sphinx-doc.org/en/stable/>`_), open a shell prompt and type:
+To build **timagetk**'s dynamic documentation, you first need to install (`sphinx <http://www.sphinx-doc.org/en/stable/>`_).
 
-* ``sudo pip install -U Sphinx``
+To install ``sphinx`` **system-wide with pip**, open a shell prompt and type::
 
-Go to the **timagetk/timagetk/doc/** folder and type:
+$ sudo pip install -U Sphinx
 
-* ``make html``
+To install ``sphinx`` **inside a conda environment**, named ``<my_env_name>``, open a shell prompt and type::
 
-Open the file: **timagetk/timagetk/build/html/index.html**
+$ source activate <my_env_name>
+$ conda install sphinx
+
+Once sphinx is installed, you can **generate the documentation**.
+To do so, go to the ``timagetk/timagetk/doc/`` folder and type::
+
+$ make html
+
+This will build HTML docs in the build directory you chose.
+To view the generated documentation, open the file: ``timagetk/timagetk/build/html/index.html``
 
 
 Installation

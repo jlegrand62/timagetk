@@ -26,14 +26,12 @@ To install pip, setuptools, scons, zlib and numpy:
 * **Mac** (using `Macports <https://www.macports.org/>`_):
   ``sudo port install py27-pip py27-setuptools scons zlib-devel py27-numpy``
 
-To install networks (all platforms): ``sudo pip install networkx``
+To install NetworkX (all platforms): ``sudo pip install networkx`` or  ``conda install networkx``
 
-Installing from source
-**********************
+To install `nose <http://nose.readthedocs.io/en/latest/>`_ (testing, all platforms): ``sudo pip install nose``
 
-Github
-======
-
+Contributing
+************
 If you are interested in contributing to development or running the latest source code,
 grab the git version. First, install the requirements and the development tools:
 
@@ -43,31 +41,72 @@ grab the git version. First, install the requirements and the development tools:
 
 * **Mac**: ``sudo port install git-core +doc +bash_completion +gitweb``
 
-To install `nose <http://nose.readthedocs.io/en/latest/>`_ (testing, all platforms): ``sudo pip install nose``
 
-Then:
+Github repository
+*****************
+Github timagetk repository is not up to date, but is kept for historic reasons.
+https://github.com/VirtualPlants/timagetk.git
 
-#. Clone the timagetk repository ``git clone https://github.com/VirtualPlants/timagetk.git``
-#. Change directory to timagetk
-#. Run ``python setup.py develop --user``
-#. Check that timagetk has been added to your .bashrc file
-#. If it is not the case, add the following lines to the bottom of your .bashrc file:
-    * timagetk_path=/path/to/timagetk/folder
-    * export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${timagetk_path}/timagetk/build-scons/lib
-#. Open a new shell prompt
-#. Type ``nosetests -v`` to execute the tests
+Gitlab repository
+*****************
+The GitLab timagetk repository is maintained by members of the Mosaic team.
+https://gitlab.inria.fr/mosaic/timagetk
+
+Installing from source
+**********************
+First install ``git`` as explaind above.
+Then choose among one of the repository above and:
+
+Clone the timagetk repository::
+
+$ git clone https://gitlab.inria.fr/mosaic/timagetk
+
+Change directory to timagetk::
+
+$ cd timagetk/
+
+Install using python::
+
+$ python setup.py develop --user
+
+Check that timagetk has been added to your .bashrc file::
+
+$ nano ~/.bashrc
+
+If it is not the case, add the following lines to the bottom of your .bashrc file::
+
+    timagetk_path=/path/to/timagetk/folder
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${timagetk_path}/timagetk/build-scons/lib
+
+Open a new shell prompt, or source the bashrc file in the current prompt::
+
+    $ source ~/.bashrc
+
+To execute the tests, use ``nose``::
+
+    $ cd timagetk/test/
+    $ nosetests -v
 
 
 *************
 Documentation
 *************
 
-To build **timagetk**'s dynamic documentation (`sphinx <http://www.sphinx-doc.org/en/stable/>`_), open a shell prompt and type:
+To build **timagetk**'s dynamic documentation, you first need to install (`sphinx <http://www.sphinx-doc.org/en/stable/>`_).
 
-* ``sudo pip install -U Sphinx``
+To install ``sphinx`` **system-wide with pip**, open a shell prompt and type::
 
-Go to the **timagetk/timagetk/doc/** folder and type:
+$ sudo pip install -U Sphinx
 
-* ``make html``
+To install ``sphinx`` **inside a conda environment**, named ``<my_env_name>``, open a shell prompt and type::
 
-Open the file: **timagetk/timagetk/build/html/index.html**
+$ source activate <my_env_name>
+$ conda install sphinx
+
+Once sphinx is installed, you can **generate the documentation**.
+To do so, go to the ``timagetk/timagetk/doc/`` folder and type::
+
+$ make html
+
+This will build HTML docs in the build directory you chose.
+To view the generated documentation, open the file: ``timagetk/timagetk/build/html/index.html``
