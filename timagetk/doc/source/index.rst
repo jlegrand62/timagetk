@@ -12,8 +12,8 @@
 Welcome
 *******
 
-**Tissue Image Toolkit** (*timagetk*) is a Python language package dedicated
-to image processing of multicellular architectures such as plants or animals,
+**Tissue Image Toolkit** (*timagetk*) is a Python package dedicated to image
+processing of multicellular architectures such as plants or animals,
 and is intended for biologists, modelers and computer scientists.
 
 .. sidebar:: |name|
@@ -30,7 +30,7 @@ and is intended for biologists, modelers and computer scientists.
             * Inria team `Mosaic <https://team.inria.fr/mosaic/>`_
             * Inria team `Morpheme <http://www-sop.inria.fr/morpheme/>`_
 
-   Fomer teams:
+   Former teams:
             * Inria-Cirad-Inra `Virtual Plants <https://team.inria.fr/virtualplants/>`_
             * Inria Project Lab `Morphogenetics <https://team.inria.fr/morphogenetics/>`_
 
@@ -60,18 +60,18 @@ computing or `matplotlib <http://matplotlib.org/>`_ for curve plotting.
 
 Documentation
 *************
-
 This is the :ref:`ref_documentation` for |name| version |release|.
 
-To build **timagetk**'s dynamic documentation, you first need to install (`sphinx <http://www.sphinx-doc.org/en/stable/>`_).
+To **build timagetk's dynamic documentation**, you first need to install `sphinx <http://www.sphinx-doc.org/en/stable/>`_.
 
 To install ``sphinx`` **system-wide with pip**, open a shell prompt and type::
 
 $ sudo pip install -U Sphinx
 
-To install ``sphinx`` **inside a conda environment**, named ``<my_env_name>``, open a shell prompt and type::
+To install ``sphinx`` **inside a conda environment**, `eg.` named ``timagetk``,
+open a shell prompt and type::
 
-$ source activate <my_env_name>
+$ source activate timagetk
 $ conda install sphinx
 
 Once sphinx is installed, you can **generate the documentation**.
@@ -80,25 +80,25 @@ To do so, go to the ``timagetk/timagetk/doc/`` folder and type::
 $ make html
 
 This will build HTML docs in the build directory you chose.
-To view the generated documentation, open the file: ``timagetk/timagetk/build/html/index.html``
+To view the generated documentation, open the file:
+``timagetk/timagetk/build/html/index.html``
 
 
 Installation
 ************
-
-There are many different ways to install |name|, and the best way depends on how you
-want to use it and what you already have installed. Order to help you,
-the :ref:`ref_installation` instructions have been detailed.
+There are many different ways to install |name|, and the best way depends on how
+you want to use it and what you already have installed
+In order to help you, the :ref:`ref_installation` instructions have been
+detailed.
 
 
 Licence
-***********
-
+*******
 You can distribute and/or modify |name| under the terms of the |licence|.
 Many people have contributed to |name|. Some of the contributors are listed
-in the :ref:`ref_credits`. If |name| contributes to a project that leads
-to a scientific publication, please acknowledge this
-work by :ref:`ref_citing` the project.
+in the :ref:`ref_credits`.
+If |name| contributes to a project that leads to a scientific publication,
+please acknowledge this work by :ref:`ref_citing` the project.
 
 .. toctree::
    :maxdepth: 2

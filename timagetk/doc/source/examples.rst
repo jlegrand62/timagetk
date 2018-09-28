@@ -4,10 +4,10 @@
 Examples
 *********
 
-All sample scripts can be found in the folder **timagetk/timagetk/examples/** and can be launched.
+All sample scripts can be found in the folder ``timagetk/timagetk/examples/`` and can be launched.
 
 For example, to run the script ``input_output.py``, open a shell prompt, go the
-the folder examples and type: ``python input_output.py``
+the `examples` folder and type: ``python input_output.py``
 
 .. _ref_examples_input_output:
 
@@ -16,7 +16,7 @@ Input/Output
 
 This example illustrates input and output operations (see :ref:`ref_package_components`).
 
-The resulting images (see folder **timagetk/timagetk/examples/results/**) can be checked against the
+The resulting images (see folder ``timagetk/timagetk/examples/results/``) can be checked against the
 reference image by using any image visualization tool (such as **TissueLab** or **fiji**).
 
 .. literalinclude:: ./examples/input_output.py
@@ -37,7 +37,7 @@ A registration process requires two input images (``floating_img`` and ``referen
 * a spatial transformation ``trsf_out`` between the two input images,
 * a result image ``img_res`` corresponding to the floating image resampled into the reference frame.
 
-The resulting images (see folder **timagetk/timagetk/examples/results/**) can be checked against the
+The resulting images (see folder ``timagetk/timagetk/examples/results/``) can be checked against the
 reference image by using any image visualization tool (such as **TissueLab** or **fiji**).
 
 .. image:: _static/registration.jpg
@@ -59,7 +59,7 @@ This process requires a list of images (a sequence) and computes:
 * a list of result images ``list_res_img`` corresponding to the successive images resampled into the reference frame.
 
 By default, the reference image is the last image of the sequence and all images are resampled into this frame.
-The resulting images (see folder **timagetk/timagetk/examples/results/**) can be checked against the
+The resulting images (see folder ``timagetk/timagetk/examples/results/``) can be checked against the
 reference image by using any image visualization tool (such as **TissueLab** or **fiji**).
 
 .. image:: _static/seq_rigid_registration.jpg
