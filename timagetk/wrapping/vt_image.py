@@ -7,6 +7,7 @@
 #       File author(s):
 #           Guillaume Baty <guillaume.baty@inria.fr>
 #           Sophie Ribes <sophie.ribes@inria.fr>
+#           Jonathan Legrand <jonathan.legrand@ens-lyon.fr>
 #
 #       See accompanying file LICENSE.txt
 # ------------------------------------------------------------------------------
@@ -29,7 +30,17 @@ __all__ = ['vt_image', 'new_vt_image', 'VT_Image']
 
 def sp_img_to_vt_img(sp_img):
     """
-    SpatialImage to _VT_IMAGE structure
+    Get a Spatial Image from a VT_Image structure
+
+    Parameters
+    ----------
+    sp_img : SpatialImage
+        the SpatialImage to transform
+
+    Returns
+    -------
+    VT_Image
+        the VT_Image corresponding to the SpatialImage
     """
     try:
         assert isinstance(sp_img, SpatialImage)
@@ -63,7 +74,17 @@ def sp_img_to_vt_img(sp_img):
 
 def vt_img_to_sp_img(vt_image):
     """
-    _VT_IMAGE structure to SpatialImage
+    Get a Spatial Image from a VT_Image structure
+
+    Parameters
+    ----------
+    vt_image : VT_Image
+        the VT_Image to transform
+
+    Returns
+    -------
+    SpatialImage
+        the SpatialImage corresponding to the VT_Image
     """
     dt = vt_type_to_c_type(vt_image.type)
     x, y, z, v = vt_image.dim.x, vt_image.dim.y, vt_image.dim.z, vt_image.dim.v
@@ -85,6 +106,17 @@ def vt_img_to_sp_img(vt_image):
 
 def vt_image(sp_img):
     """
+    Make a VT_Image class object out of 'sp_img' input.
+
+    Parameters
+    ----------
+    sp_img : SpatialImage
+        spatial image to transform as a VT_Image
+
+    Returns
+    -------
+    VT_Image
+        image compatible with VT library
     """
     try:
         assert isinstance(sp_img, SpatialImage)
@@ -97,6 +129,23 @@ def vt_image(sp_img):
 
 def new_vt_image(sp_img_in, type=None):
     """
+    Make a VT_Image class object out of an empty SpatialImage whit 'sp_img'
+    input as template.
+    Uses 'origin', 'voxelsize' & 'shape' attributes of 'sp_img_in'.
+    If 'type' input is not defined, uses the one from the template image.
+
+    Parameters
+    ----------
+    sp_img : SpatialImage
+        spatial image to transform as a VT_Image
+    type : np.dtype, optional
+        if defined, type to uses for the new VT_Immage, else uses the one of
+        'sp_img'
+
+    Returns
+    -------
+    VT_Image
+        image compatible with VT library
     """
     try:
         assert isinstance(sp_img_in, SpatialImage)
@@ -122,7 +171,7 @@ class VT_Image(object):
 
     def __init__(self, sp_img):
         """
-        VT_Image constructor
+        VT_Image initialisation method
 
         Parameters
         ----------
@@ -143,23 +192,81 @@ class VT_Image(object):
         libvt.VT_AllocArrayImage(pointer(self.vt_image))
 
     def get_vt_image(self):
+        """
+        Get a VT image, ie. the
+
+        Returns
+        -------
+
+        """
         return self.vt_image
 
     def get_spatial_image(self):
+        """
+        Get the VT_image as a SpatialImage
+
+        Returns
+        -------
+        self._data: SpatialImage
+            SpatialImage associated to the VT_Image
+        """
         if 1 in self._data.shape:  # 2D management
             tmp_sp_img = self._data.to_2D()
             self._data = tmp_sp_img
         return self._data
 
     def c_display(self, name=''):
+        """
+        Print information about the C object 'vt_image' allocated in memory.
+
+        Parameters
+        ----------
+        name : str
+            name used for information printing
+
+        Examples
+        --------
+        >>> from timagetk.wrapping.vt_image import VT_Image
+        >>> from timagetk.components import imread, imsave
+        >>> from timagetk.util import data_path
+
+        >>> # input image path
+        >>> img_path = data_path('time_0_cut.inr')
+        >>> # .inr format to SpatialImage
+        >>> sp_img = imread(img_path)
+        >>> vt_img = VT_Image(sp_img)
+        >>> vt_img.c_display()
+        'time_0_cut.inr' information:
+          - image buffer: 0x7f6240f26010
+          - image array: 0x55e5aeb237e0
+          - dimensions [x y z] = 340 280 50
+          - voxel size [x y z] = 0.235358 0.235358 0.227175
+          - image type is: UCHAR
+          - min = 0 , max = 255 , mean = 36.458957
+        """
+        if name == '':
+            try:
+                name = self._data.metadata['filename']
+            except KeyError:
+                pass
         libvt.VT_PrintImage(c_stdout, pointer(self.vt_image), name)
 
     def free(self):
+        """
+        Free the memory allocation for C object 'vt_image'.
+        """
         if self.vt_image is not None:
-            #libvt.VT_FreeImage(pointer(self.vt_image))
+            # libvt.VT_FreeImage(pointer(self.vt_image))
             libvt.VT_Free(self.c_ptr)
             self.vt_image = None
 
     @property
     def c_ptr(self):
+        """
+        Get the pointer for vt_image.
+
+        Returns
+        -------
+        LP__VT_IMAGE
+        """
         return pointer(self.get_vt_image())
