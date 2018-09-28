@@ -1,28 +1,45 @@
-#!/usr/bin/env python
+# -*- python -*-
 # -*- coding: utf-8 -*-
+#
+#
+#       Copyright 2016 INRIA
+#
+#       File author(s):
+#           Guillaume Baty <guillaume.baty@inria.fr>
+#           Sophie Ribes <sophie.ribes@inria.fr>
+#           Gregoire Malandain <gregoire.malandain@inria.fr>
+#           Jonathan Legrand <jonathan.legrand@ens-lyon.fr>
+#
+#       See accompanying file LICENSE.txt
+# ------------------------------------------------------------------------------
 
 import sys, os, platform, subprocess
+
 separator = os.sep
 from setuptools import setup, find_packages
 import timagetk
 
-#--- still under dev.
+# --- still under dev.
 # from setuptools.extension import Extension
-#try:
+# try:
 #    from Cython.Build import cythonize
-#except ImportError:
+# except ImportError:
 #    use_cython = False
-#else:
+# else:
 #    use_cython = True
-#---
+# ---
 
 top_folder = os.getcwd()
 name = 'timagetk'
-author = 'Sophie Ribes'
-author_email = 'sophie.ribes@inria.fr'
-short_description = 'Tissue Image Toolkit (timagetk) is a \
-Python language package dedicated to image processing of multicellular architectures, \
-and is intended for biologists, modelers and computer scientists.'
+# author = 'Sophie Ribes'
+# author_email = 'sophie.ribes@inria.fr'
+author = 'Jonathan LEGRAND'
+author_email = 'jonathan.legrand@ens-lyon.fr'
+short_description = 'Tissue Image Toolkit is a Python language package ' \
+                    'dedicated, to image processing of multicellular ' \
+                    'architectures, and is intended for biologists, modelers ' \
+                    'and computer scientists.'
+
 with open(os.path.join(top_folder, 'README.rst')) as f:
     long_description = f.read()
 
@@ -51,30 +68,30 @@ if has_scons:
     timagetk_path = ''.join(['timagetk_path=', top_folder, '\n'])
     home_list = os.listdir(os.getenv("HOME"))
     if '.bashrc' or '.profile' in home_list:
-        if platform.system()=='Linux':
+        if platform.system() == 'Linux':
             export_val = 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${timagetk_path}/timagetk/build-scons/lib\n'
             fic_path = ''.join([os.getenv("HOME"), separator, '.bashrc'])
-        elif platform.system()=='Darwin':
+        elif platform.system() == 'Darwin':
             export_val = 'export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${timagetk_path}/timagetk/build-scons/lib\n'
-            fic_path = ''.join([os.getenv("HOME"),separator, '.profile'])
-        with open(fic_path,'r') as fic:
+            fic_path = ''.join([os.getenv("HOME"), separator, '.profile'])
+        with open(fic_path, 'r') as fic:
             all_lines = [line for line in fic]
             fic.close()
         if timagetk_path not in all_lines:
-            with open(fic_path,'a') as fic:
+            with open(fic_path, 'a') as fic:
                 fic.write('\n')
                 fic.write('\n')
                 fic.write(timagetk_path)
                 fic.close()
         if export_val not in all_lines:
-            with open(fic_path,'a') as fic:
+            with open(fic_path, 'a') as fic:
                 fic.write(export_val)
                 fic.close()
         src_cmd = ''.join(['source ', fic_path])
         subprocess.call(src_cmd, shell=True)
 
-#--- still under dev.
-#if use_cython:
+# --- still under dev.
+# if use_cython:
 #    geom_module_opt = os.path.join(top_folder, str(name), 'algorithms', 'geometrical_features.pyx')
 #    extensions = [
 #        Extension(
@@ -82,7 +99,7 @@ if has_scons:
 #                  [geom_module_opt]),
 #                 ]
 #    ext_modules_opt = cythonize(extensions)
-#else:
+# else:
 #    geom_module_opt = os.path.join(top_folder, str(name), 'algorithms', 'geometrical_features.c')
 #    extensions = [
 #        Extension(
@@ -90,7 +107,7 @@ if has_scons:
 #                  [geom_module_opt]),
 #                 ]
 #    ext_modules_opt = extensions
-#---
+# ---
 setup(
     name=name,
     version=timagetk.__version__,
@@ -99,9 +116,9 @@ setup(
     author_email=author_email,
     description=short_description,
     long_description=long_description,
-    #install_requires=[],
+    # install_requires=[],
     include_package_data=True,
-    #ext_modules=ext_modules_opt,
+    # ext_modules=ext_modules_opt,
     url='https://github.com/VirtualPlants/timagetk',
     classifiers=[
         "Programming Language :: Python",
@@ -113,9 +130,9 @@ setup(
         "Programming Language :: Python :: 2.7",
         "Topic :: Scientific/Engineering",
     ],
-    entry_points = {
-        'openalea.image': ['openalea.image/image_plugin = timagetk.plugins.plugin'],
-                    },
+    entry_points={
+        # 'openalea.image': ['openalea.image/image_plugin = timagetk.plugins.plugin'],
+    },
     license="Free To Use But Restricted",
-    platforms=['LINUX','MAC']
+    platforms=['LINUX', 'MAC']
 )
