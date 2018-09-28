@@ -61,7 +61,6 @@ def registration(floating_img, reference_img, method=None, **kwargs):
     """
     Registration plugin
     Available methods are:
-
       * rigid_registration
       * affine_registration
       * deformable_registration
@@ -81,9 +80,6 @@ def registration(floating_img, reference_img, method=None, **kwargs):
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin: bool, optional
-        manually control the use of openalea.core 'plugin' functionality, avoid
-        it by default (ie. try_plugin=False)
 
     Returns
     -------
@@ -125,35 +121,22 @@ def registration(floating_img, reference_img, method=None, **kwargs):
             msg = "You cannot define both 'init_trsf' and 'left_trsf'!"
             raise ValueError(msg)
 
-    # - Try to use the `plugin_function` or use the defined API:
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'rigid_registration':
-            trsf_out, res_image = rigid_registration(floating_img,
-                                                     reference_img, init_trsf,
-                                                     left_trsf, **kwargs)
-            return trsf_out, res_image
-        if method == 'affine_registration':
-            trsf_out, res_image = affine_registration(floating_img,
+    if method == 'rigid_registration':
+        trsf_out, res_image = rigid_registration(floating_img, reference_img,
+                                                 init_trsf, left_trsf, **kwargs)
+    elif method == 'affine_registration':
+        trsf_out, res_image = affine_registration(floating_img, reference_img,
+                                                  init_trsf, left_trsf,
+                                                  **kwargs)
+    elif method == 'deformable_registration':
+        trsf_out, res_image = deformable_registration(floating_img,
                                                       reference_img, init_trsf,
                                                       left_trsf, **kwargs)
-            return trsf_out, res_image
-        if method == 'deformable_registration':
-            trsf_out, res_image = deformable_registration(floating_img,
-                                                          reference_img,
-                                                          init_trsf, left_trsf,
-                                                          **kwargs)
-            return trsf_out, res_image
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(floating_img, reference_img, init_trsf, left_trsf,
-                        **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
+
+    return trsf_out, res_image
 
 
 def rigid_registration(floating_img, reference_img, init_trsf=None,
@@ -181,9 +164,6 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin: bool, optional
-        manually control the use of openalea 'plugin' functionality, use
-        it by default (True)
 
     Returns
     -------
@@ -254,9 +234,6 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin: bool, optional
-        manually control the use of openalea 'plugin' functionality, use
-        it by default (True)
 
     Returns
     -------
@@ -337,9 +314,6 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
         lowest level at which to compute deformation, default is 1 (min is 0)
     pyramid_highest_level: int, optional
         highest level at which to compute deformation, default is 3 (max is 3)
-    try_plugin: bool, optional
-        manually control the use of openalea 'plugin' functionality, use
-        it by default (True)
 
     Returns
     -------
@@ -374,7 +348,6 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
                     "Provided 'init_trsf' is not a BalTransformation!")
             else:
                 msg = "Using initialisation matrix for vectorfield blockmatching..."
-
 
     print "\nComputing VECTORFIELD blockmatching registration..."
     if msg:

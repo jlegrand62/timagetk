@@ -86,21 +86,13 @@ def h_transform(input_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'h_transform_min':
-            return h_transform_min(input_image, **kwargs)
-        else:
-            return h_transform_max(input_image, **kwargs)
+    if method == 'h_transform_min':
+        return h_transform_min(input_image, **kwargs)
+    elif method == 'h_transform_max':
+        return h_transform_max(input_image, **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def h_transform_min(input_image, h=DEF_H, **kwargs):

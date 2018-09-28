@@ -34,7 +34,6 @@ def averaging(list_images, method=None, **kwargs):
     """
     Averaging plugin
     Available methods are:
-
       * mean_averaging
       * robust_mean_averaging
       * median_averaging
@@ -66,27 +65,19 @@ def averaging(list_images, method=None, **kwargs):
     """
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'mean_averaging':
-            return mean_averaging(list_images, **kwargs)
-        elif method == 'robust_mean_averaging':
-            return robust_mean_averaging(list_images, **kwargs)
-        elif method == 'median_averaging':
-            return median_averaging(list_images, **kwargs)
-        elif method == 'minimum_averaging':
-            return min_averaging(list_images, **kwargs)
-        elif method == 'maximum_averaging':
-            return max_averaging(list_images, **kwargs)
+    if method == 'mean_averaging':
+        return mean_averaging(list_images, **kwargs)
+    elif method == 'robust_mean_averaging':
+        return robust_mean_averaging(list_images, **kwargs)
+    elif method == 'median_averaging':
+        return median_averaging(list_images, **kwargs)
+    elif method == 'minimum_averaging':
+        return min_averaging(list_images, **kwargs)
+    elif method == 'maximum_averaging':
+        return max_averaging(list_images, **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(list_images, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def mean_averaging(list_images, **kwargs):

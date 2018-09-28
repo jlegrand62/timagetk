@@ -86,20 +86,13 @@ def segmentation(input_image, seeds_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
+    if method == 'seeded_watershed':
         control_val = kwargs.pop('control', None)
         return seeded_watershed(input_image, seeds_image, control=control_val,
                                 **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, seeds_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def seeded_watershed(input_image, seeds_image, control=None, **kwargs):

@@ -50,7 +50,7 @@ def consecutive_registration(list_images, method=None, **kwargs):
 
     Returns
     -------
-    list_compo_trsf: list(BalTransformation)
+    list_trsf: list(BalTransformation)
         list of BalTransformation, ie. transformation matrix or vectorfields
     list_res_img: list(SpatialImage)
         list of consecutively registered SpatialImage
@@ -62,57 +62,44 @@ def consecutive_registration(list_images, method=None, **kwargs):
     >>> from timagetk.plugins import consecutive_registration
     >>> times = [0, 1, 2]
     >>> list_images = [imread(data_path('time_' + str(time) + '.inr')) for time in times]
-    >>> list_compo_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_rigid_registration')
-    >>> list_compo_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_affine_registration')
+    >>> list_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_rigid_registration')
+    >>> list_trsf, list_res_img = consecutive_registration(list_images, method='consecutive_affine_registration')
     """
     # - Check list_images type:
     try:
         assert isinstance(list_images, list)
     except AssertionError:
-        raise TypeError(
-            "Parameter 'list_images' should be of type 'list', but is: {}".format(
-                type(list_images)))
+        msg = "Parameter 'list_images' should be of type 'list', but is: {}"
+        raise TypeError(msg.format(type(list_images)))
     # - Check SpatialImage consecutive:
-    conds_list_img = [isinstance(img, SpatialImage) for img in list_images]
     try:
-        assert sum(conds_list_img) == len(conds_list_img)
+        assert all([isinstance(img, SpatialImage) for img in list_images])
     except AssertionError:
-        raise TypeError(
-            "Parameter 'list_images' should be a list of SpatialImages!")
+        msg = "Parameter 'list_images' should be a list of SpatialImages!" 
+        raise TypeError(msg)
+
     # - Check SpatialImage consecutive length, this function is useless if length < 3!
     try:
         assert len(list_images) >= 3
     except AssertionError:
-        raise ValueError(
-            "Parameter 'list_images' should have a minimum length of 3!")
+        msg = "Parameter 'list_images' should have a minimum length of 3!"
+        raise ValueError(msg)
 
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'consecutive_rigid_registration':
-            list_compo_trsf, list_res_img = consecutive_registration_rigid(
-                list_images, )
-        elif method == 'consecutive_affine_registration':
-            list_compo_trsf, list_res_img = consecutive_registration_affine(
-                list_images)
-        elif method == 'consecutive_deformable_registration':
-            list_compo_trsf, list_res_img = consecutive_registration_deformable(
-                list_images)
-        else:
-            raise NotImplementedError(
-                "Unknown method: {}".format(method))
-        return list_compo_trsf, list_res_img
+    if method == 'consecutive_rigid_registration':
+        list_trsf, list_res_img = consecutive_registration_rigid(list_images)
+    elif method == 'consecutive_affine_registration':
+        list_trsf, list_res_img = consecutive_registration_affine(list_images)
+    elif method == 'consecutive_deformable_registration':
+        list_trsf, list_res_img = consecutive_registration_deformable(
+            list_images)
     else:
-        func = plugin_function('openalea.image', method)
-        if func:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(list_images, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
+
+    return list_trsf, list_res_img
 
 
 def consecutive_registration_rigid(list_images):

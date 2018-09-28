@@ -116,50 +116,42 @@ def morphology(input_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        max_radius_val = kwargs.pop('max_radius', 3)
-        if method == 'erosion':
-            return morphology_erosion(input_image, **kwargs)
-        if method == 'dilation':
-            return morphology_dilation(input_image, **kwargs)
-        if method == 'opening':
-            return morphology_opening(input_image, **kwargs)
-        if method == 'closing':
-            return morphology_closing(input_image, **kwargs)
-        if method == 'morpho_gradient':
-            return morphology_gradient(input_image, **kwargs)
-        if method == 'contrast':
-            return morphology_contrast(input_image, **kwargs)
-        if method == 'hat_transform':
-            return morphology_hat_transform(input_image, **kwargs)
-        if method == 'inverse_hat_transform':
-            return morphology_inverse_hat_transform(input_image, **kwargs)
-        if method == 'oc_alternate_sequential_filter':
-            return morphology_oc_alternate_sequential_filter(input_image,
-                                                             max_radius_val,
-                                                             **kwargs)
-        if method == 'co_alternate_sequential_filter':
-            return morphology_co_alternate_sequential_filter(input_image,
-                                                             max_radius_val,
-                                                             **kwargs)
-        if method == 'coc_alternate_sequential_filter':
-            return morphology_coc_alternate_sequential_filter(input_image,
-                                                              max_radius_val,
-                                                              **kwargs)
-        if method == 'oco_alternate_sequential_filter':
-            return morphology_oco_alternate_sequential_filter(input_image,
-                                                              max_radius_val,
-                                                              **kwargs)
+    max_radius_val = kwargs.pop('max_radius', 3)
+    if method == 'erosion':
+        return morphology_erosion(input_image, **kwargs)
+    elif method == 'dilation':
+        return morphology_dilation(input_image, **kwargs)
+    elif method == 'opening':
+        return morphology_opening(input_image, **kwargs)
+    elif method == 'closing':
+        return morphology_closing(input_image, **kwargs)
+    elif method == 'morpho_gradient':
+        return morphology_gradient(input_image, **kwargs)
+    elif method == 'contrast':
+        return morphology_contrast(input_image, **kwargs)
+    elif method == 'hat_transform':
+        return morphology_hat_transform(input_image, **kwargs)
+    elif method == 'inverse_hat_transform':
+        return morphology_inverse_hat_transform(input_image, **kwargs)
+    elif method == 'oc_alternate_sequential_filter':
+        return morphology_oc_alternate_sequential_filter(input_image,
+                                                         max_radius_val,
+                                                         **kwargs)
+    elif method == 'co_alternate_sequential_filter':
+        return morphology_co_alternate_sequential_filter(input_image,
+                                                         max_radius_val,
+                                                         **kwargs)
+    elif method == 'coc_alternate_sequential_filter':
+        return morphology_coc_alternate_sequential_filter(input_image,
+                                                          max_radius_val,
+                                                          **kwargs)
+    elif method == 'oco_alternate_sequential_filter':
+        return morphology_oco_alternate_sequential_filter(input_image,
+                                                          max_radius_val,
+                                                          **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def morphology_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,

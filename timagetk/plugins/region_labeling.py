@@ -75,24 +75,16 @@ def region_labeling(input_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'connected_components':
-            low_threshold_val = kwargs.pop('low_threshold', None)
-            high_threshold_val = kwargs.pop('high_threshold', None)
-            return connected_components(input_image,
-                                        low_threshold=low_threshold_val,
-                                        high_threshold=high_threshold_val,
-                                        **kwargs)
+    if method == 'connected_components':
+        low_threshold_val = kwargs.pop('low_threshold', None)
+        high_threshold_val = kwargs.pop('high_threshold', None)
+        return connected_components(input_image,
+                                    low_threshold=low_threshold_val,
+                                    high_threshold=high_threshold_val,
+                                    **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def connected_components(input_image, low_threshold=None, high_threshold=None,

@@ -71,8 +71,6 @@ def labels_post_processing(input_image, method=None, **kwargs):
       * labels_opening
       * labels_closing
 
-    Most parameters works only if 'try_plugin=False' is given!
-
     Parameters
     ----------
     input_image: ``SpatialImage``
@@ -81,16 +79,13 @@ def labels_post_processing(input_image, method=None, **kwargs):
         used method (example: 'labels_erosion')
 
     **kwargs
-    ------
+    --------
     radius: int, optional; default = 1
         radius of the structuring element
     iterations: int, optional; default = 1
         number of iteration of the morphological operation
     connectivity: value in 4|8|10|18|26, default = 18
         structuring element is among the 6-, 10-, 18- & 26-neighborhoods.
-
-    try_plugin: bool, optional; default = True
-        manually control the use of openalea 'plugin' functionality
 
     Returns
     -------
@@ -101,7 +96,7 @@ def labels_post_processing(input_image, method=None, **kwargs):
      operation will not be the same in every directions!
 
     Example
-    ----------
+    -------
     >>> from timagetk.util import data_path
     >>> from timagetk.components import imread
     >>> from timagetk.plugins import labels_post_processing
@@ -115,27 +110,17 @@ def labels_post_processing(input_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    # - Try 'plugin function' or use direct wrapping:
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        print "Plugin functionnality not available !"
-        if method == 'labels_erosion':
-            return labels_erosion(input_image, **kwargs)
-        if method == 'labels_dilation':
-            return labels_dilation(input_image, **kwargs)
-        if method == 'labels_opening':
-            return labels_opening(input_image, **kwargs)
-        if method == 'labels_closing':
-            return labels_closing(input_image, **kwargs)
+    if method == 'labels_erosion':
+        return labels_erosion(input_image, **kwargs)
+    elif method == 'labels_dilation':
+        return labels_dilation(input_image, **kwargs)
+    elif method == 'labels_opening':
+        return labels_opening(input_image, **kwargs)
+    elif method == 'labels_closing':
+        return labels_closing(input_image, **kwargs)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def labels_erosion(input_image, radius=DEF_RADIUS, iterations=DEF_ITERS,

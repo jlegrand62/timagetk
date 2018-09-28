@@ -50,7 +50,6 @@ def linear_filtering(input_image, method=None, **kwargs):
     """
     Linear filtering plugin
     Available methods are:
-
       * gaussian_smoothing
       * gradient
       * gradient_modulus
@@ -69,7 +68,7 @@ def linear_filtering(input_image, method=None, **kwargs):
         used method, default is 'gaussian_smoothing'
 
     **kwargs
-    ------
+    --------
     std_dev: float, optional
         the standard deviation to apply for Gaussian smoothing, in
     real: bool, optional
@@ -100,39 +99,31 @@ def linear_filtering(input_image, method=None, **kwargs):
     # - Set method if None and check it is a valid method:
     method = _method_check(method, POSS_METHODS, DEFAULT_METHOD)
 
-    try:
-        assert kwargs.get('try_plugin', False)
-        from openalea.core.service.plugin import plugin_function
-    except AssertionError or ImportError:
-        if method == 'gaussian_smoothing':
-            std_dev_val = kwargs.pop('std_dev', 1.0)
-            real_units = kwargs.pop('real', False)
-            return linear_filtering_gaussian_smoothing(input_image,
-                                                       std_dev=std_dev_val,
-                                                       real=real_units)
-        if method == 'gradient':
-            return linear_filtering_gradient(input_image)
-        if method == 'gradient_modulus':
-            return linear_filtering_gradient_modulus(input_image)
-        if method == 'hessian':
-            return linear_filtering_hessian(input_image)
-        if method == 'laplacian':
-            return linear_filtering_laplacian(input_image)
-        if method == 'gradient_hessian':
-            return linear_filtering_gradient_hessian(input_image)
-        if method == 'gradient_laplacian':
-            return linear_filtering_gradient_laplacian(input_image)
-        if method == 'zero_crossings_hessian':
-            return linear_filtering_zero_crossings_hessian(input_image)
-        if method == 'zero_crossings_laplacian':
-            return linear_filtering_zero_crossings_laplacian(input_image)
+    if method == 'gaussian_smoothing':
+        std_dev_val = kwargs.pop('std_dev', 1.0)
+        real_units = kwargs.pop('real', False)
+        return linear_filtering_gaussian_smoothing(input_image,
+                                                   std_dev=std_dev_val,
+                                                   real=real_units)
+    elif method == 'gradient':
+        return linear_filtering_gradient(input_image)
+    elif method == 'gradient_modulus':
+        return linear_filtering_gradient_modulus(input_image)
+    elif method == 'hessian':
+        return linear_filtering_hessian(input_image)
+    elif method == 'laplacian':
+        return linear_filtering_laplacian(input_image)
+    elif method == 'gradient_hessian':
+        return linear_filtering_gradient_hessian(input_image)
+    elif method == 'gradient_laplacian':
+        return linear_filtering_gradient_laplacian(input_image)
+    elif method == 'zero_crossings_hessian':
+        return linear_filtering_zero_crossings_hessian(input_image)
+    elif method == 'zero_crossings_laplacian':
+        return linear_filtering_zero_crossings_laplacian(input_image)
     else:
-        func = plugin_function('openalea.image', method)
-        if func is not None:
-            print "WARNING: using 'plugin' functionality from 'openalea.core'!"
-            return func(input_image, **kwargs)
-        else:
-            raise NotImplementedError("Returned 'plugin_function' is None!")
+        msg = "The required method '{}' is not implemented!"
+        raise NotImplementedError(msg.format(method))
 
 
 def linear_filtering_gaussian_smoothing(input_image, std_dev=1.0, real=False):
