@@ -30,6 +30,34 @@ except ImportError:
     raise ImportError(msg)
 
 
+def type_to_range(img):
+    """
+    Returns the minimum and maximum values of a dtype according to image.
+
+    Parameters
+    ----------
+    image : np.array or SpatialImage
+        Image from which to extract the slice
+
+    Returns
+    -------
+    min, max : int, int
+        the minimum and maximum values depending on the array type encoding
+    """
+    try:
+        assert hasattr(img, 'dtype')
+    except:
+        raise ValueError("Input 'img' has no attribute 'dtype', please check!")
+
+    if img.dtype == 'uint8':
+        return 0, 2 ** 8 - 1
+    elif img.dtype == 'uint16':
+        return 0, 2 ** 16 - 1
+    else:
+        msg = "Does not know what to do with such type: '{}'!".format(img.dtype)
+        raise NotImplementedError(msg)
+
+
 # ------------------------------------------------------------------------------
 # - Contrast stretching:
 # ------------------------------------------------------------------------------
