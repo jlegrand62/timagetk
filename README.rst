@@ -15,16 +15,16 @@ Thanks to Python language these functionalities can be combined with many other 
 for example NumPy and SciPy for scientific computing or matplotlib for curve plotting.
 
 
-Installation
-************
-
-Follow the installation procedure provided with the `documentation <https://virtualplants.github.io/timagetk>`_.
-
-
-**Stable release**: 1.0.0
+**Stable release**: 1.1.0
 
 **Licence**: Inria licence, non commercial use
 
 **Operaring system**: Linux, Mac OS
 
-**Teams**: `Inria-Cirad-Inra Virtual Plants <https://team.inria.fr/virtualplants>`_, `Inria Morpheme <http://www-sop.inria.fr/morpheme/>`_ and `Inria Project Lab Morphogenetics <https://team.inria.fr/morphogenetics/>`_.
+**Active teams**:
+        * Inria team `Mosaic <https://team.inria.fr/mosaic/>`_
+        * Inria team `Morpheme <http://www-sop.inria.fr/morpheme/>`_
+
+**Former teams**:
+        * Inria-Cirad-Inra `Virtual Plants <https://team.inria.fr/virtualplants/>`_
+        * Inria Project Lab `Morphogenetics <https://team.inria.fr/morphogenetics/>`_
