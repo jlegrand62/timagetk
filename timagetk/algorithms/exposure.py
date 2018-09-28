@@ -12,7 +12,7 @@
 
 """
 This module gether some of the functionalities from the 'exposure' module of
-`scikit-image <https://scikit-image.org/>`.
+`scikit-image <https://scikit-image.org/>`_.
 
 These algorithms are useful to stretch intensity images to span the whole range
 of value accessible to a given bit-depth.
@@ -26,7 +26,7 @@ try:
 except ImportError:
     msg = "Missing package 'scikit-image' (skimage), please install it!"
     msg += "\n"
-    msg += "Use `conda install skimage` or `pip install skimage -U`."
+    msg += "Use `conda install scikit-image` or `pip install scikit-image -U`."
     raise ImportError(msg)
 
 
