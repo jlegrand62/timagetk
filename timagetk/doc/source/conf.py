@@ -42,8 +42,10 @@ extensions = [
     # Support for NumPy and Google style docstrings
     'sphinx.ext.todo',
     # Support for todo items
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
     # Add links to highlighted source code
+    'matplotlib.sphinxext.plot_directive'
+    # To generate plot using matplotlib
 ]
 #'rst2pdf.pdfbuilder',
 #'sphinx.ext.pngmath',

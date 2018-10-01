@@ -71,7 +71,7 @@ def _input_img_check(input_image, real=False):
     real: bool, optional
         indicate if the method works on real or voxel units
     """
-    # TODO: use function name for better 'warnings'
+    from timagetk.util import clean_warning
     # - Check the `input_image` is indeed a `SpatialImage`
     try_spatial_image(input_image, obj_name='input_image')
 

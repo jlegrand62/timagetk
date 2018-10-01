@@ -19,12 +19,42 @@ This example illustrates input and output operations (see :ref:`ref_package_comp
 The resulting images (see folder ``timagetk/timagetk/examples/results/``) can be checked against the
 reference image by using any image visualization tool (such as **TissueLab** or **fiji**).
 
-.. literalinclude:: ./examples/input_output.py
+.. literalinclude:: ./../../examples/input_output.py
+   :lines: 17-
 
 You can find a detailed description of:
 
 * data structure ``SpatialImage``, see :ref:`ref_spatial_image`
 * functions ``imread`` and ``imsave``, see :ref:`ref_input_output`
+
+
+Exposure & intensity rescaling
+******************************
+
+These examples illustrate the effects of intensity rescaling on grayscale images.
+
+.. plot:: ./pyplots/exposure.py
+
+.. literalinclude:: ./../../examples/exposure.py
+   :lines: 17-
+
+.. plot:: ./../../examples/exposure.py
+
+
+Grayscale filtering
+*******************
+
+The following images gives an overview of the effects of grayscale filtering on grayscale images.
+
+.. plot:: ./pyplots/grayscale_filters.py
+
+
+This example illustrate the effect of **Gaussian smoothing** on grayscale images with increasing values for *standard deviation*.
+
+.. literalinclude:: ./../../examples/grayscale_filters.py
+   :lines: 17-
+
+.. plot:: ./../../examples/grayscale_filters.py
 
 
 Rigid, affine and deformable registration
@@ -45,7 +75,7 @@ reference image by using any image visualization tool (such as **TissueLab** or 
     :height: 420px
     :align: center
 
-.. literalinclude:: ./examples/registration.py
+.. literalinclude:: ./../../examples/registration.py
 
 
 Sequence Registration
@@ -67,7 +97,7 @@ reference image by using any image visualization tool (such as **TissueLab** or 
     :height: 400px
     :align: center
 
-.. literalinclude:: ./examples/sequence_registration.py
+.. literalinclude:: ./../../examples/sequence_registration.py
 
 
 Seeded-watershed segmentation
@@ -75,7 +105,7 @@ Seeded-watershed segmentation
 
 This example illustrates seeded-watershed segmentation.
 
-.. literalinclude:: ./examples/segmentation.py
+.. literalinclude:: ./../../examples/segmentation.py
 
 
 Computation of features
@@ -91,7 +121,7 @@ spatial relationships, etc. This algorithm returns a dictionary that can be pick
     :height: 280px
     :align: center
 
-.. literalinclude:: ./examples/geometrical_features.py
+.. literalinclude:: ./../../examples/geometrical_features.py
 
 .. code-block:: python
 
@@ -110,4 +140,4 @@ Temporal tracking
 
 This example illustrates tracking of objects on labeled images.
 
-.. literalinclude:: ./examples/temporal_matching.py
+.. literalinclude:: ./../../examples/temporal_matching.py
