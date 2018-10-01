@@ -24,7 +24,7 @@ from timagetk.components import SpatialImage
 try:
     from skimage import exposure
 except ImportError:
-    msg = "Missing package 'scikit-image' (skimage), please install it!"
+    msg = "Could not import 'skimage' package, please install it!"
     msg += "\n"
     msg += "Use `conda install scikit-image` or `pip install scikit-image -U`."
     raise ImportError(msg)
@@ -91,7 +91,7 @@ def _contrast_stretch(image, pc_min=2, pc_max=99):
 
 def x_slice_contrast_stretch(image, pc_min=2, pc_max=99):
     """
-    Performs slice by slice contrast stretching in z direction.
+    Performs slice by slice contrast stretching in x-direction.
     Contrast stretching is here performed using lower and upper percentile of
     the image values to the min and max value of the image dtype.
 
@@ -125,7 +125,7 @@ def x_slice_contrast_stretch(image, pc_min=2, pc_max=99):
 
 def y_slice_contrast_stretch(image, pc_min=2, pc_max=99):
     """
-    Performs slice by slice contrast stretching in z direction.
+    Performs slice by slice contrast stretching in y-direction.
     Contrast stretching is here performed using lower and upper percentile of
     the image values to the min and max value of the image dtype.
 
@@ -159,7 +159,7 @@ def y_slice_contrast_stretch(image, pc_min=2, pc_max=99):
 
 def z_slice_contrast_stretch(image, pc_min=2, pc_max=99):
     """
-    Performs slice by slice contrast stretching in z direction.
+    Performs slice by slice contrast stretching in z-direction.
     Contrast stretching is here performed using lower and upper percentile of
     the image values to the min and max value of the image dtype.
 
@@ -253,7 +253,7 @@ def _equalize_adapthist(image, kernel_size=None, clip_limit=None, n_bins=256):
 def z_slice_equalize_adapthist(image, kernel_size=None, clip_limit=None,
                                n_bins=256):
     """
-    Performs slice by slice adaptive histogram qualization in z direction.
+    Performs slice by slice adaptive histogram qualization in z-direction.
 
     Parameters
     ----------
@@ -284,7 +284,7 @@ def z_slice_equalize_adapthist(image, kernel_size=None, clip_limit=None,
     For RGBA images, the original alpha channel is removed.
     """
     # TODO: add a min threshold to reach (eg. 5000) for each slice in order to apply intensity rescaling, otherwise don't rescale (i.e. no signal there!)
-    sh = image.get_shape()
+    sh = image.shape
     im = np.array(
         [_equalize_adapthist(image[:, :, n], kernel_size, clip_limit, n_bins)
          for n in range(0, sh[2])]).transpose([1, 2, 0])
