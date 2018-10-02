@@ -1,4 +1,20 @@
-# imports
+# -*- python -*-
+# -*- coding: utf-8 -*-
+#
+#
+#       Copyright 2018 INRIA
+#
+#       File author(s):
+#           Sophie Ribes <sophie.ribes@inria.fr>
+#           Jonathan Legrand <jonathan.legrand@ens-lyon.fr>
+#
+#       See accompanying file LICENSE.txt
+# ------------------------------------------------------------------------------
+
+"""
+This exemple shows how to performs seeded watershed segmentation on grey level images.
+"""
+
 import os
 try:
     from timagetk.util import data_path

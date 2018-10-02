@@ -44,8 +44,10 @@ extensions = [
     # Support for todo items
     'sphinx.ext.viewcode',
     # Add links to highlighted source code
-    'matplotlib.sphinxext.plot_directive'
+    'matplotlib.sphinxext.plot_directive',
     # To generate plot using matplotlib
+    'sphinx.ext.inheritance_diagram'
+    # To add inheritance diagrams
 ]
 #'rst2pdf.pdfbuilder',
 #'sphinx.ext.pngmath',
@@ -216,7 +218,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'timagetk.tex', u'timagetk Documentation',
+  ('index', 'timagetk.tex', u'timagetk documentation',
    u'Sophie Ribes', 'manual'),
 ]
 
@@ -246,7 +248,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'timagetk', u'timagetk Documentation',
+    ('index', 'timagetk', u'timagetk documentation',
      [u'Sophie Ribes,'], 1)
 ]
 
@@ -260,7 +262,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'timagetk', u'timagetk Documentation',
+  ('index', 'timagetk', u'timagetk documentation',
    u'Sophie Ribes', 'timagetk', 'One line description of project.',
    'Miscellaneous'),
 ]

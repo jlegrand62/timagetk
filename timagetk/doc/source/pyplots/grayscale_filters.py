@@ -13,7 +13,7 @@ img_path = data_path('time_0_cut.inr')
 # - Load the image:
 sp_img = imread(img_path)
 
-# Make image isometric: most methods assumes image isometry
+# Make image isometric: (gaussian smoothing methods assumes image isometry)
 sp_img = isometric_resampling(sp_img)
 
 # - Get the middle z-slice:
@@ -30,10 +30,10 @@ sigma = 1
 n_fig = len(linear_methods) + 1
 n_col = 3
 n_row = int(np.ceil(n_fig / float(n_col)))
-figure(figsize=[3.5 * n_col, 5 * n_row])
+figure(figsize=[4.5 * n_col, 4 * n_row])
 gs = gridspec.GridSpec(n_row, n_col)
 
-ax = subplot(gs[0, 0])
+subplot(gs[0, 0])
 # Get the middle z-slice of the image and display it
 imshow(sp_img[:, :, middle_z], cmap="gray", vmin=0, vmax=255)
 title("original z-slice (z {}/{})".format(middle_z, n_zslices))
@@ -42,7 +42,7 @@ i_row = 0
 n_fig_row = 1
 for n, method in enumerate(linear_methods):
     print i_row, n_fig_row
-    ax = subplot(gs[i_row, n_fig_row])
+    subplot(gs[i_row, n_fig_row])
     # 'std_dev' keyword argument is only used by method='gaussian_smoothing':
     filter_img = linear_filtering(sp_img, method, std_dev=sigma)
     # Get the middle z-slice of the filtered image and display it

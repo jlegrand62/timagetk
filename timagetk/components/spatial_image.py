@@ -231,7 +231,10 @@ def obj_metadata(obj, metadata_dict=None):
     except KeyError:
         metadata_dict['dim'] = obj.ndim
     except AssertionError:
-        raise ValueError("Metadata 'dim' does not match the array dim!")
+        print "WARNING: Metadata 'dim' {} do not match the array shape {},".format(
+            metadata_dict['dim'], obj.ndim),
+        metadata_dict['dim'] = obj.ndim
+        print "it has been updated!"
 
     try:
         assert np.alltrue(metadata_dict['origin'] == obj._origin)
@@ -356,7 +359,7 @@ class SpatialImage(np.ndarray):
             # -- Check necessity to override 'metadata_dict' with attribute value:
             if attr_dict['metadata'] is not None:
                 if metadata_dict is not None and metadata_dict != attr_dict[
-                    'metadata_dict']:
+                    'metadata']:
                     print msg.format('metadata', metadata_dict,
                                      attr_dict['metadata'], class_name)
                 metadata_dict = attr_dict['metadata']
@@ -584,6 +587,42 @@ class SpatialImage(np.ndarray):
         """
         return self.get_dim() == 3
 
+    def get_z_slice(self, z_slice):
+        """
+        Returns a SpatialImage with only one slice.
+
+        Parameters
+        ----------
+        z_slice : int
+            z-slice to return
+
+        Returns
+        -------
+        SpatialImage
+            2D SpatialImage with only the required slice
+        """
+        try:
+            assert self.is3D()
+        except AssertionError:
+            raise ValueError("Can only extract z-slice from 3D images!")
+        max_z = self.shape[2]
+        try:
+            assert z_slice <= max_z
+        except AssertionError:
+            msg = "Required z-slice ({}) does not exists (max: {})"
+            raise ValueError(msg.format(z_slice, max_z))
+
+        voxelsize, shape, array = self.voxelsize, self.shape, self.get_array()
+        ori, md = self.origin, self.metadata
+        md["z-slice"] = z_slice
+        md["dim"] = 2
+        new_arr = self.get_array()[:, :, z_slice]
+        new_vox = [voxelsize[0], voxelsize[1]]
+        new_ori = [ori[0], ori[1]]
+        out_sp_img = SpatialImage(new_arr, voxelsize=new_vox,
+                                  origin=new_ori, metadata_dict=md)
+        return out_sp_img
+
     def to_2D(self):
         """
         Convert, if possible, a 3D SpatiamImage with one "flat" dimension (ie.
@@ -612,6 +651,8 @@ class SpatialImage(np.ndarray):
             out_sp_img = SpatialImage(new_arr, voxelsize=new_vox,
                                       origin=new_ori, metadata_dict=md)
             return out_sp_img
+        elif self.is2D():
+            print ("This image is already a 2D image!")
         else:
             print('This 3D SpatialImage can not be reshaped to 2D.')
             return

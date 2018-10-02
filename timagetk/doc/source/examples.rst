@@ -4,7 +4,7 @@
 Examples
 *********
 
-All sample scripts can be found in the folder ``timagetk/timagetk/examples/`` and can be launched.
+All sample scripts can be found in the `examples` folder ``timagetk/timagetk/examples/`` and can be launched.
 
 For example, to run the script ``input_output.py``, open a shell prompt, go the
 the `examples` folder and type: ``python input_output.py``
@@ -31,12 +31,16 @@ You can find a detailed description of:
 Exposure & intensity rescaling
 ******************************
 
-These examples illustrate the effects of intensity rescaling on grayscale images.
+The following images illustrate the effects of two **intensity rescaling** techniques on grayscale images.
 
 .. plot:: ./pyplots/exposure.py
 
+This code example details how to performs **intensity rescaling** on grayscale images.
+
 .. literalinclude:: ./../../examples/exposure.py
    :lines: 17-
+
+The following images detail how **intensity rescaling** on grayscale images **modify the values distribution** by showing associated *histograms* and *cumulative histograms*.
 
 .. plot:: ./../../examples/exposure.py
 
@@ -44,17 +48,14 @@ These examples illustrate the effects of intensity rescaling on grayscale images
 Grayscale filtering
 *******************
 
-The following images gives an overview of the effects of grayscale filtering on grayscale images.
+The following images gives an overview of the effects of **grayscale filtering** on grayscale images.
 
 .. plot:: ./pyplots/grayscale_filters.py
 
-
 This example illustrate the effect of **Gaussian smoothing** on grayscale images with increasing values for *standard deviation*.
 
-.. literalinclude:: ./../../examples/grayscale_filters.py
-   :lines: 17-
-
 .. plot:: ./../../examples/grayscale_filters.py
+   :include-source:
 
 
 Rigid, affine and deformable registration
@@ -106,6 +107,24 @@ Seeded-watershed segmentation
 This example illustrates seeded-watershed segmentation.
 
 .. literalinclude:: ./../../examples/segmentation.py
+   :lines: 17-
+
+The following images shows each step of a segmentaton pipeline.
+
+.. plot:: ./pyplots/seeded_watershed_segmentation.py
+
+Depending on the grayscale image source, the result of the seed extration steps (``h_transform`` + ``region_labeling``) may differ:
+
+.. plot:: ./pyplots/seed_extraction_inputs.py
+
+Depending on the grayscale image source, but with similar seeds, the result of the watershed step (``segmentation``) may differ:
+
+.. plot:: ./pyplots/watershed_inputs.py
+
+The following images illustrate the impact of ``control`` parameter when performing seeded watershed ``segmentation``:
+
+.. plot:: ./pyplots/watershed_controls.py
+
 
 
 Computation of features

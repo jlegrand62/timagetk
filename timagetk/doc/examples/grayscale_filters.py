@@ -50,14 +50,14 @@ figure(figsize=[3.5 * n_fig, 4])
 gs = gridspec.GridSpec(1, n_fig)
 
 # - Get the middle z-slice of the original grayscale image and add it as first image:
-ax = subplot(gs[0, 0])
+subplot(gs[0, 0])
 imshow(sp_img[:, :, middle_z], cmap="gray", vmin=0, vmax=255)
 title("original z-slice (z {}/{})".format(middle_z, n_zslices))
 
 # - Gaussian smoothing example with increasing standard deviation:
 for n, sigma in enumerate(sigmas):
     # Define where to add the image in the plot:
-    ax = subplot(gs[0, n + 1])
+    subplot(gs[0, n + 1])
     # Perform gaussian smoothing:
     gauss_filter_img = linear_filtering(sp_img, 'gaussian_smoothing',
                                         std_dev=sigma)

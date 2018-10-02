@@ -86,10 +86,8 @@ To view the generated documentation, open the file:
 
 Installation
 ************
-There are many different ways to install |name|, and the best way depends on how
-you want to use it and what you already have installed
-In order to help you, the :ref:`ref_installation` instructions have been
-detailed.
+There are many different ways to install |name|, and the best way depends on how you want to use it and what you already have installed.
+In order to help you, the :ref:`ref_installation` instructions have been detailed.
 
 
 Licence

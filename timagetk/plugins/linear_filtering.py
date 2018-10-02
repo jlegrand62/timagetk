@@ -48,17 +48,18 @@ def list_linear_methods():
 
 def linear_filtering(input_image, method=None, **kwargs):
     """
-    Linear filtering plugin
+    Linear filtering plugin.
+
     Available methods are:
-      * gaussian_smoothing
-      * gradient
-      * gradient_modulus
-      * hessian
-      * laplacian
-      * gradient_hessian
-      * gradient_laplacian
-      * zero_crossings_hessian
-      * zero_crossings_laplacian
+     * gaussian_smoothing
+     * gradient
+     * gradient_modulus
+     * hessian
+     * laplacian
+     * gradient_hessian
+     * gradient_laplacian
+     * zero_crossings_hessian
+     * zero_crossings_laplacian
 
     Parameters
     ----------
