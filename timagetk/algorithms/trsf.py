@@ -139,65 +139,77 @@ def apply_trsf(image, trsf=None, template_img=None,
     >>> output_image = apply_trsf(input_image, input_trsf)
     """
     try_spatial_image(image, obj_name='image')
-
+    # - If a transformation is given, make sure it's a `BalTransformation`
     if trsf is not None:
         try:
             assert isinstance(trsf, BalTransformation)
         except AssertionError:
             raise TypeError('Input transformation must be a BalTransformation!')
 
+    # - If a shape is given as template, create a SpatialImage:
+    if isinstance(template_img, list) or isinstance(template_img, tuple):
+        # -- First, make sure image dimensionality and template shape are compatible:
+        try:
+            assert len(template_img) == image.ndim
+        except AssertionError:
+            msg = "Template shape and image dimensionality do not match!"
+            raise ValueError(msg)
+        # -- Then make the SpatialImage from template shape and image voxelsize:
+        template_img = np.zeros(template_img, dtype=image.dtype)
+        template_img = SpatialImage(template_img, voxelsize=image.voxelsize)
+
+    # - API_applyTrsf works only on 3D images:
     if image.get_dim() == 2:  # 2D management
         image = image.to_3D()
+    if isinstance(template_img, SpatialImage) & template_img.get_dim() == 2:
+        template_img = template_img.to_3D()
 
     if template_img is None:
-        kwargs = spatial_image_to_bal_image_fields(image)
+        bal_fields = spatial_image_to_bal_image_fields(image)
     else:
         if isinstance(template_img, SpatialImage):
-            if template_img.get_dim() == 2:
-                template_img = template_img.to_3D()
+            # - Get the shape from the input image:
             x, y, z = template_img.shape
+            # - Get the voxelsize from the input image:
             vx, vy, vz = template_img.voxelsize
+            # - Define template voxelsize and shape for 'API_applyTrsf':
             val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
-        elif isinstance(template_img, list):
-            # create the template_img from the list of dimensions:
-            if len(template_img) == 3:
-                tmp_img = np.zeros(
-                    (template_img[0], template_img[1], template_img[2]),
-                    dtype=image.dtype)
-            elif len(template_img) == 2:
-                tmp_img = np.zeros((template_img[0], template_img[1]),
-                                   dtype=image.dtype)
-            template_img = SpatialImage(tmp_img, voxelsize=[1., 1., 1.],
-                                        origin=[0., 0., 0.])
-            if template_img.get_dim() == 2:
-                template_img = template_img.to_3D()
-            x, y, z = template_img.shape
-            # Get the voxelsize from the input image:
-            vx, vy, vz = image.voxelsize
-            val_vox = ' -template-voxel {} {} {}'.format(vx, vy, vz)
+            val_dim = ' -template-dim {} {} {}'.format(x, y, z)
+            param_str_1 += val_dim + val_vox
+            # - 
+            bal_fields = spatial_image_to_bal_image_fields(template_img)
         else:
-            raise TypeError(
-                "Input `template_img` must be a SpatialImage or a list instance!")
-        val_dim = ' -template-dim {} {} {}'.format(x, y, z)
-        param_str_1 += val_dim + val_vox
-        kwargs = spatial_image_to_bal_image_fields(template_img)
+            msg = "Input `template_img` must be a SpatialImage or a list! "
+            msg += "Got a type {}".format(type(template_img))
+            raise TypeError(msg)
 
+    # - If a dtype is specified, we override the BalImage field:
     if dtype:
-        kwargs['np_type'] = dtype
+        bal_fields['np_type'] = dtype
 
+    # - Initialize the OUTPUT BalImage:
     c_img_res = BAL_IMAGE()
-    init_c_bal_image(c_img_res, **kwargs)
-    allocate_c_bal_image(c_img_res,
-                         np.ndarray(kwargs['shape'], kwargs['np_type']))
+    init_c_bal_image(c_img_res, **bal_fields)
+    nd_arr = np.ndarray(bal_fields['shape'], dtype=bal_fields['np_type'])
+    allocate_c_bal_image(c_img_res, nd_arr)
     bal_img_res = BalImage(c_bal_image=c_img_res)
+    # - Initialise the INPUT BalImage:
     bal_image = BalImage(spatial_image=image)
+    # - Call API_applyTrsf from library libblockmatching:
     libblockmatching.API_applyTrsf(bal_image.c_ptr, bal_img_res.c_ptr,
                                    trsf.c_ptr if trsf else None,
                                    param_str_1, param_str_2)
+
+    # - Get output SpatialImage:
     res = bal_img_res.to_spatial_image()
+    # - Convert back to 2D image if input was converted to 3D
     if 1 in res.shape:
         res = res.to_2D()
-    bal_image.free(), bal_img_res.free()
+
+    # - Free memory allocated to input and output BalImages:
+    bal_image.free()
+    bal_img_res.free()
+
     return res
 
 
