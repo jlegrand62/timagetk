@@ -649,6 +649,23 @@ class LabelledImage(SpatialImage):
             raise ValueError(msg)
         return
 
+    def isometric_resampling(self, method='min', **kwargs):
+        """
+        Performs isometric resampling of the image using either the min, the max
+        or a a given voxelsize value.
+
+        Parameters
+        ----------
+        method : str|float, optional
+            change voxelsize to 'min' (default) or 'max' value of original
+            voxelsize or to a given value.
+
+        Returns
+        -------
+
+        """
+        return SpatialImage.isometric_resampling(self, method, option='label')
+
     def labels(self, labels=None):
         """
         Get the list of labels found in the image, or make sure provided labels
@@ -1225,6 +1242,10 @@ class LabelledImage(SpatialImage):
             n = len(no_bbox)
             print "Could not find boundingbox for {} labels: {}".format(n,
                                                                         no_bbox)
+
+        # - RE-INITIALIZE the object attributes to match new labels:
+        self.__init__(self)
+
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
@@ -1272,7 +1293,7 @@ class LabelledImage(SpatialImage):
         elif isinstance(labels, set):
             labels = list(labels)
         else:
-            assert isinstance(labels, list) and len(labels) >= 2
+            assert isinstance(labels, list)
 
         # - Make sure 'labels' is correctly formatted:
         labels = self.labels(labels)
@@ -1287,7 +1308,7 @@ class LabelledImage(SpatialImage):
         no_bbox = []
         progress = 0
         if verbose:
-            print "Removing {} cell labels.".format(nb_labels)
+            print "Removing {} labels.".format(nb_labels)
         for n, label in enumerate(labels):
             if verbose:
                 progress = percent_progress(progress, n, nb_labels)
@@ -1305,6 +1326,10 @@ class LabelledImage(SpatialImage):
             n = len(no_bbox)
             print "Could not find boundingbox for {} labels: {}".format(n,
                                                                         no_bbox)
+
+        # - RE-INITIALIZE the object attributes to match new labels:
+        self.__init__(self)
+
         # - May print about elapsed time:
         if verbose:
             elapsed_time(t_start)
@@ -1370,6 +1395,15 @@ class LabelledImage(SpatialImage):
             print s
 
         t_start = time.time()
+        # - Create a mask with ONLY 'unmapped labels' if required:
+        if not clear_unmapped:
+            if verbose:
+                print "Copying unmapped labels..."
+            unmapped_labels = list(set(labels) - in_labels)
+            unmapped_mask = self.get_image_with_labels(unmapped_labels)
+
+        template = self.get_array()  # copy the array
+        self.fill(0)  # replace all values by 'no_label_id'
         # - Relabelling loop:
         if verbose:
             print "Starting relabelling loop..."
@@ -1380,13 +1414,19 @@ class LabelledImage(SpatialImage):
             if verbose:
                 percent = percent_progress(percent, n, n_in, increment)
             bbox = self.boundingbox(old_lab)
-            mask = self.get_array()[bbox] == old_lab
+            mask = template[bbox] == old_lab
             self[bbox] += np.array(mask * new_lab, dtype=self.dtype)
 
-        # - Clear unmapped labels if required:
-        if clear_unmapped:
-            labels2clear = list(set(labels) - in_labels)
-            self.remove_labels_from_image(labels2clear, **kwargs)
+        # - Restore unmapped labels if required:
+        if not clear_unmapped:
+            self += unmapped_mask
+
+        # - Replace '0' by 'no_label_id':
+        if self.no_label_id != 0:
+            self[self == 0] = self.no_label_id
+
+        # - RE-INITIALIZE the object attributes to match new labels:
+        self.__init__(self)
 
         # - May print about elapsed time:
         if verbose:
