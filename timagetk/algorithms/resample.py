@@ -24,8 +24,11 @@ except ImportError as e:
 
 __all__ = ['resample_isotropic', 'subsample']
 
+POSS_OPTION = ['gray', 'label']
+POSS_METHODS = ['min', 'max']
 
-def resample(image, voxelsize, option='gray'):
+
+def resample(image, voxelsize, option='gray', **kwargs):
     """
     Resample an image to the given voxelsize.
     Use 'option' to control type of interpolation applied to the image.
@@ -37,51 +40,76 @@ def resample(image, voxelsize, option='gray'):
     voxelsize: list
         the voxelsize to which the image should be resampled
     option: str, optional
-        'gray' (default) indicate the image will be interpolated with a 'linear'
-        function, when 'label' use the 'nearest' function.
+        'gray' (default) indicate the image will be interpolated with a linear
+        function, when 'label' use the nearest function.
 
     Returns
     -------
     out_img: SpatialImage
         the resampled image
     """
-    dim = image.get_dim()
+    verbose = kwargs.get('verbose', False)
+    ndim = image.get_dim()
     try:
         assert image.voxelsize != []
     except AssertionError:
         raise ValueError("Input image has an EMPTY voxelsize attribute!")
     try:
-        assert len(voxelsize) == dim
+        assert len(voxelsize) == ndim
     except AssertionError:
-        raise ValueError(
-            "Parameter 'voxelsize' length ({}) does not match the dimension of the image ({}).".format(
-                len(voxelsize), dim))
+        msg = "Given 'voxelsize' ({}) ".format(voxelsize)
+        msg += "does not match the dimension of the image ({}).".format(ndim)
+        raise ValueError(msg)
 
-    extent = image.extent
-    new_shape = [int(round(extent[ind] / voxelsize[ind])) for ind in range(dim)]
-    # - Initialise a template image:
-    tmp_img = np.zeros((new_shape[0], new_shape[1], new_shape[2]),
-                       dtype=image.dtype)
-    tmp_img = SpatialImage(tmp_img, voxelsize=voxelsize,
-                           origin=image.origin,
-                           metadata_dict=image.metadata)
+    # - Compute the new shape of the object using image extent & new voxelsize:
+    ext = image.extent
+    new_shape = [int(round(ext[i] / float(voxelsize[i]))) for i in range(ndim)]
+    # - Initialise a template array with the new shape:
+    tmp_img = np.zeros(tuple(new_shape), dtype=image.dtype)
+    # - Initialise a new metadata dictionary matching the template array:
+    new_md = image.metadata
+    # -- Remove the keys and values of 'NEW' properties: 'shape' & 'voxelsize'
+    try:
+        new_md.pop('voxelsize')  # updated later during SpatialImage.__init__
+    except KeyError:
+        pass
+    try:
+        new_md.pop('shape')  # updated later during SpatialImage.__init__
+    except KeyError:
+        pass
 
-    if option == 'gray':
-        param_str_2 = '-resize -interpolation linear'
+    # - Initialise a SpatialImage from the template array, new voxelsize and metadata dictionary:
+    tmp_img = SpatialImage(tmp_img, voxelsize=voxelsize, origin=image.origin,
+                           metadata_dict=new_md)
+
+    param_str_2 = ' -resize'
+    if option == 'gray' or option == 'grey':
+        param_str_2 += ' -interpolation linear'
     elif option == 'label':
-        param_str_2 = '-resize -interpolation nearest'
+        param_str_2 += ' -interpolation nearest'
+    else:
+        msg = "Given 'option' ({}) is not available!\n".format(option)
+        msg += "Choose among: {}".format(POSS_OPTION)
+        raise NotImplementedError(msg)
 
-    # - Performs resampling:
+    if verbose:
+        is_iso = tmp_img.is_isometric()
+        print "Image {}resampling:".format("isometric " if is_iso else "")
+        print "  - 'shape': {} -> {}".format(image.shape, new_shape)
+        print "  - 'voxelsize': {} -> {}".format(image.voxelsize, voxelsize)
+
+    # - Performs resampling using 'apply_trsf':
     out_img = apply_trsf(image, trsf=None, template_img=tmp_img,
                          param_str_2=param_str_2)
 
+    # - Since '' only works on 3D images, it might have converted it to 3D:
     if 1 in out_img.shape:
         out_img = out_img.to_2D()
 
     return out_img
 
 
-def resample_isotropic(image, voxelsize, option='gray'):
+def resample_isotropic(image, voxelsize, option='gray', **kwargs):
     """
     Resample into an isotropic dataset
 
@@ -103,85 +131,16 @@ def resample_isotropic(image, voxelsize, option='gray'):
     -------
     >>> output_image = resample_isotropic(input_image, voxelsize=0.4)
     """
-    # Check the input parameters:
-    poss_opt = ['gray', 'label']
-    if option not in poss_opt:
-        raise ValueError("Possible options are: {}".format(poss_opt))
-    if not (isinstance(image, SpatialImage) and image.get_dim() == 3):
-        raise TypeError("Input 'image' must be a 3D SpatialImage instance")
-
+    # - Make sure the given voxelsize is a float:
     if not isinstance(voxelsize, float):
         voxelsize = float(voxelsize)
 
-    new_vox = [voxelsize, voxelsize, voxelsize]
-    out_img = resample(image, new_vox, option)
-    return out_img
+    # - Create the new voxelsize list based on image dimensionality:
+    new_vox = [voxelsize] * image.get_dim()
+    return resample(image, new_vox, option, **kwargs)
 
 
-# Similar to 'resample_isotropic':
-# def resample_image(input_im, new_voxelsize=None, new_shape=None, resampling_factor=1.):
-#     """
-#     Allow to resample any image given a new shape, new voxelsize or resampling_factor.
-#
-#     If:
-#      - resampling_factor < 1: over-sampling;
-#      - resampling_factor > 1: down-sampling;
-#      - resampling_factor = 1: unchanged.
-#
-#     Note: this is a work in progress!
-#     """
-#     print "Input image infos:"
-#     # - Get input_im infos:
-#     im_vxs = input_im.voxelsize
-#     print "  -- voxelsize: {}".format(im_vxs)
-#     im_dtype = input_im.dtype
-#     print "  -- dtype: {}".format(im_dtype)
-#     im_shape = input_im.shape
-#     print "  -- shape: {}".format(im_shape)
-#     # - `new_voxelsize` case:
-#     if new_voxelsize is not None:
-#         # - Check only one resampling method has been selected:
-#         try:
-#             assert (new_shape is None) and (resampling_factor==1)
-#         except AssertionError:
-#             raise AssertionError("You have defined to many parameters, please provide EITHER new_voxelsize, new_shape OR resampling_factor!")
-#         else:
-#             # -- Compute resampling factors for each direction:
-#             interp_factor = np.divide(im_vxs, new_voxelsize)
-#     # - `new_shape` case:
-#     elif new_shape is not None: #         # - Check only one resampling method has been selected:
-#         raise NotImplementedError("This method is not implemented yet!")
-#     # - `resampling_factor` case:
-#     elif resampling_factor !=1: #         # - Check only one resampling method has been selected:
-#         try:
-#             assert (new_shape is None) and (resampling_factor==1)
-#         except AssertionError:
-#             raise AssertionError("You have defined to many parameters, please provide EITHER new_voxelsize, new_shape OR resampling_factor!")
-#         else:
-#             # -- Compute resampling factors for each direction:
-#             interp_factor = np.repeat(resampling_factor, len(im_vxs))
-#     else:
-#         raise AssertionError("You need to define one resampling method by setting one of them!")
-#
-#     print "Resampling factor obtained: {}".format(interp_factor)
-#     # -- Create a template image with isometric voselsize and the right shape:
-#     template_im_shape = map(int, im_shape * interp_factor)
-#     template_im_vxs = im_vxs / interp_factor
-#     print "Isometric resampling to:"
-#     print "  -- voxelsize {} (original: {})".format(template_im_vxs, input_im.voxelsize)
-#     print "  -- shape {} (original: {})".format(template_im_shape, input_im.shape)
-#     template_im = SpatialImage(np.zeros(template_im_shape),
-#                                voxelsize=template_im_vxs.tolist(),
-#                                dtype=im_dtype)
-#     # -- Create the corresponding identity transformation:
-#     identity_trsf = create_trsf(template_im, param_str_1='-identity')
-#     # -- Apply it on `input_im` to interpolate:
-#     interp_im = apply_trsf(input_im, trsf=identity_trsf,
-#                            template_img=template_im, dtype=im_dtype)
-#     return interp_im
-
-
-def isometric_resampling(input_im, method='min', option='gray', dry_run=False):
+def isometric_resampling(input_im, method='min', option='gray', **kwargs):
     """
     Transform the image to an isometric version according to a method or a given voxelsize.
 
@@ -194,18 +153,14 @@ def isometric_resampling(input_im, method='min', option='gray', dry_run=False):
         given value.
     option: str, optional
         option can be either 'gray' or 'label'
-    dry_run: bool, optional
-        if True (default False), do not performs the resampling but return the size and voxelsize
 
     Returns
     -------
     ``SpatialImage``
         output image and metadata
     """
-    POSS_METHODS = ['min', 'max']
-    voxelsize = input_im.voxelsize
     try:
-        assert voxelsize != []
+        assert input_im.voxelsize != []
     except AssertionError:
         raise ValueError("Input image has an EMPTY voxelsize attribute!")
 
@@ -213,23 +168,17 @@ def isometric_resampling(input_im, method='min', option='gray', dry_run=False):
         raise ValueError(
             "Possible values for 'methods' are a float, 'min' or 'max'.")
     if method == 'min':
-        vxs = np.min(voxelsize)
+        vxs = np.min(input_im.voxelsize)
     elif method == 'max':
-        vxs = np.max(voxelsize)
+        vxs = np.max(input_im.voxelsize)
     else:
         vxs = method
 
-    if np.allclose(voxelsize, [vxs] * input_im.get_dim()):
+    if np.allclose(input_im.voxelsize, [vxs] * input_im.get_dim()):
         print "Image is already isometric!"
         return input_im
 
-    if dry_run:
-        vxs = np.repeat(vxs, len(voxelsize)).tolist()
-        extent = input_im.extent
-        dim = input_im.get_dim()
-        size = [int(round(extent[ind] / vxs[ind])) for ind in range(dim)]
-        return size, vxs
-    return resample_isotropic(input_im, vxs, option)
+    return resample_isotropic(input_im, vxs, option, **kwargs)
 
 
 def subsample(image, factor=[2, 2, 1], option='gray'):
