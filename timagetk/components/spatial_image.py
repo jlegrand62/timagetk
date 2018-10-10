@@ -259,7 +259,7 @@ def obj_metadata(obj, metadata_dict=None):
     except AssertionError:
         print "WARNING: Metadata 'type' ({}) do not match the array dtype ({}),".format(
             metadata_dict['type'], obj.dtype),
-        metadata_dict['dtype'] = str(obj.dtype)
+        metadata_dict['type'] = str(obj.dtype)
         print "it has been updated!"
 
     # Next lines compute min, max and mean values of the array every time we
@@ -569,11 +569,45 @@ class SpatialImage(np.ndarray):
         Returns
         -------
         is_iso: bool
-            True is isometric, else False.
+            True if the image is isometric, else False.
         """
         vxs = self.voxelsize
         is_iso = np.alltrue([vxs_i == vxs[0] for vxs_i in vxs[1:]])
         return is_iso
+
+    def isometric_resampling(self, method='min', option='gray'):
+        """
+        Performs isometric resampling of the image using either the min, the max
+        or a a given voxelsize value.
+
+        Parameters
+        ----------
+        method : str|float, optional
+            change voxelsize to 'min' (default) or 'max' value of original
+            voxelsize or to a given value.
+        option: str, optional
+            option can be either 'gray' or 'label'
+        """
+        from timagetk.algorithms.resample import POSS_METHODS
+        from timagetk.algorithms.resample import resample_isotropic
+
+        # - Check the given methods is a float or is defined in POSS_METHODS
+        if method not in POSS_METHODS and not isinstance(method, float):
+            raise ValueError("Possible 'methods' are a float, 'min' or 'max'.")
+
+        # - Define new voxelsize from given method:
+        if method == 'min':
+            vxs = np.min(self.voxelsize)
+        elif method == 'max':
+            vxs = np.max(self.voxelsize)
+        else:
+            vxs = method
+
+        if np.allclose(self.voxelsize, [vxs] * self.get_dim()):
+            print "Image is already isometric!"
+            return self
+        else:
+            return resample_isotropic(self, vxs, option, verbose=True)
 
     def is2D(self):
         """
@@ -817,7 +851,7 @@ class SpatialImage(np.ndarray):
             return False
 
         # - Test array equality:
-        ori_type = self.dtype
+        ori_type = str(self.dtype)
         if ori_type.startswith(
                 'u'):  # unsigned case is problematic for 'np.subtract'
             tmp_type = DICT_TYPES[ori_type[1:]]
