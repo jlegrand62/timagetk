@@ -18,8 +18,9 @@ __revision__ = " $Id$ "
 import time
 import numpy as np
 import scipy.ndimage as nd
+from scipy.cluster.vq import vq
 
-from timagetk.util import get_attributes
+from timagetk.util import get_attributes, stuple
 from timagetk.util import get_class_name
 from timagetk.util import elapsed_time
 from timagetk.util import percent_progress
@@ -451,6 +452,231 @@ def hollow_out_labels(image, **kwargs):
     return image
 
 
+def array_unique(array, return_index=False):
+    """
+    Return an array made of the unique occurrence of each rows.
+
+    Parameters
+    ----------
+    array : np.array
+        the array to compare by rows
+    return_index : bool, optional
+        if False (default) do NOT return the index of the unique rows, else do
+        return them
+
+    Returns
+    -------
+    array_unique : np.array
+        the array made of unique rows
+    unique_rows : np.array, if return_index == True
+        index of the unique rows
+
+    Examples
+    --------
+    >>> from timagetk.components.labelled_image import array_unique
+    >>> a = np.array([[0, 1, 2, 3, 4],
+                      [0, 1, 2, 3, 4],
+                      [0, 1, 2, 3, 4],
+                      [1, 2, 3, 4, 5],
+                      [1, 2, 3, 4, 5]])
+    >>> array_unique(a)
+    array([[0, 1, 2, 3, 4],
+           [1, 2, 3, 4, 5]])
+    """
+    _, unique_rows = np.unique(np.ascontiguousarray(array).view(
+        np.dtype((np.void, array.dtype.itemsize * array.shape[1]))),
+        return_index=True)
+    if return_index:
+        return array[unique_rows], unique_rows
+    else:
+        return array[unique_rows]
+
+
+def topological_elements_extraction(img, elem_order=None):
+    """
+    Extract the topological elements of order 2 (ie. wall), 1 (ie. wall-edge)
+    and 0 (ie. cell vertex) by returning their coordinates grouped by pair,
+    triplet and quadruplet of labels.
+
+    Parameters
+    ----------
+    img : np.array
+        numpy array representing a labelled image
+    elem_order : list, optional
+        list of dimensional order of the elements to return
+
+    Returns
+    -------
+    topological_elements : dict
+        dictionary with topological elements order as key, each containing
+        dictionaries of n-uplets as keys and coordinates array as values
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from timagetk.components.labelled_image import topological_elements_extraction
+    >>> a = np.array([[2, 2, 2, 3, 3, 3, 3, 3],
+                      [2, 2, 2, 3, 3, 3, 3, 3],
+                      [2, 2, 2, 2, 3, 3, 3, 3],
+                      [2, 2, 2, 2, 3, 3, 3, 3],
+                      [2, 2, 2, 2, 3, 3, 3, 3],
+                      [4, 4, 4, 4, 4, 4, 4, 4],
+                      [4, 4, 4, 4, 4, 4, 4, 4],
+                      [4, 4, 4, 4, 4, 4, 4, 4]])
+    >>> bkgd_im = np.ones_like(a)
+    >>> # Create an image by adding a background and repeat the previous array 6 times as a Z-axis:
+    >>> im = np.array([bkgd_im, a, a, a, a, a, a]).transpose(1, 2, 0)
+    >>> im.shape
+    (8, 8, 7)
+    >>> # Extract topological elements coordinates:
+    >>> elem = topological_elements_extraction(im)
+    >>> # Get the cell-vertex coordinates between labels 1, 2, 3 and 4
+    >>> elem[0]
+    {(1, 2, 3, 4): array([[ 4.5,  3.5,  0.5]])}
+    >>> # Get the wall-edge voxel coordinates between labels 1, 2 and 3:
+    >>> elem[1][(1, 2, 3)]
+    array([[ 0.5,  2.5,  0.5],
+           [ 1.5,  2.5,  0.5],
+           [ 1.5,  3.5,  0.5],
+           [ 2.5,  3.5,  0.5],
+           [ 3.5,  3.5,  0.5]])
+    >>> # Get the wall voxel coordinates between labels 1 and 4:
+    >>> elem[2][(1, 4)]
+    array([[ 5.5,  0.5,  0.5],
+           [ 5.5,  1.5,  0.5],
+           [ 5.5,  2.5,  0.5],
+           [ 5.5,  3.5,  0.5],
+           [ 5.5,  4.5,  0.5],
+           [ 5.5,  5.5,  0.5],
+           [ 5.5,  6.5,  0.5],
+           [ 6.5,  0.5,  0.5],
+           [ 6.5,  1.5,  0.5],
+           [ 6.5,  2.5,  0.5],
+           [ 6.5,  3.5,  0.5],
+           [ 6.5,  4.5,  0.5],
+           [ 6.5,  5.5,  0.5],
+           [ 6.5,  6.5,  0.5]])
+    """
+    # TODO: modify to use connectivity parameter!
+    print "# - Detecting cell topological elements:"
+    sh = np.array(img.shape)
+    n_voxels = (sh[0] - 1) * (sh[1] - 1) * (sh[2] - 1)
+    print "  - Computing the neighborhood matrix of non-marginal voxels (n={})...".format(
+        n_voxels),
+    start_time = time.time()
+    # - Create the neighborhood matrix of each voxels:
+    neighborhood_img = []
+    for x in np.arange(-1, 1):
+        for y in np.arange(-1, 1):
+            for z in np.arange(-1, 1):
+                neighborhood_img.append(
+                    img[1 + x:sh[0] + x, 1 + y:sh[1] + y, 1 + z:sh[2] + z])
+
+    # - Reshape the neighborhood matrix in a N_voxel x 8 (neighbors):
+    neighborhood_img = np.sort(
+        np.transpose(neighborhood_img, (1, 2, 3, 0))).reshape((sh - 1).prod(),
+                                                              8)
+    elapsed_time(start_time)
+
+    print "  - Filtering out voxels surrounded only by similar label...",
+    # - Detect the voxels that are not alone (only neighbors to themself, or same label around):
+    non_flat = np.sum(
+        neighborhood_img == np.tile(neighborhood_img[:, :1], (1, 8)),
+        axis=1) != 8
+    # - Keep only these "non flat" neighborhood:
+    neighborhood_img = neighborhood_img[non_flat]
+    elapsed_time(start_time)
+
+    n_voxels_elem = neighborhood_img.shape[0]
+    pc = float(n_voxels - n_voxels_elem) / n_voxels * 100
+    print "\tRemoved {}% of the initial voxel matrix!".format(round(pc, 3))
+
+    print "  - Creating the associated coordinate matrix...",
+    start_time = time.time()
+    # - Create the coordinate matrix associated to each voxels of the neighborhood matrix:
+    vertex_coords = np.transpose(
+        np.mgrid[0:sh[0] - 1, 0:sh[1] - 1, 0:sh[2] - 1], (1, 2, 3, 0)).reshape(
+        (sh - 1).prod(), 3) + 0.5
+    # - Keep only these "non flat" coordinates:
+    vertex_coords = vertex_coords[non_flat]
+    elapsed_time(start_time)
+
+    print "  - Computing the neighborhood size...",
+    start_time = time.time()
+    # - Keep the "unique values" in each neighborhood:
+    neighborhoods = map(np.unique, neighborhood_img)
+    neighborhoods = np.array(neighborhoods)
+    # - Compute the neighborhood size of each voxel:
+    neighborhood_size = map(len, neighborhoods)
+    neighborhood_size = np.array(neighborhood_size)
+    elapsed_time(start_time)
+
+    print "  - Creating dictionary of voxels coordinates detected as topological elements (n={})...".format(
+        n_voxels_elem)
+    if elem_order is None:
+        elem_order = range(3)
+    # - Separate the voxels depending on the size of their neighborhood:
+    #   "wall" is a dimension 2 element with a neighborhood size == 2;
+    #   "wall-edge" is a dimension 1 element with a neighborhood size == 3;
+    #   "cell-vertex" is a dimension 0 element with a neighborhood size == 4+;
+    topological_elements = {}
+    start_time = time.time()
+    for dimension in elem_order:
+        try:
+            assert dimension in range(3)
+        except AssertionError:
+            print "Given element orders should be in [0, 1, 2]!"
+            continue
+        # - Make a mask indexing desired 'neighborhood_size':
+        dim_mask = neighborhood_size == 4 - dimension
+        msg = "  --Sorting {} voxels as topological elements of order {} ({})..."
+        if dimension == 2:
+            elem_type = "faces"
+        elif dimension == 1:
+            elem_type = "edges"
+        else:
+            elem_type = "nodes"
+        print msg.format(sum(dim_mask), dimension, elem_type)
+        # - Get all coordinates corresponding to selected 'neighborhood_size':
+        element_points = vertex_coords[dim_mask]
+        # - Get labels list for this given 'neighborhood_size':
+        element_cells = np.array([p for p in neighborhoods[dim_mask]], int)
+
+        # - In case of "cell-vertex" try to find 5-neighborhood:
+        if (dimension == 0) & ((neighborhood_size >= 5).sum() > 0):
+            # - Make a mask indexing 'neighborhood_size == 5':
+            mask_5 = neighborhood_size == 5
+            # - Get all coordinates for 'neighborhood_size == 5':
+            clique_vertex_points = np.concatenate(
+                [(p, p) for p in vertex_coords[mask_5]])
+            # - Get labels list for 'neighborhood_size == 5':
+            clique_vertex_cells = np.concatenate(
+                [[p[:4], np.concatenate([[p[0]], p[2:]])] for p in
+                 neighborhoods[mask_5]]).astype(int)
+            # - Add them to the 4-neighborhood arrays of coordinates and labels:
+            element_points = np.concatenate(
+                [element_points, clique_vertex_points])
+            element_cells = np.concatenate([element_cells, clique_vertex_cells])
+
+        if element_cells != np.array([]):
+            # - Remove duplicate of labels n-uplets, with 'n = 4 - dim':
+            unique_cell_elements = array_unique(element_cells)
+            # - ??
+            element_matching = vq(element_cells, unique_cell_elements)[0]
+            # - Make a dictionary of all {(n-uplet) : np.array(coordinates)}:
+            topological_elements[dimension] = dict(
+                zip([tuple(e) for e in unique_cell_elements],
+                    [element_points[element_matching == e] for e, _ in
+                     enumerate(unique_cell_elements)]))
+        else:
+            print "WARNING: Could not find topological elements of order {}!".format(
+                dimension)
+            topological_elements[dimension] = None
+
+    elapsed_time(start_time)
+    return topological_elements
+
+
 # - GLOBAL VARIABLES:
 MISS_LABEL = "The following label{} {} not found in the image: {}"  # ''/'s'; 'is'/'are'; labels
 
@@ -552,12 +778,26 @@ class LabelledImage(SpatialImage):
         # - Initializing EMPTY hidden attributes:
         # -- Property hidden attributes:
         self._no_label_id = None  # id refering to the absence of label
-        # -- Useful label lists:
-        self._labels = None  # list of image-labels referring to cell-labels
-        # -- Useful & recurrent label properties:
-        self._bbox = []  # list of bounding boxes (indexed 'self._labels - 1')
-        self._bbox_dict = {}  # dict of bounding boxes
+
+        # -- Topological element of order 3 are called 'labels':
+        self._labels = None  # list of labels
+        self._label_bboxes = {}  # dict of label bounding boxes
         self._neighbors = {}  # unfiltered neighborhood label-dict {vid_i: neighbors(vid_i)}
+
+        # -- Topological element of order 2 are called 'faces':
+        self._faces = None  # list of faces
+        self._face_bboxes = {}  # dict of face bounding boxes
+        self._face_voxels = {}  # dict of face voxel coordinates
+
+        # -- Topological element of order 1 are called 'edges':
+        self._edges = None  # list of edges
+        self._edge_bboxes = {}  # dict of edge bounding boxes
+        self._edge_voxels = {}  # dict of edge voxel coordinates
+
+        # -- Topological element of order 0 are called 'nodes':
+        self._nodes = None  # list of nodes
+        self._node_bboxes = {}  # dict of node bounding boxes
+        self._node_voxels = {}  # dict of node voxel coordinates
 
         # - Initialise object property and most used hidden attributes:
         # -- Define the "no_label_id" value, if any (can be None):
@@ -649,23 +889,75 @@ class LabelledImage(SpatialImage):
             raise ValueError(msg)
         return
 
-    def isometric_resampling(self, method='min', **kwargs):
+    def topological_elements(self, element_order=None):
         """
-        Performs isometric resampling of the image using either the min, the max
-        or a a given voxelsize value.
+        Extract the coordinates of topological elements of order 2 (ie. face),
+        1 (ie. edge) and 0 (ie. node). Return their coordinates grouped by pair,
+        triplet and quadruplet of labels.
 
         Parameters
         ----------
-        method : str|float, optional
-            change voxelsize to 'min' (default) or 'max' value of original
-            voxelsize or to a given value.
+        elem_order : int|list, optional
+            list of dimensional order of the elements to return
 
         Returns
         -------
+        topo_elem : dict
+            dictionary with topological elements order as key, each containing
+            dictionaries of n-uplets as keys and coordinates array as values
 
+        Notes
+        -----
+        The order of the labels in the tuple defining the key is irrelevant, ie.
+        coordinates of face (2, 5) is the same than (5, 2).
         """
-        return SpatialImage.isometric_resampling(self, method, option='label')
+        import copy as cp
+        if isinstance(element_order, int):
+            element_order = [element_order]
 
+        # - List missing order of topological element dictionary
+        elem_order = cp.copy(element_order)
+        if element_order is not None:
+            # remove potential duplicates:
+            element_order = list(set(element_order))
+            if 2 in element_order and self._face_voxels != {}:
+                elem_order.remove(2)
+            if 1 in element_order and self._edge_voxels != {}:
+                elem_order.remove(1)
+            if 0 in element_order and self._node_voxels != {}:
+                elem_order.remove(0)
+
+        # - If element are missing, compute them and save them to attributes:
+        if elem_order != []:
+            topo_elem = topological_elements_extraction(self, elem_order)
+            # - Get the face coordinates:
+            if topo_elem.has_key(2):
+                self._face_voxels = topo_elem[2]
+                self._faces = self._face_voxels.keys()
+            # - Get the edge coordinates:
+            if topo_elem.has_key(1):
+                self._edge_voxels = topo_elem[1]
+                self._edges = self._edge_voxels.keys()
+            # - Get the face coordinates:
+            if topo_elem.has_key(0):
+                self._node_voxels = topo_elem[0]
+                self._nodes = self._node_voxels.keys()
+        else:
+            topo_elem = {}
+
+        # - Get required but already computed dict of topological elements:
+        if 2 in element_order and 2 not in topo_elem:
+            topo_elem[2] = self._face_voxels
+        if 1 in element_order and 1 not in topo_elem:
+            topo_elem[1] = self._edge_voxels
+        if 0 in element_order and 0 not in topo_elem:
+            topo_elem[0] = self._node_voxels
+
+        return topo_elem
+
+    # --------------------------------------------------------------------------
+    # LABEL based methods:
+    # --------------------------------------------------------------------------
     def labels(self, labels=None):
         """
         Get the list of labels found in the image, or make sure provided labels
@@ -806,29 +1098,29 @@ class LabelledImage(SpatialImage):
         # - Starts with integer case since it is the easiest:
         if isinstance(labels, int):
             try:
-                assert self._bbox_dict.has_key(labels)
+                assert self._label_bboxes.has_key(labels)
             except AssertionError:
                 image = self.get_array()
                 bbox = nd.find_objects(image == labels, max_label=1)[0]
-                self._bbox_dict[labels] = bbox
-            return self._bbox_dict[labels]
+                self._label_bboxes[labels] = bbox
+            return self._label_bboxes[labels]
         else:
             # !! remove 'self._no_label_id'
             labels = self.labels()
 
         # - Create a dict of bounding-boxes using 'scipy.ndimage.find_objects':
-        known_bbox = [l in self._bbox_dict for l in labels]
+        known_bbox = [l in self._label_bboxes for l in labels]
         image = self.get_array()
-        if self._bbox_dict is None or not all(known_bbox):
+        if self._label_bboxes is None or not all(known_bbox):
             max_lab = max(labels)
             if verbose:
                 print "Computing {} bounding-boxes...".format(max_lab),
             bbox = nd.find_objects(image, max_label=max_lab)
             # NB: scipy.ndimage.find_objects start at 1 (and python index at 0), hence to access i-th element, we have to use (i-1)-th index!
-            self._bbox_dict = {n: bbox[n - 1] for n in range(1, max_lab + 1)}
+            self._label_bboxes = {n: bbox[n - 1] for n in range(1, max_lab + 1)}
 
         # - Filter returned bounding-boxes to the (cleaned) given list of labels
-        bboxes = {l: self._bbox_dict[l] for l in labels}
+        bboxes = {l: self._label_bboxes[l] for l in labels}
         if real:
             vxs = self.voxelsize
             bboxes = {l: real_indices(bbox, vxs) for l, bbox in bboxes.items()}
@@ -1014,11 +1306,208 @@ class LabelledImage(SpatialImage):
                 print "Extracting neighbors for {} labels...".format(n_lab)
             return self._neighborhood_with_mask(labels, verbose=verbose)
 
-    # ##########################################################################
-    #
-    # Labelled SpatiaImage edition functions:
-    #
-    # ##########################################################################
+    # --------------------------------------------------------------------------
+    # FACE based methods:
+    # --------------------------------------------------------------------------
+    def faces(self, faces=None):
+        """
+        Get the list of faces found in the image, or make sure provided faces
+        exists.
+
+        Parameters
+        ----------
+        faces: len-2 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all faces
+            defined in the image by default
+
+        Returns
+        -------
+        list
+            list of faces found in the image
+        """
+        if isinstance(faces, tuple):
+            faces = [faces]
+        if isinstance(faces, list):
+            ok = [isinstance(tuple, f) and len(f) == 2 for f in faces]
+            try:
+                assert all(ok)
+            except AssertionError:
+                msg = "Input 'faces' should be a list of length-2 tuples!"
+                raise TypeError(msg)
+
+        # - If the hidden label attribute is None, list all labels in the array:
+        if self._faces is None:
+            self.topological_elements(element_order=2)
+
+        if faces:
+            # need to reorder given list of 'faces', might not be label sorted:
+            faces = [stuple(f) for f in faces]
+            return list(self._faces & set(faces))
+        else:
+            return list(self._faces)
+
+    def face_coordinates(self, faces=None):
+        """
+        Get a dictionary of face coordinates.
+
+        Parameters
+        ----------
+        faces: len-2 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all faces
+            defined in the image by default
+
+        Returns
+        -------
+        dict
+            dictionary of len-2 labels with their voxel coordinates
+        """
+        faces_list = self.faces(faces)
+        if faces:
+            return {f: self._face_voxels[f] for f in faces_list}
+        else:
+            return self._face_voxels
+
+    # --------------------------------------------------------------------------
+    # EDGE based methods:
+    # --------------------------------------------------------------------------
+    def edges(self, edges=None):
+        """
+        Get the list of edges found in the image, or make sure provided edges
+        exists.
+
+        Parameters
+        ----------
+        edges: len-3 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all edges
+            defined in the image by default
+
+        Returns
+        -------
+        list
+            list of edges found in the image
+        """
+        if isinstance(edges, tuple):
+            edges = [edges]
+        if isinstance(edges, list):
+            ok = [isinstance(tuple, e) and len(e) == 3 for e in edges]
+            try:
+                assert all(ok)
+            except AssertionError:
+                msg = "Input 'edges' should be a list of length-2 tuples!"
+                raise TypeError(msg)
+
+        # - If the hidden label attribute is None, list all labels in the array:
+        if self._edges is None:
+            self.topological_elements(element_order=1)
+
+        if edges:
+            # need to reorder given list of 'edges', might not be label sorted:
+            edges = [stuple(e) for e in edges]
+            return list(self._edges & set(edges))
+        else:
+            return list(self._edges)
+
+    def edge_coordinates(self, edges=None):
+        """
+        Get a dictionary of edge coordinates.
+
+        Parameters
+        ----------
+        edges: len-3 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all edges
+            defined in the image by default
+
+        Returns
+        -------
+        dict
+            dictionary of len-3 labels with their voxel coordinates
+        """
+        edges_list = self.edges(edges)
+        if edges:
+            return {e: self._edge_voxels[e] for e in edges_list}
+        else:
+            return self._edge_voxels
+
+    # --------------------------------------------------------------------------
+    # NODE based methods:
+    # --------------------------------------------------------------------------
+    def nodes(self, nodes=None):
+        """
+        Get the list of nodes found in the image, or make sure provided nodes
+        exists.
+
+        Parameters
+        ----------
+        nodes: len-4 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all nodes
+            defined in the image by default
+
+        Returns
+        -------
+        list
+            list of nodes found in the image
+        """
+        if isinstance(nodes, tuple):
+            nodes = [nodes]
+        if isinstance(nodes, list):
+            ok = [isinstance(tuple, n) and len(n) == 4 for n in nodes]
+            try:
+                assert all(ok)
+            except AssertionError:
+                msg = "Input 'nodes' should be a list of length-2 tuples!"
+                raise TypeError(msg)
+
+        # - If the hidden label attribute is None, list all labels in the array:
+        if self._nodes is None:
+            self.topological_elements(element_order=0)
+
+        if nodes:
+            # need to reorder given list of 'nodes', might not be label sorted:
+            nodes = [stuple(n) for n in nodes]
+            return list(self._nodes & set(nodes))
+        else:
+            return list(self._nodes)
+
+    def node_coordinates(self, nodes=None):
+        """
+        Get a dictionary of node coordinates.
+
+        Parameters
+        ----------
+        nodes: len-4 tuple|list(tuple), optional
+            if given, used to filter the returned list, else return all nodes
+            defined in the image by default
+
+        Returns
+        -------
+        dict
+            dictionary of len-4 labels with their voxel coordinates
+        """
+        nodes_list = self.nodes(nodes)
+        if nodes:
+            return {n: self._node_voxels[n] for n in nodes_list}
+        else:
+            return self._node_voxels
+
+    # --------------------------------------------------------------------------
+    # LabelledImage edition functions:
+    # --------------------------------------------------------------------------
+    def isometric_resampling(self, method='min', **kwargs):
+        """
+        Performs isometric resampling of the image using either the min, the max
+        or a a given voxelsize value.
+
+        Parameters
+        ----------
+        method : str|float, optional
+            change voxelsize to 'min' (default) or 'max' value of original
+            voxelsize or to a given value.
+
+        Returns
+        -------
+
+        """
+        return SpatialImage.isometric_resampling(self, method, option='label')
 
     def get_image_with_labels(self, labels):
         """

@@ -40,6 +40,22 @@ def clean_warning(message, category, filename, lineno, file=None, line=None):
     return '%s: %s\n' % (category.__name__, message)
 
 
+def stuple(t):
+    """
+    Sort tuple 't' and return it
+
+    Parameters
+    ----------
+    t : tuple
+        the tuple to sort
+
+    Returns
+    -------
+    tuple(sorted(t))
+    """
+    return tuple(sorted(t))
+
+
 # TODO: write a `_connecitity_check` function working the same way than `_method_check`
 def _method_check(method, valid_methods, default_index=0):
     """
