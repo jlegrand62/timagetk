@@ -492,7 +492,7 @@ def array_unique(array, return_index=False):
         return array[unique_rows]
 
 
-def topological_elements_extraction(img, elem_order=None):
+def topological_elements_extraction3D(img, elem_order=None, connectivity=26):
     """
     Extract the topological elements of order 2 (ie. wall), 1 (ie. wall-edge)
     and 0 (ie. cell vertex) by returning their coordinates grouped by pair,
@@ -503,7 +503,11 @@ def topological_elements_extraction(img, elem_order=None):
     img : np.array
         numpy array representing a labelled image
     elem_order : list, optional
-        list of dimensional order of the elements to return
+        list of dimensional order of the elements to return, should be in [2, 1, 0]
+    connectivity: int, optional
+        connectivity or neighborhood of the structuring element, default 26,
+        should be in [6, 18, 26]
+
 
     Returns
     -------
@@ -514,7 +518,7 @@ def topological_elements_extraction(img, elem_order=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from timagetk.components.labelled_image import topological_elements_extraction
+    >>> from timagetk.components.labelled_image import topological_elements_extraction3D
     >>> a = np.array([[2, 2, 2, 3, 3, 3, 3, 3],
                       [2, 2, 2, 3, 3, 3, 3, 3],
                       [2, 2, 2, 2, 3, 3, 3, 3],
@@ -529,7 +533,7 @@ def topological_elements_extraction(img, elem_order=None):
     >>> im.shape
     (8, 8, 7)
     >>> # Extract topological elements coordinates:
-    >>> elem = topological_elements_extraction(im)
+    >>> elem = topological_elements_extraction3D(im)
     >>> # Get the cell-vertex coordinates between labels 1, 2, 3 and 4
     >>> elem[0]
     {(1, 2, 3, 4): array([[ 4.5,  3.5,  0.5]])}
@@ -557,32 +561,49 @@ def topological_elements_extraction(img, elem_order=None):
            [ 6.5,  5.5,  0.5],
            [ 6.5,  6.5,  0.5]])
     """
-    # TODO: modify to use connectivity parameter!
+    try:
+        assert connectivity in [6, 18, 26]
+    except AssertionError:
+        raise ValueError("Parameter 'connectivity' should be in [6, 18, 26].")
+
+    # Define number of neighbors voxels considered during neighborhood matrix creation:
+    if connectivity == 26:
+        n_nei_vox = 8
+    elif connectivity == 18:
+        n_nei_vox = 7
+    else:
+        n_nei_vox = 4
+
     print "# - Detecting cell topological elements:"
     sh = np.array(img.shape)
     n_voxels = (sh[0] - 1) * (sh[1] - 1) * (sh[2] - 1)
     print "  - Computing the neighborhood matrix of non-marginal voxels (n={})...".format(
         n_voxels),
     start_time = time.time()
-    # - Create the neighborhood matrix of each voxels:
+    # - Create the UPPER-RIGHT neighborhood matrix of each voxels:
     neighborhood_img = []
     for x in np.arange(-1, 1):
         for y in np.arange(-1, 1):
             for z in np.arange(-1, 1):
+                xyz = [x, y, z]
+                if (connectivity == 18 or connectivity == 6) and xyz.count(-1) == 3:
+                    continue
+                if connectivity == 6 and xyz.count(-1) == 2:
+                    continue
                 neighborhood_img.append(
                     img[1 + x:sh[0] + x, 1 + y:sh[1] + y, 1 + z:sh[2] + z])
 
-    # - Reshape the neighborhood matrix in a N_voxel x 8 (neighbors):
+    # - Reshape the neighborhood matrix in a N_voxel x n_nei_vox:
     neighborhood_img = np.sort(
         np.transpose(neighborhood_img, (1, 2, 3, 0))).reshape((sh - 1).prod(),
-                                                              8)
+                                                              n_nei_vox)
     elapsed_time(start_time)
 
     print "  - Filtering out voxels surrounded only by similar label...",
     # - Detect the voxels that are not alone (only neighbors to themself, or same label around):
     non_flat = np.sum(
-        neighborhood_img == np.tile(neighborhood_img[:, :1], (1, 8)),
-        axis=1) != 8
+        neighborhood_img == np.tile(neighborhood_img[:, :1], (1, n_nei_vox)),
+        axis=1) != n_nei_vox
     # - Keep only these "non flat" neighborhood:
     neighborhood_img = neighborhood_img[non_flat]
     elapsed_time(start_time)
@@ -657,6 +678,178 @@ def topological_elements_extraction(img, elem_order=None):
             element_points = np.concatenate(
                 [element_points, clique_vertex_points])
             element_cells = np.concatenate([element_cells, clique_vertex_cells])
+
+        if element_cells != np.array([]):
+            # - Remove duplicate of labels n-uplets, with 'n = 4 - dim':
+            unique_cell_elements = array_unique(element_cells)
+            # - ??
+            element_matching = vq(element_cells, unique_cell_elements)[0]
+            # - Make a dictionary of all {(n-uplet) : np.array(coordinates)}:
+            topological_elements[dimension] = dict(
+                zip([tuple(e) for e in unique_cell_elements],
+                    [element_points[element_matching == e] for e, _ in
+                     enumerate(unique_cell_elements)]))
+        else:
+            print "WARNING: Could not find topological elements of order {}!".format(
+                dimension)
+            topological_elements[dimension] = None
+
+    elapsed_time(start_time)
+    return topological_elements
+
+
+def topological_elements_extraction2D(img, elem_order=None, connectivity=8):
+    """
+    Extract the topological elements of order 2 (ie. wall) and 1 (ie. wall-edge)
+    by returning their coordinates grouped by pair or triplet of labels.
+
+    Parameters
+    ----------
+    img : np.array
+        numpy array representing a labelled image
+    elem_order : list, optional
+        list of dimensional order of the elements to return, should be in [2, 1]
+    connectivity: int, optional
+        connectivity or neighborhood of the structuring element, default 8,
+        should be in [4, 8]
+
+    Returns
+    -------
+    topological_elements : dict
+        dictionary with topological elements order as key, each containing
+        dictionaries of n-uplets as keys and coordinates array as values
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from timagetk.components.labelled_image import topological_elements_extraction2D
+    >>> im = np.array([[1, 1, 1, 1, 1, 1, 1, 1],
+                       [1, 2, 2, 3, 3, 3, 3, 1],
+                       [1, 2, 2, 2, 3, 3, 3, 1],
+                       [1, 2, 2, 2, 3, 3, 3, 1],
+                       [1, 2, 2, 2, 3, 3, 3, 1],
+                       [1, 4, 4, 4, 4, 4, 4, 1],
+                       [1, 4, 4, 4, 4, 4, 4, 1],
+                       [1, 4, 4, 4, 4, 4, 4, 1]])
+    >>> im.shape
+    (8, 8)
+    >>> # Extract topological elements coordinates:
+    >>> elem = topological_elements_extraction2D(im)
+    >>> # Get the wall-edge voxel coordinates between labels 1, 2 and 3:
+    >>> elem[1][(2, 3, 4)]
+    array([[ 0.5,  2.5,  0.5],
+           [ 1.5,  2.5,  0.5],
+           [ 1.5,  3.5,  0.5],
+           [ 2.5,  3.5,  0.5],
+           [ 3.5,  3.5,  0.5]])
+    >>> # Get the wall voxel coordinates between labels 2 and 3:
+    >>> elem[2][(2, 43)]
+    array([[ 5.5,  0.5,  0.5],
+           [ 5.5,  1.5,  0.5],
+           [ 5.5,  2.5,  0.5],
+           [ 5.5,  3.5,  0.5],
+           [ 5.5,  4.5,  0.5],
+           [ 5.5,  5.5,  0.5],
+           [ 5.5,  6.5,  0.5],
+           [ 6.5,  0.5,  0.5],
+           [ 6.5,  1.5,  0.5],
+           [ 6.5,  2.5,  0.5],
+           [ 6.5,  3.5,  0.5],
+           [ 6.5,  4.5,  0.5],
+           [ 6.5,  5.5,  0.5],
+           [ 6.5,  6.5,  0.5]])
+    """
+    try:
+        assert connectivity in [4, 8]
+    except AssertionError:
+        raise ValueError("Parameter 'connectivity' should be in [4, 8].")
+
+    # Define number of neighbors voxels considered during neighborhood matrix creation:
+    if connectivity == 8:
+        n_nei_vox = 4
+    else:
+        n_nei_vox = 3
+
+    print "# - Detecting cell topological elements:"
+    sh = np.array(img.shape)
+    n_voxels = (sh[0] - 1) * (sh[1] - 1)
+    print "  - Computing the neighborhood matrix of non-marginal voxels (n={})...".format(
+        n_voxels),
+    start_time = time.time()
+    # - Create the neighborhood matrix of each voxels:
+    neighborhood_img = []
+    for x in np.arange(-1, 1):
+        for y in np.arange(-1, 1):
+            if connectivity == 4 and x == y == -1:
+                continue
+            neighborhood_img.append(img[1 + x:sh[0] + x, 1 + y:sh[1] + y])
+
+    # - Reshape the neighborhood matrix in a N_voxel x n_nei_vox:
+    neighborhood_img = np.sort(
+        np.transpose(neighborhood_img, (1, 2, 0))).reshape((sh - 1).prod(), n_nei_vox)
+    elapsed_time(start_time)
+
+    print "  - Filtering out voxels surrounded only by similar label...",
+    # - Detect the voxels that are not alone (only neighbors to themself, or same label around):
+    non_flat = np.sum(
+        neighborhood_img == np.tile(neighborhood_img[:, :1], (1, n_nei_vox)),
+        axis=1) != n_nei_vox
+    # - Keep only these "non flat" neighborhood:
+    neighborhood_img = neighborhood_img[non_flat]
+    elapsed_time(start_time)
+
+    n_voxels_elem = neighborhood_img.shape[0]
+    pc = float(n_voxels - n_voxels_elem) / n_voxels * 100
+    print "\tRemoved {}% of the initial voxel matrix!".format(round(pc, 3))
+
+    print "  - Creating the associated coordinate matrix...",
+    start_time = time.time()
+    # - Create the coordinate matrix associated to each voxels of the neighborhood matrix:
+    vertex_coords = np.transpose(np.mgrid[0:sh[0] - 1, 0:sh[1] - 1],
+                                 (1, 2, 0)).reshape((sh - 1).prod(), 2) + 0.5
+    # - Keep only these "non flat" coordinates:
+    vertex_coords = vertex_coords[non_flat]
+    elapsed_time(start_time)
+
+    print "  - Computing the neighborhood size...",
+    start_time = time.time()
+    # - Keep the "unique values" in each neighborhood:
+    neighborhoods = map(np.unique, neighborhood_img)
+    neighborhoods = np.array(neighborhoods)
+    # - Compute the neighborhood size of each voxel:
+    neighborhood_size = map(len, neighborhoods)
+    neighborhood_size = np.array(neighborhood_size)
+    elapsed_time(start_time)
+
+    print "  - Creating dictionary of voxels coordinates detected as topological elements (n={})...".format(
+        n_voxels_elem)
+    if elem_order is None:
+        elem_order = [2, 1]
+    # - Separate the voxels depending on the size of their neighborhood:
+    #   "wall" is a dimension 2 element with a neighborhood size == 2;
+    #   "wall-edge" is a dimension 1 element with a neighborhood size == 3;
+    topological_elements = {}
+    start_time = time.time()
+    for dimension in elem_order:
+        try:
+            assert dimension in [2, 1]
+        except AssertionError:
+            print "Given element orders should be in [1, 2]!"
+            continue
+        # - Make a mask indexing desired 'neighborhood_size':
+        dim_mask = neighborhood_size == 4 - dimension
+        msg = "  --Sorting {} voxels as topological elements of order {} ({})..."
+        if dimension == 2:
+            elem_type = "faces"
+        elif dimension == 1:
+            elem_type = "edges"
+        else:
+            elem_type = "nodes"
+        print msg.format(sum(dim_mask), dimension, elem_type)
+        # - Get all coordinates corresponding to selected 'neighborhood_size':
+        element_points = vertex_coords[dim_mask]
+        # - Get labels list for this given 'neighborhood_size':
+        element_cells = np.array([p for p in neighborhoods[dim_mask]], int)
 
         if element_cells != np.array([]):
             # - Remove duplicate of labels n-uplets, with 'n = 4 - dim':
@@ -914,12 +1107,18 @@ class LabelledImage(SpatialImage):
         import copy as cp
         if isinstance(element_order, int):
             element_order = [element_order]
+        if 0 in element_order and self.is2D():
+            print "There is no elements of order 0 in a 2D image."
+            element_order.remove(0)
+            if element_order == []:
+                return
 
         # - List missing order of topological element dictionary
         elem_order = cp.copy(element_order)
         if element_order is not None:
             # remove potential duplicates:
             element_order = list(set(element_order))
+            # remove already computed elements order:
             if 2 in element_order and self._face_voxels != {}:
                 elem_order.remove(2)
             if 1 in element_order and self._edge_voxels != {}:
@@ -929,7 +1128,11 @@ class LabelledImage(SpatialImage):
 
         # - If element are missing, compute them and save them to attributes:
         if elem_order != []:
-            topo_elem = topological_elements_extraction(self, elem_order)
+            if self.is2D():
+                topo_elem = topological_elements_extraction2D(self, elem_order)
+            else:
+                topo_elem = topological_elements_extraction3D(self, elem_order)
+
             # - Get the face coordinates:
             if topo_elem.has_key(2):
                 self._face_voxels = topo_elem[2]
