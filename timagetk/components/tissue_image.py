@@ -567,7 +567,7 @@ class TissueImage2D(TissueImage):
     Class specific to 2D multi-cellular tissues.
     """
 
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
+    def __init__(self, image, background=None, **kwargs):
         """
         Parameters
         ----------
@@ -576,11 +576,8 @@ class TissueImage2D(TissueImage):
         background: int, optional
             if given define the label of the background (ie. space surrounding
             the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
         """
-        TissueImage.__init__(self, image, background=background,
-                             no_label_id=no_label_id, **kwargs)
+        TissueImage.__init__(self, image, background=background, **kwargs)
 
     def voxel_n_first_layer(self, n_voxel_layer, connectivity=4,
                             keep_background=True, **kwargs):
@@ -638,7 +635,7 @@ class TissueImage3D(TissueImage):
     Class specific to 3D multi-cellular tissues.
     """
 
-    def __init__(self, image, background=None, no_label_id=None, **kwargs):
+    def __init__(self, image, background=None, **kwargs):
         """
         Parameters
         ----------
@@ -647,11 +644,8 @@ class TissueImage3D(TissueImage):
         background: int, optional
             if given define the label of the background (ie. space surrounding
             the tissue)
-        no_label_id: int, optional
-            if given define the "unknown label" (ie. not a cell)
         """
-        TissueImage.__init__(self, image, background=background,
-                             no_label_id=no_label_id, **kwargs)
+        TissueImage.__init__(self, image, background=background, **kwargs)
 
     def voxel_n_first_layer(self, n_voxel_layer, connectivity=18,
                             keep_background=True, **kwargs):

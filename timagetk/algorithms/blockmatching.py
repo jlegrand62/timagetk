@@ -108,24 +108,28 @@ def blockmatching(floating_image, reference_image,
                          np.ndarray(kwargs['shape'], kwargs['np_type']))
     img_res = BalImage(c_bal_image=c_img_res)
 
-    # --- old API FRED, see plugins
-    #    if transformation_type:
-    #         param_str_2 = '-trsf-type '+transformation_type+' '+param_str
-    #    else:
-    #         param_str_2 = param_str
+    # - Get pointers for trsf when defined:
+    left_trsf = left_transformation.c_ptr if left_transformation else None
+    init_res_trsf = init_result_transformation.c_ptr if init_result_transformation else None
     # - Performs blockmatching registration:
     trsf_out_ptr = libblockmatching.API_blockmatching(bal_floating_image.c_ptr,
                                                       bal_reference_image.c_ptr,
                                                       pointer(c_img_res),
-                                                      left_transformation.c_ptr if left_transformation else None,
-                                                      init_result_transformation.c_ptr if init_result_transformation else None,
+                                                      left_trsf, init_res_trsf,
                                                       param_str_1, param_str_2)
-    if init_result_transformation:
+    if init_result_transformation is not None:
         # If init_result_transformation is given, this transformation is modified
         # during registration and trsf_out is init_result_transformation
         trsf_out = init_result_transformation
     else:
-        trsf_out = BalTransformation(c_bal_trsf=trsf_out_ptr.contents)
+        try:
+            trsf_out = BalTransformation(c_bal_trsf=trsf_out_ptr.contents)
+        except ValueError:
+            # - Free memory:
+            bal_floating_image.free(), bal_reference_image.free(), img_res.free()
+            # - Case where no or null transformation estimated:
+            return None, None
+
     # - Transform result BalImage to SpatialImage:
     sp_img = img_res.to_spatial_image()
     #  - Free memory:

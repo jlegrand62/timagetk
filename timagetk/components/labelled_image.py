@@ -492,7 +492,7 @@ def array_unique(array, return_index=False):
         return array[unique_rows]
 
 
-def topological_elements_extraction3D(img, elem_order=None, connectivity=26):
+def topological_elements_extraction3D(img, elem_order=None):
     """
     Extract the topological elements of order 2 (ie. wall), 1 (ie. wall-edge)
     and 0 (ie. cell vertex) by returning their coordinates grouped by pair,
@@ -504,10 +504,6 @@ def topological_elements_extraction3D(img, elem_order=None, connectivity=26):
         numpy array representing a labelled image
     elem_order : list, optional
         list of dimensional order of the elements to return, should be in [2, 1, 0]
-    connectivity: int, optional
-        connectivity or neighborhood of the structuring element, default 26,
-        should be in [6, 18, 26]
-
 
     Returns
     -------
@@ -561,41 +557,24 @@ def topological_elements_extraction3D(img, elem_order=None, connectivity=26):
            [ 6.5,  5.5,  0.5],
            [ 6.5,  6.5,  0.5]])
     """
-    try:
-        assert connectivity in [6, 18, 26]
-    except AssertionError:
-        raise ValueError("Parameter 'connectivity' should be in [6, 18, 26].")
-
-    # Define number of neighbors voxels considered during neighborhood matrix creation:
-    if connectivity == 26:
-        n_nei_vox = 8
-    elif connectivity == 18:
-        n_nei_vox = 7
-    else:
-        n_nei_vox = 4
-
+    n_nei_vox = 8
     print "# - Detecting cell topological elements:"
     sh = np.array(img.shape)
     n_voxels = (sh[0] - 1) * (sh[1] - 1) * (sh[2] - 1)
     print "  - Computing the neighborhood matrix of non-marginal voxels (n={})...".format(
         n_voxels),
     start_time = time.time()
-    # - Create the UPPER-RIGHT neighborhood matrix of each voxels:
+    # - Create the neighborhood matrix of each pointel:
     neighborhood_img = []
     for x in np.arange(-1, 1):
         for y in np.arange(-1, 1):
             for z in np.arange(-1, 1):
-                xyz = [x, y, z]
-                if (connectivity == 18 or connectivity == 6) and xyz.count(-1) == 3:
-                    continue
-                if connectivity == 6 and xyz.count(-1) == 2:
-                    continue
                 neighborhood_img.append(
-                    img[1 + x:sh[0] + x, 1 + y:sh[1] + y, 1 + z:sh[2] + z])
+                    img[1 + x:sh[0] - 1 + x, 1 + y:sh[1]-1 + y, 1 + z:sh[2]-1 + z])
 
     # - Reshape the neighborhood matrix in a N_voxel x n_nei_vox:
     neighborhood_img = np.sort(
-        np.transpose(neighborhood_img, (1, 2, 3, 0))).reshape((sh - 1).prod(),
+        np.transpose(neighborhood_img, (1, 2, 3, 0))).reshape((sh - 2).prod(),
                                                               n_nei_vox)
     elapsed_time(start_time)
 
@@ -698,7 +677,7 @@ def topological_elements_extraction3D(img, elem_order=None, connectivity=26):
     return topological_elements
 
 
-def topological_elements_extraction2D(img, elem_order=None, connectivity=8):
+def topological_elements_extraction2D(img, elem_order=None):
     """
     Extract the topological elements of order 2 (ie. wall) and 1 (ie. wall-edge)
     by returning their coordinates grouped by pair or triplet of labels.
@@ -709,9 +688,6 @@ def topological_elements_extraction2D(img, elem_order=None, connectivity=8):
         numpy array representing a labelled image
     elem_order : list, optional
         list of dimensional order of the elements to return, should be in [2, 1]
-    connectivity: int, optional
-        connectivity or neighborhood of the structuring element, default 8,
-        should be in [4, 8]
 
     Returns
     -------
@@ -759,17 +735,7 @@ def topological_elements_extraction2D(img, elem_order=None, connectivity=8):
            [ 6.5,  5.5,  0.5],
            [ 6.5,  6.5,  0.5]])
     """
-    try:
-        assert connectivity in [4, 8]
-    except AssertionError:
-        raise ValueError("Parameter 'connectivity' should be in [4, 8].")
-
-    # Define number of neighbors voxels considered during neighborhood matrix creation:
-    if connectivity == 8:
-        n_nei_vox = 4
-    else:
-        n_nei_vox = 3
-
+    n_nei_vox = 4
     print "# - Detecting cell topological elements:"
     sh = np.array(img.shape)
     n_voxels = (sh[0] - 1) * (sh[1] - 1)
@@ -780,8 +746,6 @@ def topological_elements_extraction2D(img, elem_order=None, connectivity=8):
     neighborhood_img = []
     for x in np.arange(-1, 1):
         for y in np.arange(-1, 1):
-            if connectivity == 4 and x == y == -1:
-                continue
             neighborhood_img.append(img[1 + x:sh[0] + x, 1 + y:sh[1] + y])
 
     # - Reshape the neighborhood matrix in a N_voxel x n_nei_vox:

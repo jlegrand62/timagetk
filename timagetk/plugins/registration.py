@@ -174,7 +174,7 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
-    msg = None
+    msg = ""
     # - Make sure the provided initialisation trsf matrix is linear:
     if left_trsf is not None:
         try:
@@ -182,18 +182,16 @@ def rigid_registration(floating_img, reference_img, init_trsf=None,
         except:
             raise TypeError("Provided 'left_trsf' is not a BalTransformation!")
         else:
-            msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
+            msg = " with a 'left' initialisation matrix"
     if init_trsf is not None:
         try:
             assert isinstance(init_trsf, BalTransformation)
         except:
             raise TypeError("Provided 'init_trsf' is not a BalTransformation!")
         else:
-            msg = "Using initialisation matrix for vectorfield blockmatching..."
+            msg = " with an initialisation matrix"
 
-    print "\nComputing RIGID blockmatching registration..."
-    if msg:
-        print msg
+    print "\nComputing blockmatching RIGID registration{}...".format(msg)
     trsf_rig, res_rig = blockmatching(floating_img, reference_img,
                                       init_result_transformation=init_trsf,
                                       left_transformation=left_trsf,
@@ -244,8 +242,8 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
-    msg = None
-    # - If no initialisation trsf-matrix were provided, initialise affine deformation estimation with rigid trsf:
+    msg = ""
+    # - If no initialisation trsf-matrix were provided, compute the rigid trsf to initialise affine deformation estimation:
     if init_trsf is None and left_trsf is None:
         init_trsf, res_rig = rigid_registration(floating_img, reference_img,
                                                 **kwargs)
@@ -259,7 +257,7 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
                 raise TypeError(
                     "Provided 'left_trsf' is not a BalTransformation!")
             else:
-                msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
+                msg = " with a 'left' initialisation matrix"
         if init_trsf is not None:
             try:
                 assert isinstance(init_trsf, BalTransformation)
@@ -267,11 +265,10 @@ def affine_registration(floating_img, reference_img, init_trsf=None,
                 raise TypeError(
                     "Provided 'init_trsf' is not a BalTransformation!")
             else:
-                msg = "Using initialisation matrix for vectorfield blockmatching..."
+                msg = " with an initialisation matrix"
 
-    print "\nComputing AFFINE blockmatching registration..."
-    if msg:
-        print msg
+    print "\nComputing blockmatching AFFINE registration{}...".format(msg)
+
     param_str_2 += ' -trsf-type affine'
     trsf_aff, res_aff = blockmatching(floating_img, reference_img,
                                       init_result_transformation=init_trsf,
@@ -324,8 +321,8 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
     """
     param_str_2 = _registration_kwargs(**kwargs)
 
-    msg = None
-    # - If no initialisation trsf-matrix are provided, initialise non-linear deformation estimation with rigid trsf:
+    msg = ""
+    # - If no initialisation trsf-matrix were provided, compute the rigid trsf to initialise vectrofield deformation estimation:
     if init_trsf is None and left_trsf is None:
         init_trsf, res_rig = rigid_registration(floating_img, reference_img,
                                                 **kwargs)
@@ -339,7 +336,7 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
                 raise TypeError(
                     "Provided 'left_trsf' is not a BalTransformation!")
             else:
-                msg = "Using 'left' initialisation matrix for vectorfield blockmatching..."
+                msg = " with a 'left' initialisation matrix"
         if init_trsf is not None:
             try:
                 assert isinstance(init_trsf, BalTransformation)
@@ -347,11 +344,9 @@ def deformable_registration(floating_img, reference_img, init_trsf=None,
                 raise TypeError(
                     "Provided 'init_trsf' is not a BalTransformation!")
             else:
-                msg = "Using initialisation matrix for vectorfield blockmatching..."
+                msg = " with an initialisation matrix"
 
-    print "\nComputing VECTORFIELD blockmatching registration..."
-    if msg:
-        print msg
+    print "\nComputing blockmatching VECTORFIELD registration{}...".format(msg)
     param_str_2 += ' -trsf-type vectorfield'
     trsf_def, res_def = blockmatching(floating_img, reference_img,
                                       init_result_transformation=init_trsf,

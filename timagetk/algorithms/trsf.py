@@ -242,7 +242,7 @@ def compose_trsf(list_trsf, template_img=None,
     >>> res_trsf = compose_trsf([trsf_1, trsf_2, trsf_3], template_img=template_img)
     """
     # SR - 18/03
-    trsf_types = [list_trsf[ind].trsf_type for ind, val in enumerate(list_trsf)]
+    trsf_types = [trsf.trsf_type for trsf in list_trsf]
     ref = list_trsf[trsf_types.index(max(trsf_types))]
     # if template_img is not None and 12 (vectorfield transformation)
     # not in trsf_types, template_img is ignored
